@@ -5,3 +5,7 @@
 # Draft content
 drafts/
 *.draft.mdx
+
+# Local build artifacts
+export.zip
+amplify-dist/
