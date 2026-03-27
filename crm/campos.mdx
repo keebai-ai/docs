@@ -1,16 +1,12 @@
 ---
 title: "Campos"
 sidebarTitle: "Campos"
-description: "Crea campos personalizados para almacenar la información que tu negocio necesita"
+description: "Campos personalizados para almacenar la información específica de tu negocio"
 ---
 
-## ¿Qué son los Campos?
-
-Los campos personalizados te permiten guardar información específica de tu negocio en los perfiles de tus contactos. Además de los campos estándar (nombre, email, teléfono), puedes crear los que necesites.
+Los campos personalizados te permiten guardar información específica de tu negocio en los perfiles de tus contactos, más allá de los campos estándar.
 
 ## Campos estándar
-
-Estos vienen incluidos por defecto y no se pueden eliminar:
 
 | Campo | Tipo |
 |-------|------|
@@ -27,32 +23,28 @@ Estos vienen incluidos por defecto y no se pueden eliminar:
     Navega a **CRM → Campos** y haz clic en **+ Nuevo Campo**.
   </Step>
   <Step title="Define el campo">
-    - **Nombre** — cómo se llama el campo (ej: "Plan contratado", "Fecha de vencimiento")
-    - **Tipo** — elige el tipo de dato:
-    
+    Elige nombre y tipo:
+
     | Tipo | Para qué sirve |
     |------|----------------|
     | **Texto** | Texto libre corto |
     | **Texto largo** | Notas o descripciones extensas |
     | **Número** | Valores numéricos |
     | **Fecha** | Fechas |
-    | **Selección** | Lista de opciones predefinidas (ej: "Básico", "Pro", "Enterprise") |
+    | **Selección** | Lista de opciones predefinidas |
     | **Selección múltiple** | Varias opciones a la vez |
     | **Checkbox** | Sí/No |
     | **URL** | Enlaces |
   </Step>
-  <Step title="Guarda">
-    El campo aparece automáticamente en los perfiles de todos los contactos.
-  </Step>
 </Steps>
 
-## ¿Dónde se usan los campos?
+## ¿Dónde se usan?
 
-- **Perfil del cliente** — se muestran y se pueden editar desde el perfil de cada contacto
-- **Filtros** — puedes filtrar la [lista de clientes](/crm/clientes) por cualquier campo personalizado
-- **Variables en mensajes** — usa campos como variables en [templates](/canales/templates) y [difusiones](/canales/difusion-masiva) (ej: `{{plan_contratado}}`)
-- **Funciones de IA** — el [asistente](/ia-asistentes/mis-asistentes) puede leer y escribir campos del contacto durante una conversación
+- **Perfil del cliente** — se muestran y editan en cada contacto
+- **Filtros** — filtra la [lista de clientes](/crm/clientes) por cualquier campo
+- **Variables en mensajes** — úsalos en [templates](/canales/templates) y [difusiones](/canales/difusion-masiva)
+- **IA** — el [asistente](/ia-asistentes/mis-asistentes) puede leer y escribir campos durante una conversación
 
 <Info>
-  Los campos personalizados aplican a todos los contactos del workspace. No puedes tener campos diferentes por segmento.
+  Los campos personalizados aplican a todos los contactos del workspace.
 </Info>

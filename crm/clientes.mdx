@@ -1,42 +1,39 @@
 ---
 title: "Clientes"
 sidebarTitle: "Clientes"
-description: "Administra tu base de contactos, visualiza su historial y gestiona su información"
+description: "Directorio central de contactos con historial de interacciones"
 ---
 
-## ¿Qué es la sección de Clientes?
-
-Clientes es tu directorio central de contactos en KeebAI. Cada persona que interactúa contigo a través de cualquier canal se registra automáticamente aquí, con todo su historial de conversaciones.
+Clientes es tu directorio central de contactos. Cada persona que interactúa contigo a través de cualquier canal se registra automáticamente aquí con todo su historial.
 
 ## Vista de clientes
 
-La vista principal muestra una tabla con todos tus contactos. Puedes ver:
+La vista principal muestra una tabla con todos tus contactos:
 - Nombre y datos de contacto
 - Canal por el que llegó
 - Etiquetas asignadas
 - Último mensaje
 - Agente asignado
-- Fecha de creación
 
-## Acciones sobre un cliente
+## Perfil de un cliente
+
+Haz clic en cualquier contacto para ver su perfil completo:
 
 <AccordionGroup>
-  <Accordion title="Ver perfil completo" icon="user">
-    Haz clic en un contacto para ver su perfil con:
-    - Datos personales y [campos personalizados](/crm/campos)
-    - Historial de conversaciones de todos los canales
-    - [Etiquetas](/crm/tags) asignadas
-    - [Tareas](/crm/tareas) asociadas
-    - Posición en el [embudo](/embudo/overview)
+  <Accordion title="Datos personales" icon="user">
+    Nombre, email, teléfono, empresa y [campos personalizados](/crm/campos).
   </Accordion>
-  <Accordion title="Editar información" icon="pen-to-square">
-    Actualiza nombre, email, teléfono, empresa o cualquier campo personalizado directamente desde el perfil.
+  <Accordion title="Historial de conversaciones" icon="clock-rotate-left">
+    Todas las conversaciones del contacto en todos los canales, en orden cronológico.
   </Accordion>
-  <Accordion title="Asignar etiquetas" icon="tags">
-    Agrega etiquetas para clasificar al contacto (ej: "VIP", "Lead caliente", "Soporte pendiente").
+  <Accordion title="Etiquetas" icon="tags">
+    [Tags](/crm/tags) asignados para clasificar al contacto.
   </Accordion>
-  <Accordion title="Iniciar conversación" icon="message">
-    Envía un mensaje al contacto directamente desde su perfil. Si pasaron más de 24 horas en WhatsApp, necesitarás un [template](/canales/templates).
+  <Accordion title="Tareas" icon="list-check">
+    [Tareas](/crm/tareas) vinculadas a este contacto.
+  </Accordion>
+  <Accordion title="Pipeline" icon="filter">
+    Posición actual en el [embudo](/embudo/overview) de ventas.
   </Accordion>
 </AccordionGroup>
 
@@ -45,23 +42,22 @@ La vista principal muestra una tabla con todos tus contactos. Puedes ver:
 | Filtro | Descripción |
 |--------|------------|
 | **Nombre / teléfono / email** | Búsqueda directa por texto |
-| **Etiqueta** | Filtra por etiquetas asignadas |
-| **Canal** | Filtra por canal de origen |
-| **Agente asignado** | Ver contactos asignados a un miembro del equipo |
-| **Fecha de creación** | Filtra por rango de fechas |
+| **Etiqueta** | Filtra por tags asignados |
+| **Canal** | Filtra por canal de origen (Facebook, WhatsApp, etc.) |
+| **Agente asignado** | Contactos asignados a un miembro del equipo |
 | **Campos personalizados** | Filtra por cualquier [campo](/crm/campos) que hayas creado |
 
-## Importar y exportar contactos
+## Importar y exportar
 
 <Steps>
   <Step title="Importar">
-    Haz clic en **Importar** y sube un archivo CSV con tus contactos. Mapea las columnas del CSV a los campos de KeebAI.
+    Haz clic en **Importar** y sube un archivo CSV. Mapea las columnas del CSV a los campos de Keebai.
   </Step>
   <Step title="Exportar">
-    Haz clic en **Exportar** para descargar tu base de contactos como CSV. Puedes exportar todos o solo los que tengas filtrados.
+    Haz clic en **Exportar** para descargar tu base como CSV (todos o solo los filtrados).
   </Step>
 </Steps>
 
 <Info>
-  Los contactos se crean automáticamente cuando alguien te escribe por primera vez en cualquier canal. No necesitas agregarlos manualmente.
+  Los contactos se crean automáticamente cuando alguien te escribe por primera vez en cualquier canal.
 </Info>
