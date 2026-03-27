@@ -6,8 +6,10 @@ frontend:
         - '[ -f export.zip ] && rm export.zip || true'
         - mkdir -p amplify-dist
         - find amplify-dist -mindepth 1 -delete
-        - npx --yes mintlify validate
-        - npx --yes mintlify export --output export.zip
+        - export NODE_ENV=production
+        - echo "Mintlify build env: $NODE_ENV"
+        - NODE_ENV=production npx --yes mintlify validate
+        - NODE_ENV=production npx --yes mintlify export --output export.zip
         - unzip -oq export.zip -d amplify-dist
   artifacts:
     baseDirectory: amplify-dist
