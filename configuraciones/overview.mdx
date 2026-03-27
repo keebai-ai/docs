@@ -1,31 +1,46 @@
 ---
-title: "Configuraciones"
+title: "Configuraciones del Sistema"
 sidebarTitle: "Configuraciones"
-description: "Administra los parámetros generales de tu cuenta y operación en KeebAI."
+description: "Ajustes generales de la plataforma: roles, permisos, horarios, empresa y más"
 ---
 
-## ¿Qué puedes configurar?
+Desde Configuraciones puedes ajustar todos los parámetros generales de tu plataforma Keebai.
 
-Desde esta sección puedes ajustar:
-- Datos de tu cuenta y organización
-- Preferencias de idioma y notificaciones
-- Permisos y accesos del equipo
-- Integraciones disponibles
+<Frame>
+  <img src="/images/configuracion.png" alt="Configuraciones del Sistema" />
+</Frame>
 
-## Flujo sugerido
+## Configuración General
 
-<Steps>
-  <Step title="Revisa datos generales">
-    Verifica nombre de empresa, zona horaria y datos de contacto.
-  </Step>
-  <Step title="Define permisos">
-    Configura roles y accesos para cada miembro del equipo.
-  </Step>
-  <Step title="Activa integraciones">
-    Conecta herramientas externas según tu operación.
-  </Step>
-</Steps>
+<AccordionGroup>
+  <Accordion title="Roles" icon="shield-halved">
+    Define y gestiona roles de usuario con permisos específicos. Cada miembro de tu equipo puede tener un rol diferente que controla a qué módulos y acciones tiene acceso.
+  </Accordion>
+  <Accordion title="Matriz de Permisos" icon="table-cells">
+    Gestiona permisos granulares basados en roles para tu equipo. Define quién puede ver, editar, crear o eliminar en cada módulo.
+  </Accordion>
+  <Accordion title="Contexto de Chat" icon="message">
+    Configura los límites y parámetros del contexto de conversación. Define cuántos mensajes previos considera la IA al responder.
+  </Accordion>
+  <Accordion title="Zona Horaria" icon="clock">
+    Configura la zona horaria de tu empresa. Esto afecta los horarios de trabajo, reportes y programación de difusiones.
+  </Accordion>
+  <Accordion title="Horarios de Trabajo IA" icon="robot">
+    Configura los horarios de tus asistentes de IA y su comportamiento fuera de horario: si siguen respondiendo, envían un mensaje automático o dejan de atender.
+  </Accordion>
+  <Accordion title="Empresa" icon="building">
+    Gestiona la información general de tu empresa: nombre, logo, datos de contacto y descripción.
+  </Accordion>
+  <Accordion title="Configuración de Agenda" icon="calendar">
+    Configura las opciones y preferencias de la agenda: duración de citas, disponibilidad, recordatorios automáticos.
+  </Accordion>
+  <Accordion title="Políticas de Eventos" icon="bell">
+    Configura políticas para notificaciones y acciones automáticas cuando ocurren eventos específicos en la plataforma.
+  </Accordion>
+</AccordionGroup>
 
-<Tip>
-  Realiza cambios de configuración en horarios de baja actividad para reducir impacto en tu equipo.
-</Tip>
+## Configuración Clínica
+
+<Info>
+  Si tu negocio opera en un entorno clínico o de salud, Keebai ofrece opciones adicionales de configuración adaptadas a esos requerimientos.
+</Info>

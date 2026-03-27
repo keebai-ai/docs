@@ -1,33 +1,46 @@
 ---
 title: "Dashboard"
 sidebarTitle: "Dashboard"
-description: "Visualiza las métricas clave de tu operación en un solo lugar"
+description: "Vista general de métricas clave de tu operación en Keebai"
 ---
 
-## ¿Qué es el Dashboard?
+El Dashboard es tu pantalla principal. Desde aquí puedes ver de un vistazo el estado de tus canales, conversaciones, rendimiento de la IA y satisfacción de clientes.
 
-El Dashboard es tu pantalla principal en KeebAI. Desde aquí puedes ver de un vistazo cómo van tus conversaciones, tu embudo de ventas y el rendimiento de tus asistentes de IA.
 
-## ¿Qué métricas encuentras?
+## Métricas disponibles
 
 <CardGroup cols={2}>
-  <Card title="Conversaciones activas" icon="comments">
-    Cantidad de conversaciones abiertas en todos tus canales.
+  <Card title="Canales" icon="tower-broadcast">
+    Cantidad de canales activos conectados a la plataforma.
   </Card>
-  <Card title="Leads en embudo" icon="filter">
-    Cuántos leads tienes en cada etapa de tu embudo de ventas.
+  <Card title="Conocimiento" icon="book">
+    Cantidad de items en tu base de conocimiento que alimentan a la IA.
   </Card>
-  <Card title="Rendimiento de IA" icon="robot">
-    Porcentaje de conversaciones resueltas automáticamente por tus asistentes.
+  <Card title="Conversaciones" icon="comments">
+    Total de conversaciones activas e históricas.
   </Card>
-  <Card title="Tareas pendientes" icon="list-check">
-    Tareas asignadas a ti o a tu equipo que requieren atención.
+  <Card title="Mensajes" icon="envelope">
+    Total de mensajes enviados y recibidos en todos los canales.
   </Card>
 </CardGroup>
 
-## Filtros y periodo
+## Secciones del Dashboard
 
-Puedes ajustar el rango de fechas en la esquina superior derecha para ver métricas de:
+<AccordionGroup>
+  <Accordion title="Satisfacción de clientes" icon="face-smile">
+    Indicadores de conversaciones resueltas vs. no resueltas para medir la calidad de atención.
+  </Accordion>
+  <Accordion title="Preguntas frecuentes" icon="clipboard-question">
+    Las preguntas más comunes que hacen tus clientes, para que identifiques patrones y mejores tu base de conocimiento.
+  </Accordion>
+  <Accordion title="Gráficos de actividad" icon="chart-line">
+    Visualización del volumen de conversaciones y mensajes a lo largo del tiempo.
+  </Accordion>
+</AccordionGroup>
+
+## Filtros de periodo
+
+Puedes ajustar el rango de fechas para ver métricas de:
 - Hoy
 - Últimos 7 días
 - Últimos 30 días

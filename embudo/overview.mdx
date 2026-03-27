@@ -1,47 +1,55 @@
 ---
 title: "Embudo"
 sidebarTitle: "Embudo"
-description: "Organiza tus leads por etapa y haz seguimiento visual de tu proceso de ventas"
+description: "Pipeline CRM tipo Kanban para gestionar tus oportunidades de ventas"
 ---
 
-## ¿Qué es el Embudo?
+El Embudo es un tablero Kanban donde organizas tus oportunidades de ventas por etapas. Cada tarjeta representa un ticket o lead que puedes mover entre columnas a medida que avanza.
 
-El Embudo es un tablero visual tipo Kanban donde organizas tus oportunidades de venta por etapas. Cada tarjeta representa un lead o cliente potencial que puedes mover entre columnas a medida que avanza en tu proceso.
+<Frame>
+  <img src="/images/embudo.png" alt="Embudo CRM Pipeline" />
+</Frame>
+
+## Etapas del pipeline
+
+Las etapas son configurables. Por defecto, Keebai incluye:
+
+| Etapa | Descripción |
+|-------|------------|
+| **Información y dudas generales** | El contacto tiene preguntas iniciales |
+| **Agendamiento** | Se está coordinando una cita o llamada |
+| **Cita agendada** | La cita fue confirmada |
+| **Reunión agendada** | Reunión formal programada |
+| **Asistencia humana** | Requiere atención de un agente humano |
+
+<Tip>
+  Puedes personalizar las etapas según tu proceso: renombrarlas, agregar nuevas o eliminar las que no necesites.
+</Tip>
 
 ## ¿Cómo funciona?
 
 <Steps>
-  <Step title="Define tus etapas">
-    Configura las columnas de tu embudo según tu proceso de ventas. Por ejemplo: **Nuevo → Contactado → En negociación → Cerrado ganado → Cerrado perdido**.
-  </Step>
-  <Step title="Agrega leads">
-    Los leads pueden llegar automáticamente desde tus [Canales](/canales/mis-canales) o puedes agregarlos manualmente.
+  <Step title="Los tickets llegan automáticamente">
+    Cuando un cliente te contacta por cualquier canal, se puede crear un ticket en el pipeline automáticamente (o puedes crearlo manualmente desde [Comunicación](/comunicacion/overview)).
   </Step>
   <Step title="Mueve las tarjetas">
-    Arrastra y suelta las tarjetas entre columnas a medida que avances en la conversación con cada lead.
+    Arrastra y suelta las tarjetas entre columnas a medida que avances en la conversación.
   </Step>
   <Step title="Da seguimiento">
-    Cada tarjeta muestra la información del contacto, el último mensaje y las tareas pendientes asociadas.
+    Cada tarjeta muestra el contacto, canal de origen, último mensaje y estado actual.
   </Step>
 </Steps>
 
 ## Acciones disponibles
 
 <AccordionGroup>
-  <Accordion title="Crear un embudo nuevo" icon="plus">
-    Haz clic en **+ Nuevo embudo** en la parte superior. Puedes tener múltiples embudos para diferentes procesos (ventas, onboarding, soporte, etc.).
+  <Accordion title="Crear pipelines múltiples" icon="plus">
+    Puedes tener varios embudos para diferentes procesos: ventas, onboarding, soporte, etc.
   </Accordion>
-  <Accordion title="Personalizar etapas" icon="pen-to-square">
-    Haz clic en el nombre de una columna para editarla, o usa el botón **+ Agregar etapa** para añadir nuevas.
+  <Accordion title="Asignación automática por IA" icon="robot">
+    La IA puede mover tickets entre etapas automáticamente según el contenido de la conversación.
   </Accordion>
-  <Accordion title="Filtrar leads" icon="filter">
-    Filtra por canal de origen, etiqueta, responsable asignado o fecha de creación.
-  </Accordion>
-  <Accordion title="Ver historial de un lead" icon="clock-rotate-left">
-    Haz clic en una tarjeta para ver el historial completo: conversaciones, movimientos entre etapas y notas del equipo.
+  <Accordion title="Filtrar tickets" icon="filter">
+    Filtra por canal de origen, agente asignado, etapa o fecha de creación.
   </Accordion>
 </AccordionGroup>
-
-<Tip>
-  Combina el embudo con la [Difusión Masiva](/canales/difusion-masiva) para enviar mensajes a todos los leads de una etapa específica.
-</Tip>

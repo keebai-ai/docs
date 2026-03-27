@@ -1,27 +1,25 @@
 ---
 title: "Integraciones"
 sidebarTitle: "Integraciones"
-description: "Conecta tus asistentes de IA con herramientas externas para ampliar sus capacidades"
+description: "Conecta tus asistentes de IA con APIs externas, webhooks y herramientas"
 ---
 
-## ¿Qué son las integraciones?
+Las integraciones permiten que tus asistentes se comuniquen con herramientas externas: consultar APIs, sincronizar datos y ejecutar acciones fuera de Keebai.
 
-Las integraciones permiten que tus asistentes de IA se comuniquen con herramientas externas: consultar APIs, conectar con tu CRM, enviar datos a Google Sheets, y más.
-
-## Integraciones disponibles
+## Tipos de integración
 
 <CardGroup cols={2}>
-  <Card title="Google Sheets" icon="table">
-    Lee y escribe datos en hojas de cálculo. Útil para registrar leads, consultar inventario o actualizar registros.
-  </Card>
-  <Card title="Google Calendar" icon="calendar">
-    Permite que el asistente consulte disponibilidad y agende citas directamente.
+  <Card title="APIs externas" icon="code">
+    Conecta con tu propio backend o cualquier API para consultas o acciones específicas.
   </Card>
   <Card title="Webhooks" icon="globe">
     Envía datos a cualquier URL cuando ocurra un evento (nuevo lead, conversación cerrada, etc.).
   </Card>
-  <Card title="API personalizada" icon="code">
-    Conecta con tu propio backend o cualquier API externa para consultas o acciones específicas.
+  <Card title="Sincronización de datos" icon="arrows-rotate">
+    Mantén información sincronizada entre Keebai y tus sistemas externos.
+  </Card>
+  <Card title="Automatización" icon="bolt">
+    Dispara acciones automáticas en herramientas externas desde una conversación.
   </Card>
 </CardGroup>
 
@@ -31,24 +29,26 @@ Las integraciones permiten que tus asistentes de IA se comuniquen con herramient
   <Step title="Ve a Integraciones">
     Navega a **IA & Asistentes → Integraciones**.
   </Step>
-  <Step title="Selecciona la herramienta">
-    Haz clic en la integración que quieras configurar.
+  <Step title="Selecciona o crea una integración">
+    Configura la conexión: URL del endpoint, método HTTP, headers de autenticación y parámetros.
   </Step>
-  <Step title="Autoriza el acceso">
-    Sigue el flujo de autorización (OAuth o API key) para conectar tu cuenta.
+  <Step title="Prueba la conexión">
+    Usa el botón de prueba para verificar que la integración responde correctamente.
   </Step>
-  <Step title="Configura los detalles">
-    Define qué datos se envían, qué datos se consultan y en qué momento se activa la integración.
+  <Step title="Vincula a una función">
+    Usa la integración como acción dentro de una [función](/ia-asistentes/mis-funciones) para que tu asistente pueda invocarla durante una conversación.
   </Step>
 </Steps>
 
-## Usar integraciones en asistentes
+## Ejemplos de uso
 
-Una vez conectada, puedes usar una integración como parte de las [Funciones](/ia-asistentes/mis-funciones) de un asistente. Por ejemplo:
-
-- El cliente pregunta *"¿Tienen disponibilidad el viernes?"* → el asistente consulta Google Calendar y responde con los horarios libres.
-- El cliente dice *"Quiero una cotización"* → el asistente recopila los datos y los envía a Google Sheets.
+| Integración | Lo que hace |
+|-------------|------------|
+| Consultar disponibilidad en Google Calendar | El asistente revisa horarios libres y los ofrece al cliente |
+| Registrar lead en un CRM externo | Al captar datos del cliente, se envían automáticamente |
+| Webhook a Slack | Notifica a tu equipo cuando ocurre un evento importante |
+| API de inventario | El asistente consulta stock en tiempo real |
 
 <Warning>
-  Las integraciones con APIs externas pueden requerir configuración técnica. Si necesitas ayuda, contacta a [support@keebai.com](mailto:support@keebai.com).
+  Las integraciones con APIs externas pueden requerir configuración técnica (API keys, OAuth, etc.). Si necesitas ayuda, contacta a [support@keebai.com](mailto:support@keebai.com).
 </Warning>

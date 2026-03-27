@@ -1,21 +1,19 @@
 ---
 title: "Mis Funciones"
 sidebarTitle: "Mis Funciones"
-description: "Define acciones que tus asistentes de IA pueden ejecutar durante una conversación"
+description: "Acciones personalizadas que tus asistentes de IA pueden ejecutar durante una conversación"
 ---
 
-## ¿Qué son las funciones?
-
-Las funciones son acciones específicas que un asistente de IA puede ejecutar cuando lo necesite durante una conversación. En vez de solo responder con texto, el asistente puede hacer cosas: consultar datos, agendar citas, registrar información, etc.
+Las funciones son acciones específicas que un asistente de IA puede ejecutar cuando lo necesite. En vez de solo responder con texto, el asistente puede hacer cosas: consultar datos, agendar citas, registrar información.
 
 ## Ejemplos de funciones
 
 | Función | Lo que hace |
 |---------|------------|
-| **Consultar disponibilidad** | Revisa un calendario y devuelve los horarios libres |
-| **Registrar lead** | Guarda los datos del cliente en tu CRM o en una hoja de cálculo |
-| **Buscar producto** | Consulta tu catálogo y devuelve información del producto |
-| **Crear tarea** | Crea una tarea en el módulo de [Tareas del CRM](/crm/tareas) |
+| **Consultar disponibilidad** | Revisa un calendario y devuelve horarios libres |
+| **Registrar lead** | Guarda los datos del cliente en tu CRM o sistema externo |
+| **Buscar producto** | Consulta tu catálogo y devuelve información |
+| **Crear tarea** | Crea una tarea en el módulo de [Tareas](/crm/tareas) |
 | **Escalar a humano** | Transfiere la conversación a un agente del equipo |
 
 ## Crear una función
@@ -25,16 +23,16 @@ Las funciones son acciones específicas que un asistente de IA puede ejecutar cu
     Navega a **IA & Asistentes → Mis Funciones** y haz clic en **+ Nueva Función**.
   </Step>
   <Step title="Define el nombre y descripción">
-    El nombre debe ser claro (ej: "consultar_disponibilidad"). La descripción le explica a la IA cuándo usar esta función.
+    El nombre debe ser claro (ej: "consultar_disponibilidad"). La descripción le explica a la IA **cuándo** usar esta función.
   </Step>
   <Step title="Define los parámetros">
-    ¿Qué información necesita la función para ejecutarse? Por ejemplo, para "buscar producto" necesita el nombre o categoría del producto.
+    ¿Qué información necesita la función? Ejemplo: para "buscar producto" necesita el nombre o categoría.
   </Step>
   <Step title="Configura la acción">
-    Elige qué sucede cuando la función se ejecuta:
+    Elige qué sucede al ejecutarse:
     - Llamar a un webhook o API
-    - Consultar una [integración](/ia-asistentes/integraciones) conectada
-    - Ejecutar una acción interna de KeebAI
+    - Usar una [integración](/ia-asistentes/integraciones) conectada
+    - Ejecutar una acción interna de Keebai
   </Step>
   <Step title="Vincula a un asistente">
     En la configuración del [asistente](/ia-asistentes/mis-asistentes), agrega esta función a su lista de funciones disponibles.
@@ -43,12 +41,12 @@ Las funciones son acciones específicas que un asistente de IA puede ejecutar cu
 
 ## ¿Cómo decide la IA cuándo usar una función?
 
-La IA lee la **descripción** de cada función y decide automáticamente cuándo es relevante usarla, según lo que el cliente está pidiendo en la conversación.
+La IA lee la **descripción** de cada función y decide automáticamente cuándo es relevante, según lo que el cliente pide.
 
-**Por eso es importante que la descripción sea clara.** Por ejemplo:
-- **Buena descripción:** "Usa esta función cuando el cliente pregunte por horarios disponibles para una cita o reunión"
-- **Mala descripción:** "Función de calendario"
+Por eso es clave que la descripción sea clara:
+- **Buena:** "Usa esta función cuando el cliente pregunte por horarios disponibles para una cita o reunión"
+- **Mala:** "Función de calendario"
 
 <Tip>
-  Empieza con funciones simples (como registrar un lead o escalar a humano) y ve agregando más a medida que entiendas las necesidades de tus clientes.
+  Empieza con funciones simples (registrar lead, escalar a humano) y ve agregando más a medida que entiendas las necesidades de tus clientes.
 </Tip>

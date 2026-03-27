@@ -1,24 +1,23 @@
 ---
 title: "Mis Asistentes"
 sidebarTitle: "Mis Asistentes"
-description: "Crea y administra asistentes de IA que responden por ti de forma automática"
+description: "Crea y administra asistentes de IA multiagente que atienden a tus clientes automáticamente"
 ---
 
-## ¿Qué son los asistentes?
+Los asistentes son agentes de IA que responden automáticamente a tus clientes a través de cualquier canal conectado. Cada asistente puede tener su propia configuración, conocimientos y funciones.
 
-Los asistentes son agentes de IA que puedes crear para que respondan automáticamente a tus clientes a través de cualquier canal conectado. Cada asistente puede tener su propia personalidad, conocimientos y reglas.
 
 ## Crear un asistente
 
 <Steps>
   <Step title="Haz clic en + Nuevo Asistente">
-    Desde la sección **IA & Asistentes → Mis Asistentes**, haz clic en el botón para crear uno nuevo.
+    Desde **IA & Asistentes → Mis Asistentes**, crea uno nuevo.
   </Step>
   <Step title="Dale un nombre y descripción">
-    Elige un nombre que identifique su función (ej: "Asistente de Ventas", "Soporte Técnico").
+    Elige un nombre que identifique su función. Ejemplo: "Keebai Multiagente — Sistema multiagente para atención al cliente".
   </Step>
   <Step title="Define su comportamiento">
-    Escribe las instrucciones que guían al asistente:
+    Escribe las instrucciones del asistente:
     - ¿Cómo debe saludar?
     - ¿Qué tipo de preguntas puede responder?
     - ¿Cuándo debe escalar a un humano?
@@ -28,36 +27,45 @@ Los asistentes son agentes de IA que puedes crear para que respondan automática
     Vincula documentos desde [Mis Conocimientos](/ia-asistentes/mis-conocimientos) para que el asistente tenga contexto sobre tu negocio.
   </Step>
   <Step title="Conecta a un canal">
-    Asigna el asistente a uno o más canales (WhatsApp, webchat, etc.) desde la configuración del asistente o desde [Mis Canales](/canales/mis-canales).
+    Asigna el asistente a uno o más canales (WhatsApp, Webchat, etc.) desde la configuración del asistente o desde [Mis Canales](/canales/mis-canales).
   </Step>
 </Steps>
 
-## Configuración de un asistente
+## Configuración del asistente
 
 <AccordionGroup>
   <Accordion title="Instrucciones (prompt del sistema)" icon="scroll">
-    Es el texto principal que define cómo se comporta el asistente. Piensa en él como las instrucciones que le darías a un empleado nuevo: qué hacer, qué no hacer, cómo hablar y cuándo pedir ayuda.
+    El texto que define cómo se comporta el asistente. Piensa en él como las instrucciones que le darías a un empleado nuevo: qué hacer, qué no hacer, cómo hablar y cuándo pedir ayuda.
   </Accordion>
   <Accordion title="Conocimientos vinculados" icon="book">
-    Los documentos y datos que el asistente puede consultar para responder preguntas. Puedes vincular múltiples fuentes de [Mis Conocimientos](/ia-asistentes/mis-conocimientos).
+    Los documentos y datos que el asistente puede consultar. Vincúlalos desde [Mis Conocimientos](/ia-asistentes/mis-conocimientos).
   </Accordion>
   <Accordion title="Funciones" icon="bolt">
-    Acciones que el asistente puede ejecutar, como consultar un API externo, agendar una cita o buscar información en tu CRM. Configúralas en [Mis Funciones](/ia-asistentes/mis-funciones).
+    Acciones que el asistente puede ejecutar durante una conversación: consultar APIs, agendar citas, registrar datos. Configúralas en [Mis Funciones](/ia-asistentes/mis-funciones).
   </Accordion>
-  <Accordion title="Reglas de escalamiento" icon="arrow-up-right-from-square">
-    Define cuándo el asistente debe dejar de responder y pasar la conversación a un agente humano (ej: si el cliente pide hablar con una persona, o si no tiene la respuesta).
+  <Accordion title="Entrenamiento con datos" icon="graduation-cap">
+    Mejora las respuestas del asistente alimentándolo con ejemplos de conversaciones reales y correcciones.
   </Accordion>
 </AccordionGroup>
+
+## Estado de los asistentes
+
+Cada asistente tiene un estado:
+
+| Estado | Significado |
+|--------|------------|
+| **Activo** | Recibiendo y respondiendo conversaciones |
+| **Inactivo** | Configurado pero no atendiendo conversaciones |
 
 ## Buenas prácticas
 
 | Práctica | Por qué importa |
 |----------|----------------|
 | Sé específico en las instrucciones | "Responde en español, máximo 3 oraciones, tono amable" es mejor que "responde bien" |
-| Vincula los conocimientos correctos | Si el asistente es de ventas, vincúlalo con el catálogo de productos, no con el manual técnico |
-| Define límites claros | Indica explícitamente qué NO debe hacer: no inventar precios, no prometer plazos, etc. |
+| Vincula los conocimientos correctos | Si el asistente es de ventas, vincúlalo con el catálogo, no con el manual técnico |
+| Define límites claros | Indica qué NO debe hacer: no inventar precios, no prometer plazos |
 | Prueba antes de publicar | Usa el chat de prueba para verificar que responde como esperas |
 
 <Warning>
-  Un asistente sin conocimientos vinculados solo podrá responder con base en sus instrucciones. Para respuestas precisas sobre tu negocio, asegúrate de cargar tus documentos en [Mis Conocimientos](/ia-asistentes/mis-conocimientos).
+  Un asistente sin conocimientos vinculados solo responderá con base en sus instrucciones generales. Para respuestas precisas sobre tu negocio, carga tus documentos en [Mis Conocimientos](/ia-asistentes/mis-conocimientos).
 </Warning>

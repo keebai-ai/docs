@@ -1,31 +1,29 @@
 ---
 title: "Flows"
 sidebarTitle: "Flows"
-description: "Diseña flujos automatizados de conversación y acciones sin escribir código"
+description: "Flujos de conversación automática y automatización condicional"
 ---
 
 <Info>
-  **Nuevo** — Flows es una funcionalidad nueva en KeebAI.
+  **Nuevo** — Flows es una funcionalidad nueva en Keebai.
 </Info>
 
-## ¿Qué son los Flows?
-
-Los Flows son flujos automatizados de conversación y acciones que se ejecutan cuando se cumple una condición. Funcionan como un diagrama de flujo visual: defines un disparador, agregas pasos y el sistema lo ejecuta automáticamente.
+Los Flows son flujos automatizados de conversación y acciones que se ejecutan cuando se cumple una condición. Funcionan como un diagrama visual: defines un disparador, agregas pasos y el sistema lo ejecuta automáticamente.
 
 ## ¿Para qué sirven?
 
 <CardGroup cols={2}>
-  <Card title="Onboarding de clientes" icon="hand-wave">
-    Envía una secuencia de bienvenida cuando un nuevo contacto te escribe por primera vez.
+  <Card title="Onboarding" icon="hand-wave">
+    Secuencia de bienvenida cuando un nuevo contacto te escribe por primera vez.
   </Card>
   <Card title="Seguimiento automático" icon="arrows-rotate">
-    Si un lead no responde en 48 horas, envía un mensaje de seguimiento automáticamente.
+    Si un lead no responde en X horas, envía un mensaje de seguimiento.
   </Card>
   <Card title="Calificación de leads" icon="star">
     Haz preguntas para calificar al lead y moverlo a la etapa correcta del embudo.
   </Card>
-  <Card title="Notificaciones internas" icon="bell">
-    Notifica a tu equipo por Slack, email o dentro de KeebAI cuando ocurra algo importante.
+  <Card title="Notificaciones" icon="bell">
+    Notifica a tu equipo cuando ocurra algo importante.
   </Card>
 </CardGroup>
 
@@ -36,33 +34,32 @@ Los Flows son flujos automatizados de conversación y acciones que se ejecutan c
     Navega a **Canales → Flows** y haz clic en **+ Nuevo Flow**.
   </Step>
   <Step title="Elige un disparador">
-    ¿Qué inicia el flow?
-    - **Nueva conversación** — cuando un cliente te escribe por primera vez
-    - **Etiqueta asignada** — cuando un contacto recibe una etiqueta específica
-    - **Cambio de etapa** — cuando un lead se mueve en el embudo
-    - **Manual** — lo ejecutas tú con un clic
-    - **Programado** — se ejecuta en una fecha/hora específica
+    | Disparador | Descripción |
+    |-----------|------------|
+    | **Nueva conversación** | Cliente te escribe por primera vez |
+    | **Etiqueta asignada** | Un contacto recibe una etiqueta específica |
+    | **Cambio de etapa** | Un lead se mueve en el embudo |
+    | **Manual** | Lo ejecutas con un clic |
+    | **Programado** | Se ejecuta en una fecha/hora |
   </Step>
   <Step title="Agrega pasos">
-    Arrastra y conecta bloques en el editor visual:
-    
     | Bloque | Qué hace |
     |--------|----------|
     | **Enviar mensaje** | Envía un mensaje por el canal del contacto |
-    | **Esperar** | Pausa el flow por un tiempo definido (minutos, horas, días) |
-    | **Condición** | Bifurca el flow según una condición (ej: si respondió / si no respondió) |
-    | **Asignar etiqueta** | Agrega o quita una etiqueta al contacto |
-    | **Mover en embudo** | Mueve al contacto a otra etapa del embudo |
+    | **Esperar** | Pausa el flow por un tiempo definido |
+    | **Condición** | Bifurca según una condición (respondió / no respondió) |
+    | **Asignar etiqueta** | Agrega o quita un tag al contacto |
+    | **Mover en embudo** | Mueve al contacto a otra etapa del pipeline |
     | **Asignar agente** | Asigna la conversación a un miembro del equipo |
     | **Webhook** | Envía datos a una URL externa |
-    | **IA** | Usa un asistente de IA para generar una respuesta dinámica |
+    | **IA** | Usa un asistente para generar una respuesta dinámica |
   </Step>
   <Step title="Activa el flow">
-    Prueba el flow con un contacto de prueba y cuando estés satisfecho, actívalo.
+    Prueba con un contacto de prueba y cuando estés conforme, actívalo.
   </Step>
 </Steps>
 
-## Ejemplo: Flow de seguimiento
+## Ejemplo: Seguimiento automático
 
 ```
 Disparador: Lead no responde en 48h
@@ -70,10 +67,9 @@ Disparador: Lead no responde en 48h
   → Esperar 24h
   → Condición: ¿Respondió?
     → Sí: Asignar al agente de ventas
-    → No: Enviar mensaje: "Quedamos atentos si tienes alguna duda"
-         → Mover a etapa "Sin respuesta"
+    → No: Enviar mensaje final → Mover a etapa "Sin respuesta"
 ```
 
 <Tip>
-  Empieza con flows simples de 2-3 pasos. A medida que entiendas cómo funcionan, puedes crear automatizaciones más complejas.
+  Empieza con flows simples de 2-3 pasos. A medida que entiendas cómo funcionan, crea automatizaciones más complejas.
 </Tip>

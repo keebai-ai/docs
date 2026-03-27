@@ -1,37 +1,53 @@
 ---
-title: "Configurar ticket"
-sidebarTitle: "Configurar ticket"
-description: "Define estados, prioridades y reglas para el flujo de tickets en tu CRM."
+title: "Configurar Ticket"
+sidebarTitle: "Configurar Ticket"
+description: "Define cómo se gestionan los tickets de soporte en tu workspace"
 ---
 
-## ¿Qué es la configuración de tickets?
+Los tickets son solicitudes de atención formal que tus clientes generan a través de cualquier canal. A diferencia de una conversación general, un ticket tiene estado, prioridad y seguimiento hasta su resolución.
 
-En esta sección defines cómo se comportan los tickets dentro del CRM de KeebAI:
-- Estados disponibles
-- Prioridades
-- Reglas de asignación
-- Automatizaciones iniciales
-
-## Ajustes recomendados
+## Configurar el sistema de tickets
 
 <Steps>
-  <Step title="Define estados">
-    Crea estados claros como **Nuevo**, **En progreso**, **Pendiente del cliente** y **Resuelto**.
+  <Step title="Ve a Configurar Ticket">
+    Navega a **CRM → Configurar Ticket**.
   </Step>
-  <Step title="Configura prioridades">
-    Usa niveles como **Baja**, **Media** y **Alta** para ordenar la atención.
+  <Step title="Define los estados">
+    Personaliza los estados:
+    - **Abierto** — recién creado
+    - **En progreso** — alguien lo está atendiendo
+    - **En espera** — pendiente de respuesta del cliente
+    - **Resuelto** — solucionado
+    - **Cerrado** — finalizado
   </Step>
-  <Step title="Asigna responsables">
-    Establece responsables por canal o tipo de cliente para evitar tickets sin dueño.
+  <Step title="Define las prioridades">
+    Configura niveles: Baja, Media, Alta, Urgente.
+  </Step>
+  <Step title="Define las categorías">
+    Clasifica los tickets: "Facturación", "Soporte técnico", "Consulta general", etc.
   </Step>
 </Steps>
 
-## Buenas prácticas
+## ¿Cómo se crean los tickets?
 
-- Usa nombres cortos y consistentes para estados.
-- Evita tener demasiados estados que dificulten el seguimiento.
-- Revisa periódicamente tickets estancados y actualiza reglas si es necesario.
+<AccordionGroup>
+  <Accordion title="Desde una conversación" icon="hand-pointer">
+    En [Comunicación](/comunicacion/overview), haz clic en **Crear Ticket** para convertir una conversación en ticket formal.
+  </Accordion>
+  <Accordion title="Automáticamente con Flows" icon="diagram-project">
+    Los [Flows](/canales/flows) pueden crear tickets cuando se cumplan condiciones específicas.
+  </Accordion>
+  <Accordion title="Por el asistente de IA" icon="robot">
+    El [asistente](/ia-asistentes/mis-asistentes) puede crear tickets si detecta que el cliente necesita soporte formal.
+  </Accordion>
+</AccordionGroup>
 
-<Info>
-  Si trabajas con automatizaciones, conecta esta configuración con tus flujos de trabajo para asignar y escalar tickets automáticamente.
-</Info>
+## Información de cada ticket
+
+Cada ticket muestra:
+- **Contacto** asociado
+- **Estado** actual
+- **Prioridad** y **categoría**
+- **Agente asignado**
+- **Historial** de conversación y notas internas
+- **Tiempo de respuesta**
