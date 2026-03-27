@@ -1,0 +1,58 @@
+---
+title: "Difusión Masiva"
+sidebarTitle: "Difusión Masiva"
+description: "Envía mensajes a múltiples contactos a la vez a través de tus canales conectados"
+---
+
+## ¿Qué es la Difusión Masiva?
+
+La Difusión Masiva te permite enviar un mismo mensaje a un grupo de contactos a través de WhatsApp, email u otros canales. Es ideal para campañas, actualizaciones, promociones o comunicados.
+
+## Crear una difusión
+
+<Steps>
+  <Step title="Ve a Difusión Masiva">
+    Navega a **Canales → Difusión Masiva** y haz clic en **+ Nueva Difusión**.
+  </Step>
+  <Step title="Selecciona el canal">
+    Elige por qué canal quieres enviar: WhatsApp, email, etc.
+  </Step>
+  <Step title="Selecciona los destinatarios">
+    Puedes elegir contactos de varias formas:
+    - **Por etiqueta** — todos los contactos con una [etiqueta](/crm/tags) específica
+    - **Por etapa del embudo** — todos los leads en una etapa del [embudo](/embudo/overview)
+    - **Manual** — selecciona contactos individuales de tu [CRM](/crm/clientes)
+    - **Importar lista** — sube un CSV con los contactos
+  </Step>
+  <Step title="Redacta el mensaje">
+    Escribe el contenido del mensaje. Puedes usar **variables dinámicas** como `{{nombre}}`, `{{empresa}}` o `{{email}}` para personalizar cada mensaje.
+  </Step>
+  <Step title="Programa o envía">
+    - **Enviar ahora** — se envía inmediatamente
+    - **Programar** — elige fecha y hora para el envío
+  </Step>
+</Steps>
+
+## Variables dinámicas
+
+Las variables se reemplazan automáticamente con los datos de cada contacto:
+
+| Variable | Se reemplaza por |
+|----------|-----------------|
+| `{{nombre}}` | Nombre del contacto |
+| `{{empresa}}` | Empresa del contacto |
+| `{{email}}` | Email del contacto |
+| `{{telefono}}` | Teléfono del contacto |
+| `{{campo_personalizado}}` | Cualquier [campo personalizado](/crm/campos) que hayas creado |
+
+## Reportes de difusión
+
+Después de cada envío puedes ver:
+- **Enviados** — cuántos mensajes se enviaron
+- **Entregados** — cuántos llegaron al destinatario
+- **Leídos** — cuántos fueron abiertos (cuando el canal lo soporta)
+- **Respondidos** — cuántos generaron una respuesta
+
+<Warning>
+  En WhatsApp, la difusión masiva solo funciona con [templates aprobados](/canales/templates). Asegúrate de tener tu template aprobado antes de crear la difusión.
+</Warning>

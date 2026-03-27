@@ -1,0 +1,54 @@
+---
+title: "Mis Funciones"
+sidebarTitle: "Mis Funciones"
+description: "Define acciones que tus asistentes de IA pueden ejecutar durante una conversación"
+---
+
+## ¿Qué son las funciones?
+
+Las funciones son acciones específicas que un asistente de IA puede ejecutar cuando lo necesite durante una conversación. En vez de solo responder con texto, el asistente puede hacer cosas: consultar datos, agendar citas, registrar información, etc.
+
+## Ejemplos de funciones
+
+| Función | Lo que hace |
+|---------|------------|
+| **Consultar disponibilidad** | Revisa un calendario y devuelve los horarios libres |
+| **Registrar lead** | Guarda los datos del cliente en tu CRM o en una hoja de cálculo |
+| **Buscar producto** | Consulta tu catálogo y devuelve información del producto |
+| **Crear tarea** | Crea una tarea en el módulo de [Tareas del CRM](/crm/tareas) |
+| **Escalar a humano** | Transfiere la conversación a un agente del equipo |
+
+## Crear una función
+
+<Steps>
+  <Step title="Ve a Mis Funciones">
+    Navega a **IA & Asistentes → Mis Funciones** y haz clic en **+ Nueva Función**.
+  </Step>
+  <Step title="Define el nombre y descripción">
+    El nombre debe ser claro (ej: "consultar_disponibilidad"). La descripción le explica a la IA cuándo usar esta función.
+  </Step>
+  <Step title="Define los parámetros">
+    ¿Qué información necesita la función para ejecutarse? Por ejemplo, para "buscar producto" necesita el nombre o categoría del producto.
+  </Step>
+  <Step title="Configura la acción">
+    Elige qué sucede cuando la función se ejecuta:
+    - Llamar a un webhook o API
+    - Consultar una [integración](/ia-asistentes/integraciones) conectada
+    - Ejecutar una acción interna de KeebAI
+  </Step>
+  <Step title="Vincula a un asistente">
+    En la configuración del [asistente](/ia-asistentes/mis-asistentes), agrega esta función a su lista de funciones disponibles.
+  </Step>
+</Steps>
+
+## ¿Cómo decide la IA cuándo usar una función?
+
+La IA lee la **descripción** de cada función y decide automáticamente cuándo es relevante usarla, según lo que el cliente está pidiendo en la conversación.
+
+**Por eso es importante que la descripción sea clara.** Por ejemplo:
+- **Buena descripción:** "Usa esta función cuando el cliente pregunte por horarios disponibles para una cita o reunión"
+- **Mala descripción:** "Función de calendario"
+
+<Tip>
+  Empieza con funciones simples (como registrar un lead o escalar a humano) y ve agregando más a medida que entiendas las necesidades de tus clientes.
+</Tip>

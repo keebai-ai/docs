@@ -1,0 +1,73 @@
+---
+title: "Templates"
+sidebarTitle: "Templates"
+description: "Crea y gestiona plantillas de mensajes aprobadas para WhatsApp y otros canales"
+---
+
+## ¿Qué son los Templates?
+
+Los Templates son plantillas de mensajes pre-aprobadas que puedes usar para iniciar conversaciones o enviar difusiones masivas. En WhatsApp Business API, los templates son obligatorios para enviar mensajes fuera de la ventana de 24 horas.
+
+## ¿Cuándo necesitas un template?
+
+<AccordionGroup>
+  <Accordion title="Para difusiones masivas por WhatsApp" icon="paper-plane">
+    Toda [difusión masiva](/canales/difusion-masiva) por WhatsApp requiere un template aprobado.
+  </Accordion>
+  <Accordion title="Para recontactar después de 24 horas" icon="clock">
+    WhatsApp solo permite mensajes libres dentro de una ventana de 24 horas desde el último mensaje del cliente. Para escribir después, necesitas un template.
+  </Accordion>
+  <Accordion title="Para mensajes de notificación" icon="bell">
+    Confirmaciones de cita, recordatorios de pago, actualizaciones de pedido — todo esto se envía con templates.
+  </Accordion>
+</AccordionGroup>
+
+## Crear un template
+
+<Steps>
+  <Step title="Ve a Templates">
+    Navega a **Canales → Templates** y haz clic en **+ Nuevo Template**.
+  </Step>
+  <Step title="Elige la categoría">
+    WhatsApp requiere que clasifiques tu template:
+    - **Marketing** — promociones, ofertas, novedades
+    - **Utilidad** — confirmaciones, recordatorios, actualizaciones
+    - **Autenticación** — códigos de verificación
+  </Step>
+  <Step title="Redacta el mensaje">
+    Escribe el contenido del template. Puedes incluir:
+    - **Variables** — espacios dinámicos como `{{1}}`, `{{2}}` que se llenan con datos del contacto
+    - **Botones** — de respuesta rápida o con enlace
+    - **Encabezado** — texto, imagen o documento
+  </Step>
+  <Step title="Envía a aprobación">
+    Haz clic en **Enviar a revisión**. Meta (WhatsApp) revisa el template y lo aprueba o rechaza. Esto puede tardar entre minutos y 24 horas.
+  </Step>
+</Steps>
+
+## Estados de un template
+
+| Estado | Significado |
+|--------|------------|
+| **Pendiente** | Enviado a revisión, esperando respuesta de Meta |
+| **Aprobado** | Listo para usar en difusiones y mensajes |
+| **Rechazado** | No cumple con las políticas de Meta. Puedes editarlo y reenviarlo |
+| **Pausado** | Meta lo desactivó temporalmente por baja calidad o muchos reportes |
+
+## Buenas prácticas
+
+<AccordionGroup>
+  <Accordion title="Sé claro y directo" icon="bullseye">
+    Los templates que funcionan mejor son cortos, van al punto y tienen un llamado a la acción claro.
+  </Accordion>
+  <Accordion title="No uses lenguaje engañoso" icon="ban">
+    Meta rechaza templates que parezcan spam, que prometan resultados irreales o que presionen al usuario.
+  </Accordion>
+  <Accordion title="Incluye variables de personalización" icon="user">
+    Los mensajes personalizados tienen mejores tasas de apertura y respuesta.
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+  Revisa el estado de tus templates regularmente. Si uno es pausado, reemplázalo rápidamente para no interrumpir tus campañas.
+</Tip>

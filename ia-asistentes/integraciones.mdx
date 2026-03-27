@@ -1,0 +1,54 @@
+---
+title: "Integraciones"
+sidebarTitle: "Integraciones"
+description: "Conecta tus asistentes de IA con herramientas externas para ampliar sus capacidades"
+---
+
+## ¿Qué son las integraciones?
+
+Las integraciones permiten que tus asistentes de IA se comuniquen con herramientas externas: consultar APIs, conectar con tu CRM, enviar datos a Google Sheets, y más.
+
+## Integraciones disponibles
+
+<CardGroup cols={2}>
+  <Card title="Google Sheets" icon="table">
+    Lee y escribe datos en hojas de cálculo. Útil para registrar leads, consultar inventario o actualizar registros.
+  </Card>
+  <Card title="Google Calendar" icon="calendar">
+    Permite que el asistente consulte disponibilidad y agende citas directamente.
+  </Card>
+  <Card title="Webhooks" icon="globe">
+    Envía datos a cualquier URL cuando ocurra un evento (nuevo lead, conversación cerrada, etc.).
+  </Card>
+  <Card title="API personalizada" icon="code">
+    Conecta con tu propio backend o cualquier API externa para consultas o acciones específicas.
+  </Card>
+</CardGroup>
+
+## Conectar una integración
+
+<Steps>
+  <Step title="Ve a Integraciones">
+    Navega a **IA & Asistentes → Integraciones**.
+  </Step>
+  <Step title="Selecciona la herramienta">
+    Haz clic en la integración que quieras configurar.
+  </Step>
+  <Step title="Autoriza el acceso">
+    Sigue el flujo de autorización (OAuth o API key) para conectar tu cuenta.
+  </Step>
+  <Step title="Configura los detalles">
+    Define qué datos se envían, qué datos se consultan y en qué momento se activa la integración.
+  </Step>
+</Steps>
+
+## Usar integraciones en asistentes
+
+Una vez conectada, puedes usar una integración como parte de las [Funciones](/ia-asistentes/mis-funciones) de un asistente. Por ejemplo:
+
+- El cliente pregunta *"¿Tienen disponibilidad el viernes?"* → el asistente consulta Google Calendar y responde con los horarios libres.
+- El cliente dice *"Quiero una cotización"* → el asistente recopila los datos y los envía a Google Sheets.
+
+<Warning>
+  Las integraciones con APIs externas pueden requerir configuración técnica. Si necesitas ayuda, contacta a [support@keebai.com](mailto:support@keebai.com).
+</Warning>

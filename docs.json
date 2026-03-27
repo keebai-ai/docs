@@ -1,0 +1,97 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "KeebAI",
+  "colors": {
+    "primary": "#FF73C2",
+    "light": "#FF73C2",
+    "dark": "#FF73C2"
+  },
+  "favicon": "/favicon.svg",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Soporte",
+        "href": "mailto:support@keebai.com"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Ir a Keebai",
+      "href": "https://app.keebai.com"
+    }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentación",
+        "groups": [
+          {
+            "group": "Inicio",
+            "pages": [
+              "index",
+              "get-started",
+              "dashboard/overview",
+              "embudo/overview",
+              "comunicacion/overview"
+            ]
+          },
+          {
+            "group": "IA & Asistentes",
+            "pages": [
+              "ia-asistentes/mis-asistentes",
+              "ia-asistentes/mis-conocimientos",
+              "ia-asistentes/integraciones",
+              "ia-asistentes/mis-funciones"
+            ]
+          },
+          {
+            "group": "Canales",
+            "pages": [
+              "canales/mis-canales",
+              "canales/difusion-masiva",
+              "canales/templates",
+              "canales/flows"
+            ]
+          },
+          {
+            "group": "CRM",
+            "pages": [
+              "crm/clientes",
+              "crm/tareas",
+              "crm/campos",
+              "crm/tags",
+              "crm/configurar-ticket"
+            ]
+          },
+          {
+            "group": "Configuraciones",
+            "pages": [
+              "configuraciones/overview"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Soporte",
+          "href": "mailto:support@keebai.com",
+          "icon": "envelope"
+        }
+      ]
+    }
+  },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/keebai",
+      "linkedin": "https://linkedin.com/company/keebai",
+      "github": "https://github.com/keebai"
+    }
+  }
+}

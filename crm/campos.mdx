@@ -1,0 +1,58 @@
+---
+title: "Campos"
+sidebarTitle: "Campos"
+description: "Crea campos personalizados para almacenar la información que tu negocio necesita"
+---
+
+## ¿Qué son los Campos?
+
+Los campos personalizados te permiten guardar información específica de tu negocio en los perfiles de tus contactos. Además de los campos estándar (nombre, email, teléfono), puedes crear los que necesites.
+
+## Campos estándar
+
+Estos vienen incluidos por defecto y no se pueden eliminar:
+
+| Campo | Tipo |
+|-------|------|
+| Nombre | Texto |
+| Email | Email |
+| Teléfono | Teléfono |
+| Empresa | Texto |
+| Notas | Texto largo |
+
+## Crear un campo personalizado
+
+<Steps>
+  <Step title="Ve a Campos">
+    Navega a **CRM → Campos** y haz clic en **+ Nuevo Campo**.
+  </Step>
+  <Step title="Define el campo">
+    - **Nombre** — cómo se llama el campo (ej: "Plan contratado", "Fecha de vencimiento")
+    - **Tipo** — elige el tipo de dato:
+    
+    | Tipo | Para qué sirve |
+    |------|----------------|
+    | **Texto** | Texto libre corto |
+    | **Texto largo** | Notas o descripciones extensas |
+    | **Número** | Valores numéricos |
+    | **Fecha** | Fechas |
+    | **Selección** | Lista de opciones predefinidas (ej: "Básico", "Pro", "Enterprise") |
+    | **Selección múltiple** | Varias opciones a la vez |
+    | **Checkbox** | Sí/No |
+    | **URL** | Enlaces |
+  </Step>
+  <Step title="Guarda">
+    El campo aparece automáticamente en los perfiles de todos los contactos.
+  </Step>
+</Steps>
+
+## ¿Dónde se usan los campos?
+
+- **Perfil del cliente** — se muestran y se pueden editar desde el perfil de cada contacto
+- **Filtros** — puedes filtrar la [lista de clientes](/crm/clientes) por cualquier campo personalizado
+- **Variables en mensajes** — usa campos como variables en [templates](/canales/templates) y [difusiones](/canales/difusion-masiva) (ej: `{{plan_contratado}}`)
+- **Funciones de IA** — el [asistente](/ia-asistentes/mis-asistentes) puede leer y escribir campos del contacto durante una conversación
+
+<Info>
+  Los campos personalizados aplican a todos los contactos del workspace. No puedes tener campos diferentes por segmento.
+</Info>
