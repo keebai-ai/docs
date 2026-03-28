@@ -18,17 +18,17 @@ Al ingresar a **IA & Asistentes → Mis Conocimientos**, verás una interfaz tip
 |------|------------|
 | **Barra lateral** | Árbol de navegación con todas tus carpetas y documentos. Incluye buscador y filtros. |
 | **Encabezado** | Título de la ubicación actual, modo de selección y acciones masivas (mover, copiar, asignar, eliminar). |
-| **Área principal** | Vista de cuadrícula con los nodos de la carpeta actual, acceso rápido y editor de documentos. |
+| **Área principal** | Vista de cuadrícula con el contenido de la carpeta actual, acceso rápido y editor de documentos. |
 
 ### Acceso rápido
 
-Puedes fijar hasta **5 documentos o carpetas** como acceso rápido para tenerlos siempre a mano en la parte superior del explorador. Haz clic derecho sobre cualquier nodo y selecciona **"Agregar a acceso rápido"**.
+Puedes fijar hasta **5 documentos o carpetas** como acceso rápido para tenerlos siempre a mano en la parte superior del explorador. Haz clic derecho sobre cualquier elemento y selecciona **"Agregar a acceso rápido"**.
 
 ---
 
-## Tipos de nodos
+## Tipos de elementos
 
-La base de conocimientos maneja dos tipos de nodos:
+La base de conocimientos maneja dos tipos de elementos:
 
 <CardGroup cols={2}>
   <Card title="Carpetas" icon="folder">
@@ -100,7 +100,7 @@ Los documentos internos se editan con un editor de bloques que soporta formato r
 | **Citas** | Bloques de texto destacado |
 
 <Info>
-  El contenido se guarda automáticamente. Keebai extrae el texto plano para alimentar el sistema de búsqueda IA de tus asistentes.
+  El contenido se guarda automáticamente y queda disponible para que tus asistentes lo utilicen al responder consultas.
 </Info>
 
 ---
@@ -128,7 +128,7 @@ Keebai permite conectar fuentes externas de información para importar documento
     Elige **Google Drive** o **Notion** y haz clic en **Conectar**.
   </Step>
   <Step title="Autoriza el acceso">
-    Se abrirá una ventana de OAuth para que autorices a Keebai a leer tus documentos. Tus credenciales se almacenan de forma segura con cifrado AES-256.
+    Se abrirá una ventana de autorización para que permitas a Keebai leer tus documentos. Tus credenciales se almacenan de forma segura y encriptada.
   </Step>
   <Step title="Selecciona archivos y carpetas">
     Usa el explorador de archivos remotos para elegir qué documentos y carpetas quieres sincronizar. Puedes seleccionar hasta **500 elementos** por conexión.
@@ -144,21 +144,21 @@ Keebai permite conectar fuentes externas de información para importar documento
   <Tab title="Google Drive">
     | Formato | Soporte |
     |---------|---------|
-    | Google Docs | ✅ Se exporta como markdown |
-    | PDF | ✅ Extracción de texto y tablas |
-    | Word (.docx) | ✅ Conversión HTML a markdown |
+    | Google Docs | ✅ Importa el contenido completo |
+    | PDF | ✅ Extrae texto y tablas |
+    | Word (.docx) | ✅ Importa contenido formateado |
     | Word (.doc) antiguo | ❌ No soportado |
     | Texto plano (.txt) | ✅ |
     | CSV | ✅ |
     | JSON | ✅ |
     | XML | ✅ |
     | Markdown (.md) | ✅ |
-    | Accesos directos de Drive | ✅ Se resuelve el archivo original |
+    | Accesos directos de Drive | ✅ Importa el archivo al que apunta |
   </Tab>
   <Tab title="Notion">
     | Formato | Soporte |
     |---------|---------|
-    | Páginas | ✅ Renderizado bloque a bloque como markdown |
+    | Páginas | ✅ Importa contenido completo con formato |
     | Bases de datos | ✅ |
     | Texto enriquecido | ✅ Negrita, cursiva, código, enlaces |
     | Tablas | ✅ |
@@ -168,7 +168,7 @@ Keebai permite conectar fuentes externas de información para importar documento
 
 ### Sincronización automática
 
-Las conexiones externas se sincronizan automáticamente cada **60 minutos**. Keebai detecta cambios en los archivos y actualiza el contenido de forma incremental.
+Las conexiones externas se sincronizan automáticamente cada **60 minutos**. Keebai detecta cambios en los archivos y actualiza el contenido.
 
 También puedes forzar una sincronización manual:
 - **Conexión completa:** Desde la vista de conexiones externas, haz clic en **Sincronizar** en la conexión.
@@ -182,37 +182,37 @@ También puedes forzar una sincronización manual:
 
 ## Organizar contenido
 
-### Mover nodos
+### Mover
 
-Selecciona uno o más nodos y usa la acción **Mover** del encabezado o del menú contextual (clic derecho). Se abrirá un selector de carpeta destino.
+Selecciona uno o más elementos y usa la acción **Mover** del encabezado o del menú contextual (clic derecho). Se abrirá un selector de carpeta destino.
 
-### Copiar nodos
+### Copiar
 
-La acción **Copiar** crea un duplicado del nodo. Las copias de documentos externos se convierten en documentos internos editables. Las carpetas se copian recursivamente con todo su contenido.
+La acción **Copiar** crea un duplicado. Las copias de documentos externos se convierten en documentos internos editables. Las carpetas se copian con todo su contenido.
 
 ### Reordenar
 
-Cambia la posición de los nodos dentro de una carpeta arrastrándolos o usando las opciones de reordenamiento.
+Cambia la posición de los elementos dentro de una carpeta arrastrándolos o usando las opciones de reordenamiento.
 
 ### Eliminar
 
-La eliminación es **lógica** (soft delete): los nodos se desactivan y sus embeddings se limpian automáticamente. La eliminación de carpetas es recursiva — elimina todo el contenido interior.
+Al eliminar un documento o carpeta, se desactiva y deja de estar disponible para los asistentes. La eliminación de carpetas incluye todo su contenido interior.
 
 ---
 
 ## Asignar conocimientos a asistentes
 
-Para que un asistente pueda usar la información de tus documentos, debes asignarlos a sus workers (agentes de trabajo).
+Para que un asistente pueda usar la información de tus documentos, debes asignarlos.
 
 <Steps>
   <Step title="Selecciona documentos">
     En el explorador, activa el modo de selección y elige los documentos que quieres asignar.
   </Step>
   <Step title="Haz clic en 'Asignar'">
-    Usa la acción **Asignar** del encabezado o del menú contextual.
+    Usa la acción **Asignar** del encabezado o del menú contextual (clic derecho).
   </Step>
   <Step title="Elige los asistentes">
-    Selecciona a qué asistentes quieres vincular estos documentos. Los documentos se asignan a todos los workers no-supervisores del asistente.
+    Selecciona a qué asistentes quieres vincular estos documentos.
   </Step>
 </Steps>
 
@@ -222,45 +222,30 @@ Para que un asistente pueda usar la información de tus documentos, debes asigna
 
 ---
 
-## Cómo funciona la búsqueda IA (RAG)
+## ¿Cómo usan los asistentes esta información?
 
-Cuando un asistente recibe una pregunta, Keebai utiliza un sistema de **Retrieval-Augmented Generation (RAG)** para encontrar la información relevante:
-
-<Steps>
-  <Step title="Fragmentación">
-    Cada documento se divide automáticamente en fragmentos de aproximadamente **1,000 caracteres** con solapamiento de 150 caracteres para mantener el contexto.
-  </Step>
-  <Step title="Embeddings">
-    Cada fragmento se convierte en un vector numérico (embedding) usando el modelo `text-embedding-3-small` de OpenAI con **1,536 dimensiones**.
-  </Step>
-  <Step title="Búsqueda vectorial">
-    Cuando llega una pregunta, se convierte en un embedding y se buscan los fragmentos más similares usando **búsqueda por similitud coseno** en MongoDB Atlas Vector Search.
-  </Step>
-  <Step title="Contexto al asistente">
-    Los fragmentos relevantes se inyectan en el prompt del asistente como contexto, permitiéndole responder con información precisa de tu base de conocimientos.
-  </Step>
-</Steps>
+Cuando un cliente hace una pregunta, el asistente busca automáticamente en los documentos asignados para encontrar la respuesta más relevante. No necesitas configurar nada adicional — solo asigna los documentos y el asistente los utilizará.
 
 <Note>
-  Los embeddings se regeneran automáticamente cada vez que creas, editas o sincronizas un documento. No necesitas hacer nada manualmente.
+  Cada vez que creas, editas o sincronizas un documento, Keebai actualiza automáticamente la información disponible para los asistentes. No necesitas hacer nada manualmente.
 </Note>
 
 ---
 
 ## Menú contextual
 
-Haz clic derecho sobre cualquier nodo para ver las opciones disponibles:
+Haz clic derecho sobre cualquier documento o carpeta para ver las opciones disponibles:
 
 | Acción | Descripción |
 |--------|------------|
 | **Abrir** | Abre el documento en el editor o la carpeta en el explorador |
 | **Sincronizar** | Fuerza la sincronización de un documento externo |
-| **Acceso rápido** | Agrega o quita el nodo de tu barra de acceso rápido |
+| **Acceso rápido** | Agrega o quita de tu barra de acceso rápido |
 | **Asignar** | Vincula el documento a asistentes |
-| **Renombrar** | Cambia el nombre del nodo |
-| **Mover** | Mueve el nodo a otra carpeta |
-| **Copiar** | Duplica el nodo (documentos externos se convierten en internos) |
-| **Eliminar** | Elimina el nodo (soft delete) |
+| **Renombrar** | Cambia el nombre |
+| **Mover** | Mueve a otra carpeta |
+| **Copiar** | Duplica el elemento (documentos externos se convierten en editables) |
+| **Eliminar** | Elimina el documento o carpeta |
 
 ---
 
@@ -268,11 +253,10 @@ Haz clic derecho sobre cualquier nodo para ver las opciones disponibles:
 
 | Concepto | Límite |
 |----------|--------|
-| Nodos en acceso rápido | 5 por usuario |
+| Documentos en acceso rápido | 5 por usuario |
 | Elementos por conexión externa | 500 |
 | Largo máximo del título | 300 caracteres |
 | Contenido máximo por documento | 200,000 caracteres |
-| Caché de búsqueda vectorial | 5 minutos |
 
 ---
 
@@ -283,10 +267,10 @@ Haz clic derecho sobre cualquier nodo para ver las opciones disponibles:
     Crea una estructura de carpetas lógica: Precios, Políticas, Productos, FAQ, etc. Esto facilita la gestión y permite asignar conocimientos específicos a cada asistente.
   </Accordion>
   <Accordion title="Mantén documentos focalizados" icon="bullseye">
-    Es mejor tener varios documentos cortos y específicos que uno solo muy largo. Documentos de 500-2,000 caracteres por tema funcionan mejor para el sistema de búsqueda.
+    Es mejor tener varios documentos cortos y específicos que uno solo muy largo. Un documento por tema funciona mejor que un documento gigante con toda la información.
   </Accordion>
   <Accordion title="Usa encabezados y estructura" icon="heading">
-    Los encabezados (H1, H2, H3) ayudan a Keebai a fragmentar mejor el contenido y a dar respuestas más precisas.
+    Los encabezados (H1, H2, H3) ayudan a Keebai a entender mejor el contenido y a dar respuestas más precisas.
   </Accordion>
   <Accordion title="Sincroniza fuentes externas regularmente" icon="arrows-rotate">
     Aunque la sincronización automática ocurre cada 60 minutos, si hiciste cambios importantes en Google Drive o Notion, fuerza una sincronización manual.
