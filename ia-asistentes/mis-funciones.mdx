@@ -1,20 +1,48 @@
 ---
 title: "Mis Funciones"
 sidebarTitle: "Mis Funciones"
-description: "Acciones personalizadas que tus asistentes de IA pueden ejecutar durante una conversación"
+description: "Acciones que tus asistentes pueden ejecutar durante las conversaciones: agendar citas, consultar datos, gestionar el CRM y más"
 ---
 
-Las funciones son acciones específicas que un asistente de IA puede ejecutar cuando lo necesite. En vez de solo responder con texto, el asistente puede hacer cosas: consultar datos, agendar citas, registrar información.
+Las funciones son **acciones concretas** que tus asistentes pueden ejecutar durante una conversación. En vez de solo responder con texto, el asistente puede hacer cosas: agendar una cita, mover un ticket en el CRM, consultar disponibilidad, registrar datos de un cliente, o llamar a cualquier API externa.
 
-## Ejemplos de funciones
+<Info>
+  La IA decide automáticamente cuándo usar cada función según lo que el cliente pide. Tú solo defines qué funciones están disponibles y la IA se encarga del resto.
+</Info>
 
-| Función | Lo que hace |
-|---------|------------|
-| **Consultar disponibilidad** | Revisa un calendario y devuelve horarios libres |
-| **Registrar lead** | Guarda los datos del cliente en tu CRM o sistema externo |
-| **Buscar producto** | Consulta tu catálogo y devuelve información |
-| **Crear tarea** | Crea una tarea en el módulo de [Tareas](/crm/tareas) |
-| **Escalar a humano** | Transfiere la conversación a un agente del equipo |
+## Tipos de funciones
+
+Al crear una función, lo primero es elegir su tipo. Cada tipo determina qué acción realizará:
+
+<CardGroup cols={2}>
+  <Card title="Webhook" icon="globe">
+    Llama a cualquier API o URL externa. Ideal para conectar con sistemas propios o servicios que no tienen integración nativa en Keebai.
+  </Card>
+  <Card title="Google Calendar" icon="google">
+    Consulta disponibilidad, crea eventos o cancela citas en Google Calendar. Requiere tener la [integración](/ia-asistentes/integraciones) conectada.
+  </Card>
+  <Card title="Reservo" icon="calendar-check">
+    Gestiona citas en Reservo: buscar sucursales, profesionales, horarios y agendar. Requiere tener la [integración](/ia-asistentes/integraciones) configurada.
+  </Card>
+  <Card title="AgendaPro" icon="calendar-plus">
+    Gestiona reservas en AgendaPro: locales, servicios, prestadores y disponibilidad. Requiere tener la [integración](/ia-asistentes/integraciones) conectada.
+  </Card>
+  <Card title="Keebai Agendamiento" icon="calendar-days">
+    Usa el sistema de agendamiento nativo de Keebai para gestionar citas sin plataformas externas.
+  </Card>
+  <Card title="CRM" icon="address-book">
+    Realiza acciones en el CRM de Keebai: mover tickets entre etapas, actualizar campos, agregar o quitar tags.
+  </Card>
+  <Card title="Función interna" icon="gear">
+    Ejecuta acciones internas de la plataforma, como actualizar los datos de un contacto.
+  </Card>
+</CardGroup>
+
+<Tip>
+  Si necesitas conectar con un servicio que no tiene integración nativa, usa el tipo **Webhook** para llamar a cualquier API.
+</Tip>
+
+---
 
 ## Crear una función
 
@@ -22,31 +50,170 @@ Las funciones son acciones específicas que un asistente de IA puede ejecutar cu
   <Step title="Ve a Mis Funciones">
     Navega a **IA & Asistentes → Mis Funciones** y haz clic en **+ Nueva Función**.
   </Step>
-  <Step title="Define el nombre y descripción">
-    El nombre debe ser claro (ej: "consultar_disponibilidad"). La descripción le explica a la IA **cuándo** usar esta función.
+  <Step title="Elige el tipo">
+    Selecciona el tipo de función que quieres crear (Webhook, Google Calendar, Reservo, etc.).
   </Step>
-  <Step title="Define los parámetros">
-    ¿Qué información necesita la función? Ejemplo: para "buscar producto" necesita el nombre o categoría.
+  <Step title="Define nombre y descripción">
+    - **Nombre:** un nombre claro que identifique la acción (ej: "Consultar disponibilidad", "Agendar cita").
+    - **Descripción:** explícale a la IA **cuándo** debe usar esta función. Cuanto más clara sea, mejor decidirá la IA.
   </Step>
   <Step title="Configura la acción">
-    Elige qué sucede al ejecutarse:
-    - Llamar a un webhook o API
-    - Usar una [integración](/ia-asistentes/integraciones) conectada
-    - Ejecutar una acción interna de Keebai
+    Según el tipo elegido, configura los detalles específicos de la función (ver secciones siguientes).
   </Step>
-  <Step title="Vincula a un asistente">
-    En la configuración del [asistente](/ia-asistentes/mis-asistentes), agrega esta función a su lista de funciones disponibles.
+  <Step title="Guarda y asigna">
+    Guarda la función y luego asígnala a los asistentes que la necesiten desde la configuración del [asistente](/ia-asistentes/mis-asistentes).
   </Step>
 </Steps>
 
+---
+
+## Configuración por tipo
+
+### Webhook (API externa)
+
+Las funciones de tipo Webhook te permiten llamar a cualquier servicio externo que tenga una API.
+
+<Steps>
+  <Step title="Ingresa la URL">
+    Escribe la URL del servicio al que quieres llamar. También puedes **pegar un comando cURL** y Keebai lo interpretará automáticamente, llenando la URL, método, headers y parámetros por ti.
+  </Step>
+  <Step title="Configura el método HTTP">
+    Elige el método: GET, POST, PUT, DELETE o PATCH.
+  </Step>
+  <Step title="Agrega headers (opcional)">
+    Agrega los headers necesarios, como claves de API o tokens de autenticación.
+  </Step>
+  <Step title="Define parámetros y cuerpo">
+    Configura los parámetros de la URL y/o el cuerpo de la solicitud. Para cada campo puedes activar el modo **"Usar IA"** — esto le indica a la IA que debe extraer ese valor de la conversación con el cliente.
+  </Step>
+</Steps>
+
+<Info>
+  **Truco:** Si tienes un comando cURL de tu API, simplemente pégalo en el campo de URL y Keebai lo parseará automáticamente.
+</Info>
+
+#### Parámetros con IA
+
+Cuando activas "Usar IA" en un campo, le estás diciendo al asistente que debe obtener ese valor del cliente durante la conversación. Por ejemplo:
+
+| Campo | Valor fijo | Con IA activado |
+|-------|-----------|-----------------|
+| `nombre` | `"Juan"` (siempre el mismo) | La IA le pregunta al cliente su nombre |
+| `fecha` | `"2025-01-15"` (fija) | La IA extrae la fecha que el cliente menciona |
+| `email` | `"info@empresa.com"` (fijo) | La IA le pide su email al cliente |
+
+Para cada parámetro con IA puedes configurar:
+- **Tipo de dato:** texto, número, verdadero/falso, lista u objeto
+- **Obligatorio:** si la IA debe obtenerlo antes de ejecutar la función
+- **Descripción:** ayuda a la IA a entender qué información pedir
+
+### Google Calendar
+
+Requiere tener la [integración de Google Calendar](/ia-asistentes/integraciones) conectada.
+
+Al crear una función de Google Calendar, selecciona:
+1. **La acción:** consultar disponibilidad, crear evento o cancelar evento
+2. **El calendario:** elige en qué calendario se ejecutará la acción
+
+### Reservo
+
+Requiere tener la [integración de Reservo](/ia-asistentes/integraciones) configurada.
+
+Selecciona la acción que quieres automatizar entre las 9 disponibles: obtener sucursales, tratamientos, profesionales, horarios disponibles, verificar cliente, obtener formulario, crear cita, actualizar estado o reagendar.
+
+### AgendaPro
+
+Requiere tener la [integración de AgendaPro](/ia-asistentes/integraciones) conectada.
+
+Ingresa tus credenciales de AgendaPro y selecciona la acción entre las disponibles: crear reservas, listar locales, servicios, prestadores, planes, consultar disponibilidad y más.
+
+### Keebai Agendamiento
+
+No requiere integración externa. Selecciona la acción: obtener sucursales, servicios, profesionales, horarios disponibles o generar una cita.
+
+### CRM
+
+Permite que el asistente realice acciones directamente en el CRM de Keebai durante la conversación:
+
+| Acción | Descripción |
+|--------|------------|
+| **Mover ticket de etapa** | Mueve el ticket del cliente a una etapa específica del pipeline. Ej: de "Nuevo" a "En seguimiento". |
+| **Actualizar campos del ticket** | Modifica campos personalizados del ticket con información de la conversación. |
+| **Agregar tags** | Agrega etiquetas al ticket para clasificar al cliente. |
+| **Quitar tags** | Elimina etiquetas del ticket. |
+
+Al configurar una función CRM, selecciona el pipeline y la etapa o tags correspondientes.
+
+### Función interna
+
+Acciones internas de la plataforma. Actualmente disponible:
+
+- **Actualizar datos del contacto:** Permite que la IA actualice la información del cliente (nombre, email, teléfono, etc.) con datos que obtiene durante la conversación.
+
+---
+
+## Gestionar funciones
+
+### Panel principal
+
+En **IA & Asistentes → Mis Funciones** verás todas tus funciones en una cuadrícula con:
+- **Filtros** por tipo de función y búsqueda por nombre
+- **Contadores** de funciones totales, activas e inactivas
+- **Acciones rápidas** para activar/desactivar, editar o eliminar
+
+### Activar y desactivar
+
+Puedes activar o desactivar una función sin eliminarla. Una función desactivada no estará disponible para ningún asistente hasta que la reactives.
+
+### Asignar a asistentes
+
+Las funciones se asignan desde la configuración del asistente:
+
+1. Ve a [Mis Asistentes](/ia-asistentes/mis-asistentes) y abre el asistente
+2. En la sección de funciones, agrega las que necesites
+3. Guarda los cambios
+
+<Note>
+  Una misma función puede estar asignada a múltiples asistentes. No necesitas crear duplicados.
+</Note>
+
+---
+
 ## ¿Cómo decide la IA cuándo usar una función?
 
-La IA lee la **descripción** de cada función y decide automáticamente cuándo es relevante, según lo que el cliente pide.
+La IA lee la **descripción** de cada función asignada y decide automáticamente cuándo es el momento adecuado para ejecutarla, según lo que el cliente está pidiendo.
 
-Por eso es clave que la descripción sea clara:
-- **Buena:** "Usa esta función cuando el cliente pregunte por horarios disponibles para una cita o reunión"
-- **Mala:** "Función de calendario"
+Por eso es importante escribir descripciones claras:
+
+| Ejemplo | Calidad |
+|---------|---------|
+| *"Usa esta función cuando el cliente pregunte por horarios disponibles para agendar una cita o consulta"* | ✅ Buena |
+| *"Función de calendario"* | ❌ Mala — la IA no sabe cuándo usarla |
+| *"Usa esta función cuando el cliente quiera mover su caso a la siguiente etapa o pida que lo contacte un vendedor"* | ✅ Buena |
+| *"CRM mover"* | ❌ Mala — demasiado vaga |
 
 <Tip>
-  Empieza con funciones simples (registrar lead, escalar a humano) y ve agregando más a medida que entiendas las necesidades de tus clientes.
+  Si una función requiere que la IA pida atención humana (por ejemplo, un caso complejo), la función puede indicarlo y el asistente escalará la conversación automáticamente a un agente.
 </Tip>
+
+---
+
+## Buenas prácticas
+
+<AccordionGroup>
+  <Accordion title="Empieza con funciones simples" icon="seedling">
+    Comienza con funciones básicas como actualizar datos del contacto o mover tickets en el CRM. Una vez que veas cómo funcionan, agrega funciones más complejas como agendamiento o webhooks.
+  </Accordion>
+  <Accordion title="Escribe descripciones detalladas" icon="pen">
+    La descripción es lo que la IA usa para decidir cuándo ejecutar la función. Sé específico: describe el escenario exacto en que debe activarse.
+  </Accordion>
+  <Accordion title="Usa el pegar cURL para webhooks" icon="paste">
+    Si tu equipo técnico te pasa un comando cURL, simplemente pégalo en el campo de URL. Keebai lo interpretará automáticamente.
+  </Accordion>
+  <Accordion title="Prueba antes de asignar" icon="flask-vial">
+    Verifica que la función opere correctamente antes de asignarla a un asistente en producción.
+  </Accordion>
+  <Accordion title="No sobrecargues al asistente" icon="scale-balanced">
+    Un asistente con demasiadas funciones puede confundirse. Asigna solo las funciones relevantes para su rol.
+  </Accordion>
+</AccordionGroup>
