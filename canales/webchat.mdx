@@ -1,0 +1,179 @@
+---
+title: "Webchat"
+sidebarTitle: "Webchat"
+description: "Configura un widget de chat embebido en tu sitio web con personalización completa"
+---
+
+El canal **Webchat** te permite agregar un widget de chat con IA directamente en tu sitio web o landing page. Tus visitantes pueden chatear en tiempo real con tu asistente de IA sin salir de la página.
+
+## Crear un canal Web
+
+<Steps>
+  <Step title="Abre el modal de conexión">
+    En **Canales → Mis Canales**, haz clic en **+ Conectar Canal** y selecciona **Web**.
+  </Step>
+  <Step title="Configura en 4 pasos">
+    Se abre un asistente con 4 pasos: **Básico**, **Experiencia**, **Apariencia** e **Integración**. A la derecha verás una vista previa en vivo de tu widget.
+  </Step>
+  <Step title="Guarda el canal">
+    Haz clic en **Crear** para guardar. Luego copia el código de integración del paso 4 y pégalo en tu sitio web.
+  </Step>
+</Steps>
+
+---
+
+## Paso 1: Básico
+
+Configuración general del canal.
+
+| Campo | Descripción | Requerido |
+|-------|------------|-----------|
+| **Nombre** | Nombre interno del canal (3-100 caracteres). Se normaliza a formato URL para identificarlo. | Sí |
+| **Descripción** | Descripción interna del canal (máx. 500 caracteres) | No |
+| **Estado** | Activo o Inactivo. Controla si el widget recibe mensajes. | — |
+
+---
+
+## Paso 2: Experiencia
+
+Controla el comportamiento del widget, el launcher y los mensajes del sistema.
+
+### Modo de visualización
+
+| Modo | Descripción |
+|------|------------|
+| **Widget** | Ventana flotante en una esquina de la pantalla. Es el modo por defecto. |
+| **Spotlight** | El chat ocupa un espacio más prominente en la página. |
+
+### Posición
+
+Define dónde aparece el widget en la pantalla. 9 opciones disponibles:
+
+| | Izquierda | Centro | Derecha |
+|---|-----------|--------|---------|
+| **Arriba** | top-left | top-center | top-right |
+| **Centro** | center-left | center | center-right |
+| **Abajo** | bottom-left | bottom-center | **bottom-right** (defecto) |
+
+### Textos del chat
+
+| Campo | Descripción | Valor por defecto |
+|-------|------------|-------------------|
+| **Título** | Texto en el encabezado del chat | "Keebai Assistant" |
+| **Placeholder** | Texto guía en el campo de escritura | "Escribe tu mensaje..." |
+| **Texto del botón enviar** | Texto del botón de envío | — |
+
+### Launcher (botón flotante)
+
+El launcher es el botón que el usuario presiona para abrir el chat.
+
+| Campo | Descripción |
+|-------|------------|
+| **Forma** | `circle`, `rounded-square`, `squircle` o `hexagon` |
+| **Imagen personalizada** | Sube un ícono propio (PNG, JPEG, SVG o WebP, máx. 512 KB) |
+| **Hint habilitado** | Muestra un tooltip junto al launcher |
+| **Texto del hint** | Texto del tooltip (ej: "Hola! ¿Te ayudo?") |
+
+### Opciones adicionales
+
+| Campo | Descripción |
+|-------|------------|
+| **Botón de adjuntos** | Habilita o deshabilita el botón para enviar archivos adjuntos |
+
+### Mensajes del sistema
+
+Mensajes automáticos que el widget envía en momentos clave de la conversación.
+
+| Mensaje | Cuándo se envía | Máx. caracteres |
+|---------|----------------|-----------------|
+| **Mensaje de bienvenida** | Al abrir el chat por primera vez | 500 |
+| **Mensaje de inactividad** | Cuando el usuario no responde por un tiempo | 500 |
+| **Mensaje de fin de sesión** | Al cerrarse la sesión del chat | 500 |
+
+---
+
+## Paso 3: Apariencia
+
+Personaliza completamente el aspecto visual del widget.
+
+### Tema
+
+| Tema | Descripción |
+|------|------------|
+| **Auto** | Se adapta al tema del sistema operativo del visitante |
+| **Light** | Fondo claro |
+| **Dark** | Fondo oscuro |
+
+### Colores
+
+Todos los colores se definen en formato hexadecimal (`#RRGGBB`).
+
+| Color | Qué controla |
+|-------|-------------|
+| **Primary** | Color principal de la marca |
+| **Accent** | Color de acento para elementos destacados |
+| **Surface** | Fondo del panel del chat |
+| **Text** | Color base del texto |
+| **Header text** | Color del texto en el encabezado |
+| **User bubble** | Fondo de las burbujas del usuario |
+| **User text** | Texto en las burbujas del usuario |
+| **Assistant bubble** | Fondo de las burbujas del asistente |
+| **Assistant text** | Texto en las burbujas del asistente |
+| **Composer background** | Fondo de la barra inferior de escritura |
+| **Input background** | Fondo del campo de texto |
+| **Input text** | Color del texto en el campo de escritura |
+| **Send button text** | Color del texto/ícono del botón enviar |
+| **Launcher background** | Color de fondo del botón launcher |
+
+### Dimensiones
+
+Controla el tamaño y las formas del widget. Todas las medidas son en píxeles.
+
+| Propiedad | Mín | Máx | Defecto | Qué controla |
+|-----------|-----|-----|---------|-------------|
+| **Ancho del panel** | 280 | 520 | 390 | Ancho de la ventana del chat |
+| **Alto del panel** | 360 | 760 | 650 | Alto de la ventana del chat |
+| **Radio del panel** | 8 | 40 | 24 | Redondeo de las esquinas del panel |
+| **Radio de burbujas** | 8 | 32 | 16 | Redondeo de las burbujas de mensaje |
+| **Radio del input** | 6 | 24 | 12 | Redondeo del campo de texto |
+| **Tamaño de fuente** | 12 | 18 | 14 | Tamaño base del texto |
+| **Tamaño del launcher** | 44 | 90 | 62 | Tamaño del botón flotante |
+| **Backdrop blur** | 0 | 20 | 0 | Desenfoque de fondo detrás del panel |
+
+<Tip>
+  El panel de vista previa a la derecha del wizard refleja todos los cambios en tiempo real. Úsalo para ajustar colores y dimensiones antes de guardar.
+</Tip>
+
+---
+
+## Paso 4: Código de integración
+
+Una vez creado el canal, el último paso muestra el código que debes insertar en tu sitio web.
+
+### Instalación
+
+Copia el siguiente snippet y pégalo antes del cierre de `</body>` en tu HTML:
+
+```html
+<script src="https://cdn.keebai.com/webchat/keebai-webchat.iife.js"></script>
+<script>
+  window.KeebaiWebchat.init({
+    company: 'TU_COMPANY_ID',
+    channelId: 'TU_CHANNEL_ID'
+  });
+</script>
+```
+
+<Info>
+  Los valores de `company` y `channelId` se generan automáticamente al crear el canal. El código completo con tus valores ya aparece en el paso 4 del wizard, listo para copiar.
+</Info>
+
+### Editar un canal Web existente
+
+Para modificar la configuración de un canal Web ya creado:
+
+1. En **Mis Canales**, haz clic en el icono de **engranaje** en la tarjeta del canal
+2. Se abre el mismo wizard de 4 pasos con la configuración actual
+3. Realiza los cambios y haz clic en **Guardar**
+
+No necesitas actualizar el código de integración en tu sitio web: los cambios de apariencia y comportamiento se aplican automáticamente.
