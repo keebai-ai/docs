@@ -1,46 +1,99 @@
 ---
 title: "Difusión Masiva"
 sidebarTitle: "Difusión Masiva"
-description: "Envía campañas de mensajes masivos segmentados a tus contactos"
+description: "Envía campañas de mensajes masivos por WhatsApp a tus contactos"
 ---
 
-La Difusión Masiva te permite enviar un mismo mensaje a un grupo de contactos a través de WhatsApp u otros canales. Ideal para campañas, promociones, actualizaciones o comunicados.
+La **Difusión Masiva** te permite enviar un mismo mensaje a un grupo grande de contactos a través de WhatsApp. Ideal para campañas de marketing, promociones, recordatorios y comunicados.
 
-## Crear una difusión
+## Crear una campaña
 
 <Steps>
   <Step title="Ve a Difusión Masiva">
     Navega a **Canales → Difusión Masiva** y haz clic en **+ Nueva Difusión**.
   </Step>
-  <Step title="Selecciona el canal">
-    Elige por qué canal enviar (WhatsApp, etc.).
+  <Step title="Configura la campaña">
+    - **Nombre** de la campaña (obligatorio)
+    - **Descripción** (opcional)
+    - **Canal** de WhatsApp por el que se enviarán los mensajes
   </Step>
-  <Step title="Segmenta la audiencia">
-    Selecciona los destinatarios:
-    - **Por etiqueta** — todos los contactos con un [tag](/crm/tags) específico
-    - **Por etapa del embudo** — leads en una etapa del [pipeline](/embudo/overview)
-    - **Manual** — selecciona contactos individuales del [CRM](/crm/clientes)
-    - **Importar lista** — sube un CSV
+  <Step title="Selecciona el tipo de mensaje">
+    | Tipo | Descripción |
+    |------|------------|
+    | **Template** | Usa un [template aprobado](/canales/templates). Obligatorio para WhatsApp. |
+    | **Texto** | Mensaje de texto libre (solo dentro de la ventana de 24h). |
   </Step>
-  <Step title="Selecciona un template">
-    Para WhatsApp es obligatorio usar un [template aprobado](/canales/templates).
+  <Step title="Selecciona el template">
+    Si elegiste tipo **Template**, selecciona uno de tus [templates aprobados](/canales/templates) y el idioma correspondiente.
+  </Step>
+  <Step title="Carga los destinatarios">
+    Define a quién enviar la campaña mediante importación CSV:
+    1. Haz clic en **Descargar plantilla Excel** — se genera un archivo con las columnas `phoneNumber` + las variables del template seleccionado
+    2. Completa el archivo con los números de teléfono y los valores de cada variable
+    3. Sube el archivo CSV a la plataforma
+  </Step>
+  <Step title="Estima el costo">
+    Antes de enviar, puedes ver una estimación del costo desglosado:
+    - **Costo base** por país según las tarifas de WhatsApp
+    - **Cantidad de destinatarios** por país
+    - **Costo total estimado** en la moneda configurada (USD por defecto)
   </Step>
   <Step title="Programa o envía">
-    Envía inmediatamente o programa fecha y hora.
+    - **Enviar ahora** — la campaña comienza a procesarse inmediatamente
+    - **Programar** — selecciona fecha y hora para el envío automático
   </Step>
 </Steps>
 
-## Reportes de difusión
+<Warning>
+  En WhatsApp, la difusión masiva requiere un [template aprobado](/canales/templates) por Meta. Asegúrate de tener tu template aprobado antes de crear la campaña.
+</Warning>
 
-Después de cada envío puedes ver:
+## Variables del template
+
+Si tu template incluye variables (como `{{customer_name}}` o `{{1}}`), el archivo CSV debe incluir una columna por cada variable. Al descargar la plantilla Excel, las columnas se generan automáticamente según el template seleccionado.
+
+**Ejemplo de CSV para un template con variables `{{name}}` y `{{order_id}}`:**
+
+| phoneNumber | name | order_id |
+|-------------|------|----------|
+| +5491155551234 | María | ORD-001 |
+| +5491155559876 | Carlos | ORD-002 |
+
+<Tip>
+  Usa la opción **Descargar plantilla Excel** para obtener un archivo con las columnas correctas ya configuradas. Solo necesitas completar los datos.
+</Tip>
+
+## Estados de una campaña
+
+| Estado | Descripción |
+|--------|------------|
+| **Pendiente** | Creada pero aún no iniciada |
+| **Procesando** | Enviando mensajes activamente |
+| **Completada** | Todos los mensajes fueron procesados |
+| **Fallida** | La campaña falló durante el procesamiento |
+| **Cancelada** | Cancelada manualmente antes de completarse |
+
+## Métricas por mensaje
+
+Cada mensaje individual dentro de una campaña tiene su propio seguimiento:
 
 | Métrica | Descripción |
 |---------|------------|
-| **Enviados** | Mensajes que salieron de la plataforma |
-| **Entregados** | Mensajes que llegaron al destinatario |
-| **Leídos** | Mensajes abiertos (cuando el canal lo soporta) |
-| **Respondidos** | Mensajes que generaron una respuesta |
+| **Pendiente** | Mensaje en cola, aún no enviado |
+| **Enviado** | Mensaje enviado a WhatsApp |
+| **Entregado** | Mensaje llegó al dispositivo del destinatario |
+| **Leído** | El destinatario abrió y leyó el mensaje |
+| **Fallido** | El mensaje no pudo ser entregado (número inválido, bloqueado, etc.) |
 
-<Warning>
-  En WhatsApp, la difusión masiva solo funciona con [templates aprobados](/canales/templates). Asegúrate de tener tu template aprobado antes de crear la difusión.
-</Warning>
+## Reportes de campaña
+
+Al acceder al detalle de una campaña puedes ver:
+
+- **Totales:** destinatarios, enviados, fallidos, pendientes
+- **Costos:** costo estimado vs. costo real
+- **Desglose por país:** cantidad de destinatarios y costo por país
+- **Lista de mensajes:** con el estado individual de cada envío, filtrable por estado
+
+<Info>
+  Puedes cancelar una campaña en estado **Pendiente** o **Procesando** haciendo clic en **Cancelar campaña**. Los mensajes que ya fueron enviados no se pueden revertir.
+</Info>

@@ -1,75 +1,148 @@
 ---
-title: "Flows"
-sidebarTitle: "Flows"
-description: "Flujos de conversación automática y automatización condicional"
+title: "WhatsApp Flows"
+sidebarTitle: "WhatsApp Flows"
+description: "Crea formularios y experiencias interactivas dentro de WhatsApp con el builder visual"
 ---
 
-<Info>
-  **Nuevo** — Flows es una funcionalidad nueva en Keebai.
-</Info>
-
-Los Flows son flujos automatizados de conversación y acciones que se ejecutan cuando se cumple una condición. Funcionan como un diagrama visual: defines un disparador, agregas pasos y el sistema lo ejecuta automáticamente.
+Los **WhatsApp Flows** son experiencias interactivas nativas de WhatsApp que permiten a tus clientes completar formularios, agendar citas, registrarse o responder encuestas sin salir de la conversación. Funcionan como mini-aplicaciones de múltiples pantallas dentro del chat.
 
 ## ¿Para qué sirven?
 
 <CardGroup cols={2}>
-  <Card title="Onboarding" icon="hand-wave">
-    Secuencia de bienvenida cuando un nuevo contacto te escribe por primera vez.
+  <Card title="Captura de leads" icon="user-plus">
+    Formularios para recopilar nombre, email, teléfono y otros datos de contacto.
   </Card>
-  <Card title="Seguimiento automático" icon="arrows-rotate">
-    Si un lead no responde en X horas, envía un mensaje de seguimiento.
+  <Card title="Agendamiento de citas" icon="calendar">
+    Permite al cliente seleccionar fecha, hora y tipo de servicio directamente en WhatsApp.
   </Card>
-  <Card title="Calificación de leads" icon="star">
-    Haz preguntas para calificar al lead y moverlo a la etapa correcta del embudo.
+  <Card title="Encuestas" icon="square-poll-vertical">
+    Recopila feedback con preguntas de opción múltiple, texto libre y escalas.
   </Card>
-  <Card title="Notificaciones" icon="bell">
-    Notifica a tu equipo cuando ocurra algo importante.
+  <Card title="Registro y onboarding" icon="clipboard-list">
+    Guía al cliente a través de un proceso de registro paso a paso.
+  </Card>
+  <Card title="Soporte al cliente" icon="headset">
+    Formularios estructurados para recopilar detalles del problema antes de asignar un agente.
+  </Card>
+  <Card title="Contacto" icon="envelope">
+    Formulario de contacto con campos personalizados y validación.
   </Card>
 </CardGroup>
 
-## Crear un flow
+## Categorías
+
+Al crear un flow, debes seleccionar una categoría que describe su propósito:
+
+| Categoría | Descripción |
+|-----------|------------|
+| **Generación de leads** | Captura datos de potenciales clientes |
+| **Registro** | Flujos de sign-up o creación de cuenta |
+| **Inicio de sesión** | Autenticación de usuarios |
+| **Agendamiento de citas** | Reserva de turnos o citas |
+| **Contacto** | Formularios de contacto general |
+| **Soporte al cliente** | Recopilación de datos para atención |
+| **Encuesta** | Cuestionarios y feedback |
+| **Otro** | Cualquier otro propósito |
+
+## Crear un WhatsApp Flow
 
 <Steps>
-  <Step title="Ve a Flows">
-    Navega a **Canales → Flows** y haz clic en **+ Nuevo Flow**.
+  <Step title="Ve a WhatsApp Flows">
+    Navega a **Canales → WhatsApp Flows** y haz clic en **+ Nuevo Flow**.
   </Step>
-  <Step title="Elige un disparador">
-    | Disparador | Descripción |
-    |-----------|------------|
-    | **Nueva conversación** | Cliente te escribe por primera vez |
-    | **Etiqueta asignada** | Un contacto recibe una etiqueta específica |
-    | **Cambio de etapa** | Un lead se mueve en el embudo |
-    | **Manual** | Lo ejecutas con un clic |
-    | **Programado** | Se ejecuta en una fecha/hora |
+  <Step title="Configura la información básica">
+    - **Nombre** del flow (obligatorio)
+    - **Descripción** (opcional)
+    - **Canal** de WhatsApp asociado
+    - **Categoría** del flow
   </Step>
-  <Step title="Agrega pasos">
-    | Bloque | Qué hace |
-    |--------|----------|
-    | **Enviar mensaje** | Envía un mensaje por el canal del contacto |
-    | **Esperar** | Pausa el flow por un tiempo definido |
-    | **Condición** | Bifurca según una condición (respondió / no respondió) |
-    | **Asignar etiqueta** | Agrega o quita un tag al contacto |
-    | **Mover en embudo** | Mueve al contacto a otra etapa del pipeline |
-    | **Asignar agente** | Asigna la conversación a un miembro del equipo |
-    | **Webhook** | Envía datos a una URL externa |
-    | **IA** | Usa un asistente para generar una respuesta dinámica |
+  <Step title="Diseña las pantallas">
+    Usa el builder visual para crear las pantallas del flow. Cada pantalla puede contener múltiples componentes.
   </Step>
-  <Step title="Activa el flow">
-    Prueba con un contacto de prueba y cuando estés conforme, actívalo.
+  <Step title="Publica el flow">
+    Una vez que estés conforme con el diseño, publica el flow para que esté disponible en producción.
   </Step>
 </Steps>
 
-## Ejemplo: Seguimiento automático
+## Builder visual
 
-```
-Disparador: Lead no responde en 48h
-  → Enviar mensaje: "Hola {{nombre}}, ¿pudiste revisar la información?"
-  → Esperar 24h
-  → Condición: ¿Respondió?
-    → Sí: Asignar al agente de ventas
-    → No: Enviar mensaje final → Mover a etapa "Sin respuesta"
-```
+El editor de flows cuenta con un builder visual de arrastrar y soltar. A la izquierda tienes la paleta de componentes, en el centro el editor de pantallas, y a la derecha la vista previa en tiempo real.
+
+### Pantallas
+
+Un flow se compone de una o más **pantallas** (screens). Cada pantalla tiene:
+
+| Propiedad | Descripción |
+|-----------|------------|
+| **ID** | Identificador único en mayúsculas (ej: `SCREEN_WELCOME`) |
+| **Título** | Texto que se muestra como encabezado de la pantalla |
+| **Terminal** | Si está marcada, es la pantalla final del flow (no navega a otra) |
+| **Componentes** | Lista de elementos visuales e interactivos |
+
+<Info>
+  Todo flow debe tener al menos una pantalla y al menos una pantalla marcada como **terminal** (pantalla final).
+</Info>
+
+### Componentes disponibles
+
+Los componentes son los bloques que colocas dentro de cada pantalla:
+
+**Texto**
+
+| Componente | Descripción |
+|-----------|------------|
+| **Encabezado** | Texto grande y destacado |
+| **Subtítulo** | Texto secundario |
+| **Cuerpo** | Texto de párrafo normal |
+| **Caption** | Texto pequeño auxiliar |
+
+**Campos de entrada**
+
+| Componente | Descripción |
+|-----------|------------|
+| **Campo de texto** | Input de una línea para texto corto |
+| **Área de texto** | Input multilínea para texto largo |
+| **Selector de fecha** | Calendario para seleccionar una fecha |
+| **Dropdown** | Lista desplegable con opciones |
+| **Radio buttons** | Selección única entre varias opciones |
+| **Checkbox** | Selección múltiple entre varias opciones |
+| **Opt-in** | Casilla de aceptación (términos, privacidad, etc.) |
+
+**Otros**
+
+| Componente | Descripción |
+|-----------|------------|
+| **Imagen** | Muestra una imagen dentro de la pantalla |
+| **Footer** | Botón de acción al final de la pantalla (navegar a otra pantalla o completar el flow) |
+
+### Navegación entre pantallas
+
+El componente **Footer** define la acción al presionar el botón principal:
+
+- **Navegar:** lleva al usuario a otra pantalla del flow, pasando los datos recopilados
+- **Completar:** finaliza el flow y envía todos los datos recopilados
 
 <Tip>
-  Empieza con flows simples de 2-3 pasos. A medida que entiendas cómo funcionan, crea automatizaciones más complejas.
+  Los datos que el usuario completa en cada pantalla se pasan automáticamente como payload a la siguiente pantalla o al completar el flow.
 </Tip>
+
+## Estados de un flow
+
+| Estado | Descripción |
+|--------|------------|
+| **Borrador** | En edición. Puedes modificar pantallas y componentes libremente. |
+| **Publicado** | Activo en producción. Los clientes pueden interactuar con el flow. |
+| **Archivado** | Desactivado. No se puede usar pero se conserva el historial. |
+
+<Warning>
+  Solo los flows en estado **Borrador** pueden editarse o eliminarse. Una vez publicado, el flow no se puede modificar.
+</Warning>
+
+## Sincronizar desde Meta
+
+Si ya tienes flows creados directamente en Meta Business Suite, puedes importarlos a Keebai:
+
+1. Haz clic en **Sincronizar desde Meta**
+2. Selecciona el canal de WhatsApp
+3. Elige los flows que quieres importar
+4. Los flows aparecerán en tu lista con su estado actual
