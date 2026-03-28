@@ -1,58 +1,300 @@
 ---
-title: "Mis Conocimientos"
+title: "Base de Conocimientos"
 sidebarTitle: "Mis Conocimientos"
-description: "Base de datos de conocimiento que alimenta a tus asistentes de IA"
+description: "Gestiona la información que alimenta a tus asistentes de IA con documentos, carpetas e integraciones externas"
 ---
 
-Los conocimientos son la base de información que alimenta a tus asistentes. Cuando un cliente hace una pregunta, el asistente busca en estos documentos para dar una respuesta precisa basada en datos reales de tu negocio.
+La Base de Conocimientos es el centro de información de tu operación en Keebai. Aquí gestionas todos los documentos, carpetas y conexiones externas que alimentan a tus asistentes de IA. Cuando un cliente hace una pregunta, el asistente busca automáticamente en estos documentos para dar respuestas precisas basadas en datos reales de tu negocio.
 
-## Tipos de contenido
+<Info>
+  La Base de Conocimientos funciona como un explorador de archivos: puedes crear carpetas, organizar documentos en una estructura jerárquica, y editar contenido directamente desde la plataforma.
+</Info>
 
-| Tipo | Descripción |
+## Interfaz principal
+
+Al ingresar a **IA & Asistentes → Mis Conocimientos**, verás una interfaz tipo explorador de archivos con tres áreas principales:
+
+| Área | Descripción |
 |------|------------|
-| **Documentos y PDFs** | Archivos con información detallada de tu negocio |
-| **Texto libre** | Información que pegues directamente en la plataforma |
-| **Información de contexto** | Datos estructurados sobre tu empresa, productos o servicios |
+| **Barra lateral** | Árbol de navegación con todas tus carpetas y documentos. Incluye buscador y filtros. |
+| **Encabezado** | Título de la ubicación actual, modo de selección y acciones masivas (mover, copiar, asignar, eliminar). |
+| **Área principal** | Vista de cuadrícula con los nodos de la carpeta actual, acceso rápido y editor de documentos. |
 
-## Subir conocimientos
+### Acceso rápido
+
+Puedes fijar hasta **5 documentos o carpetas** como acceso rápido para tenerlos siempre a mano en la parte superior del explorador. Haz clic derecho sobre cualquier nodo y selecciona **"Agregar a acceso rápido"**.
+
+---
+
+## Tipos de nodos
+
+La base de conocimientos maneja dos tipos de nodos:
+
+<CardGroup cols={2}>
+  <Card title="Carpetas" icon="folder">
+    Contenedores para organizar tus documentos en una estructura jerárquica. Puedes anidar carpetas dentro de otras carpetas.
+  </Card>
+  <Card title="Documentos" icon="file-lines">
+    Archivos con contenido que alimentará a tus asistentes. Pueden ser creados internamente con el editor o importados desde fuentes externas.
+  </Card>
+</CardGroup>
+
+### Origen del contenido
+
+Cada documento tiene un **tipo de origen** que determina cómo se gestiona:
+
+| Origen | Descripción | Editable |
+|--------|------------|----------|
+| **Interno** | Creado directamente en Keebai con el editor de texto enriquecido | ✅ Sí |
+| **Externo** | Importado desde Google Drive o Notion | ❌ Solo lectura (se edita en la fuente original) |
+
+<Tip>
+  Si necesitas editar un documento externo dentro de Keebai, puedes **copiarlo**. La copia se convierte en un documento interno completamente editable.
+</Tip>
+
+---
+
+## Crear contenido
+
+### Crear una carpeta
 
 <Steps>
-  <Step title="Ve a Mis Conocimientos">
-    Navega a **IA & Asistentes → Mis Conocimientos**.
+  <Step title="Haz clic en + Crear">
+    Desde el explorador, haz clic en el botón de crear nuevo elemento.
   </Step>
-  <Step title="Haz clic en + Agregar">
-    Selecciona el tipo de contenido que quieres subir.
+  <Step title="Selecciona 'Carpeta'">
+    Elige el tipo **Carpeta** e ingresa un nombre descriptivo.
   </Step>
-  <Step title="Sube o escribe el contenido">
-    - **Archivo:** arrastra y suelta o selecciona el archivo (PDF, Word, TXT)
-    - **Texto:** pega o escribe directamente en la plataforma
-  </Step>
-  <Step title="Procesa y vincula">
-    Keebai procesa el contenido automáticamente. Una vez listo, vincúlalo a cualquier [asistente](/ia-asistentes/mis-asistentes).
+  <Step title="Confirma">
+    La carpeta se crea en la ubicación actual. Puedes moverla después si lo necesitas.
   </Step>
 </Steps>
 
-## Vincular conocimientos a un asistente
+### Crear un documento
 
-1. Ve a [Mis Asistentes](/ia-asistentes/mis-asistentes) y abre el asistente
-2. En la sección **Conocimientos**, haz clic en **+ Vincular**
-3. Selecciona los documentos que quieras asociar
-4. Guarda los cambios
+<Steps>
+  <Step title="Haz clic en + Crear">
+    Desde el explorador, haz clic en el botón de crear nuevo elemento.
+  </Step>
+  <Step title="Selecciona 'Documento'">
+    Elige el tipo **Documento** e ingresa un título.
+  </Step>
+  <Step title="Escribe el contenido">
+    Se abrirá el editor de texto enriquecido donde puedes escribir y formatear tu contenido.
+  </Step>
+</Steps>
+
+---
+
+## Editor de texto enriquecido
+
+Los documentos internos se editan con un editor de bloques que soporta formato rico. Usa el comando `/` (slash) para insertar diferentes tipos de bloques:
+
+| Bloque | Descripción |
+|--------|------------|
+| **Encabezados** | H1, H2, H3 para estructurar el contenido |
+| **Párrafos** | Texto normal con formato (negrita, cursiva, subrayado) |
+| **Listas** | Con viñetas o numeradas |
+| **Tablas** | Tablas con filas y columnas |
+| **Bloques de código** | Para contenido técnico |
+| **Citas** | Bloques de texto destacado |
 
 <Info>
-  Un mismo documento puede estar vinculado a múltiples asistentes. No necesitas subirlo varias veces.
+  El contenido se guarda automáticamente. Keebai extrae el texto plano para alimentar el sistema de búsqueda IA de tus asistentes.
 </Info>
+
+---
+
+## Conexiones externas
+
+Keebai permite conectar fuentes externas de información para importar documentos automáticamente. Actualmente se soportan dos proveedores:
+
+<CardGroup cols={2}>
+  <Card title="Google Drive" icon="google-drive">
+    Importa documentos de Google Docs, PDFs, archivos Word (.docx), archivos de texto, CSV, JSON y más.
+  </Card>
+  <Card title="Notion" icon="n">
+    Importa páginas y bases de datos de Notion con todo su contenido y formato.
+  </Card>
+</CardGroup>
+
+### Conectar una fuente externa
+
+<Steps>
+  <Step title="Ve a la vista 'Externas'">
+    En el explorador de conocimientos, cambia a la vista de **Conexiones Externas**.
+  </Step>
+  <Step title="Selecciona el proveedor">
+    Elige **Google Drive** o **Notion** y haz clic en **Conectar**.
+  </Step>
+  <Step title="Autoriza el acceso">
+    Se abrirá una ventana de OAuth para que autorices a Keebai a leer tus documentos. Tus credenciales se almacenan de forma segura con cifrado AES-256.
+  </Step>
+  <Step title="Selecciona archivos y carpetas">
+    Usa el explorador de archivos remotos para elegir qué documentos y carpetas quieres sincronizar. Puedes seleccionar hasta **500 elementos** por conexión.
+  </Step>
+  <Step title="Sincroniza">
+    Haz clic en **Sincronizar** para importar el contenido. Los documentos aparecerán en tu explorador de conocimientos.
+  </Step>
+</Steps>
+
+### Formatos soportados por proveedor
+
+<Tabs>
+  <Tab title="Google Drive">
+    | Formato | Soporte |
+    |---------|---------|
+    | Google Docs | ✅ Se exporta como markdown |
+    | PDF | ✅ Extracción de texto y tablas |
+    | Word (.docx) | ✅ Conversión HTML a markdown |
+    | Word (.doc) antiguo | ❌ No soportado |
+    | Texto plano (.txt) | ✅ |
+    | CSV | ✅ |
+    | JSON | ✅ |
+    | XML | ✅ |
+    | Markdown (.md) | ✅ |
+    | Accesos directos de Drive | ✅ Se resuelve el archivo original |
+  </Tab>
+  <Tab title="Notion">
+    | Formato | Soporte |
+    |---------|---------|
+    | Páginas | ✅ Renderizado bloque a bloque como markdown |
+    | Bases de datos | ✅ |
+    | Texto enriquecido | ✅ Negrita, cursiva, código, enlaces |
+    | Tablas | ✅ |
+    | Páginas anidadas | ✅ |
+  </Tab>
+</Tabs>
+
+### Sincronización automática
+
+Las conexiones externas se sincronizan automáticamente cada **60 minutos**. Keebai detecta cambios en los archivos y actualiza el contenido de forma incremental.
+
+También puedes forzar una sincronización manual:
+- **Conexión completa:** Desde la vista de conexiones externas, haz clic en **Sincronizar** en la conexión.
+- **Documento individual:** Haz clic derecho sobre un documento externo y selecciona **Sincronizar**.
+
+<Warning>
+  Los documentos externos son de **solo lectura** en Keebai. Para modificar el contenido, edítalo en la fuente original (Google Drive o Notion) y luego sincroniza.
+</Warning>
+
+---
+
+## Organizar contenido
+
+### Mover nodos
+
+Selecciona uno o más nodos y usa la acción **Mover** del encabezado o del menú contextual (clic derecho). Se abrirá un selector de carpeta destino.
+
+### Copiar nodos
+
+La acción **Copiar** crea un duplicado del nodo. Las copias de documentos externos se convierten en documentos internos editables. Las carpetas se copian recursivamente con todo su contenido.
+
+### Reordenar
+
+Cambia la posición de los nodos dentro de una carpeta arrastrándolos o usando las opciones de reordenamiento.
+
+### Eliminar
+
+La eliminación es **lógica** (soft delete): los nodos se desactivan y sus embeddings se limpian automáticamente. La eliminación de carpetas es recursiva — elimina todo el contenido interior.
+
+---
+
+## Asignar conocimientos a asistentes
+
+Para que un asistente pueda usar la información de tus documentos, debes asignarlos a sus workers (agentes de trabajo).
+
+<Steps>
+  <Step title="Selecciona documentos">
+    En el explorador, activa el modo de selección y elige los documentos que quieres asignar.
+  </Step>
+  <Step title="Haz clic en 'Asignar'">
+    Usa la acción **Asignar** del encabezado o del menú contextual.
+  </Step>
+  <Step title="Elige los asistentes">
+    Selecciona a qué asistentes quieres vincular estos documentos. Los documentos se asignan a todos los workers no-supervisores del asistente.
+  </Step>
+</Steps>
+
+<Info>
+  Un mismo documento puede estar asignado a múltiples asistentes. No necesitas duplicar contenido.
+</Info>
+
+---
+
+## Cómo funciona la búsqueda IA (RAG)
+
+Cuando un asistente recibe una pregunta, Keebai utiliza un sistema de **Retrieval-Augmented Generation (RAG)** para encontrar la información relevante:
+
+<Steps>
+  <Step title="Fragmentación">
+    Cada documento se divide automáticamente en fragmentos de aproximadamente **1,000 caracteres** con solapamiento de 150 caracteres para mantener el contexto.
+  </Step>
+  <Step title="Embeddings">
+    Cada fragmento se convierte en un vector numérico (embedding) usando el modelo `text-embedding-3-small` de OpenAI con **1,536 dimensiones**.
+  </Step>
+  <Step title="Búsqueda vectorial">
+    Cuando llega una pregunta, se convierte en un embedding y se buscan los fragmentos más similares usando **búsqueda por similitud coseno** en MongoDB Atlas Vector Search.
+  </Step>
+  <Step title="Contexto al asistente">
+    Los fragmentos relevantes se inyectan en el prompt del asistente como contexto, permitiéndole responder con información precisa de tu base de conocimientos.
+  </Step>
+</Steps>
+
+<Note>
+  Los embeddings se regeneran automáticamente cada vez que creas, editas o sincronizas un documento. No necesitas hacer nada manualmente.
+</Note>
+
+---
+
+## Menú contextual
+
+Haz clic derecho sobre cualquier nodo para ver las opciones disponibles:
+
+| Acción | Descripción |
+|--------|------------|
+| **Abrir** | Abre el documento en el editor o la carpeta en el explorador |
+| **Sincronizar** | Fuerza la sincronización de un documento externo |
+| **Acceso rápido** | Agrega o quita el nodo de tu barra de acceso rápido |
+| **Asignar** | Vincula el documento a asistentes |
+| **Renombrar** | Cambia el nombre del nodo |
+| **Mover** | Mueve el nodo a otra carpeta |
+| **Copiar** | Duplica el nodo (documentos externos se convierten en internos) |
+| **Eliminar** | Elimina el nodo (soft delete) |
+
+---
+
+## Límites
+
+| Concepto | Límite |
+|----------|--------|
+| Nodos en acceso rápido | 5 por usuario |
+| Elementos por conexión externa | 500 |
+| Largo máximo del título | 300 caracteres |
+| Contenido máximo por documento | 200,000 caracteres |
+| Caché de búsqueda vectorial | 5 minutos |
+
+---
 
 ## Buenas prácticas
 
 <AccordionGroup>
-  <Accordion title="Mantén la información actualizada" icon="arrows-rotate">
-    Si cambian tus precios, horarios o políticas, actualiza los documentos. El asistente siempre usa la versión más reciente.
+  <Accordion title="Organiza por tema con carpetas" icon="folder-tree">
+    Crea una estructura de carpetas lógica: Precios, Políticas, Productos, FAQ, etc. Esto facilita la gestión y permite asignar conocimientos específicos a cada asistente.
   </Accordion>
-  <Accordion title="Organiza por tema" icon="folder-tree">
-    Sube documentos separados por tema (precios, horarios, políticas) en vez de un solo documento gigante.
+  <Accordion title="Mantén documentos focalizados" icon="bullseye">
+    Es mejor tener varios documentos cortos y específicos que uno solo muy largo. Documentos de 500-2,000 caracteres por tema funcionan mejor para el sistema de búsqueda.
   </Accordion>
-  <Accordion title="Sé concreto" icon="bullseye">
-    La información clara y directa genera mejores respuestas que textos vagos o genéricos.
+  <Accordion title="Usa encabezados y estructura" icon="heading">
+    Los encabezados (H1, H2, H3) ayudan a Keebai a fragmentar mejor el contenido y a dar respuestas más precisas.
+  </Accordion>
+  <Accordion title="Sincroniza fuentes externas regularmente" icon="arrows-rotate">
+    Aunque la sincronización automática ocurre cada 60 minutos, si hiciste cambios importantes en Google Drive o Notion, fuerza una sincronización manual.
+  </Accordion>
+  <Accordion title="Verifica la asignación a asistentes" icon="robot">
+    Un documento sin asignar no será usado por ningún asistente. Verifica que tus documentos clave estén vinculados a los asistentes correctos.
+  </Accordion>
+  <Accordion title="Aprovecha la copia para personalizar" icon="copy">
+    Si necesitas una versión ligeramente diferente de un documento externo, cópialo. La copia será editable y podrás ajustarla sin afectar el original.
   </Accordion>
 </AccordionGroup>
