@@ -1,51 +1,180 @@
 ---
 title: "Dashboard"
 sidebarTitle: "Dashboard"
-description: "Vista general de métricas clave de tu operación en Keebai"
+description: "Panel personalizable de métricas y reportes para monitorear toda tu operación en Keebai."
 ---
 
-El Dashboard es tu pantalla principal. Desde aquí puedes ver de un vistazo el estado de tus canales, conversaciones, rendimiento de la IA y satisfacción de clientes.
+El Dashboard es tu **centro de control**. Desde aquí puedes visualizar métricas clave de tu negocio, monitorear el rendimiento de tus asistentes de IA, analizar el volumen de conversaciones y medir la satisfacción de tus clientes — todo en tiempo real.
 
+## Vista general
+
+Al ingresar al Dashboard verás un **panel de bloques** que puedes personalizar a tu gusto. Cada bloque muestra una métrica o gráfico diferente que puedes agregar, quitar, mover y redimensionar según lo que más te interese monitorear.
+
+<Info>
+  Para acceder al Dashboard necesitas el permiso **Ver reportes** en tu rol de usuario.
+</Info>
 
 ## Métricas disponibles
 
+El Dashboard incluye múltiples tipos de métricas organizadas por categoría:
+
+### Resumen general
+
 <CardGroup cols={2}>
-  <Card title="Canales" icon="tower-broadcast">
-    Cantidad de canales activos conectados a la plataforma.
+  <Card title="Canales activos" icon="tower-broadcast">
+    Cantidad de canales de comunicación conectados y activos en la plataforma (WhatsApp, Messenger, Instagram, Webchat).
   </Card>
-  <Card title="Conocimiento" icon="book">
-    Cantidad de items en tu base de conocimiento que alimentan a la IA.
+  <Card title="Base de conocimiento" icon="book">
+    Cantidad de documentos e ítems en tu base de conocimiento que alimentan a los asistentes de IA.
   </Card>
   <Card title="Conversaciones" icon="comments">
-    Total de conversaciones activas e históricas.
+    Total de conversaciones activas e históricas en todos tus canales.
   </Card>
   <Card title="Mensajes" icon="envelope">
-    Total de mensajes enviados y recibidos en todos los canales.
+    Total de mensajes enviados y recibidos en toda la plataforma.
   </Card>
 </CardGroup>
 
-## Secciones del Dashboard
+### Rendimiento e interacción
+
+<CardGroup cols={2}>
+  <Card title="Interacciones totales" icon="arrows-spin">
+    Volumen total de interacciones con clientes, desglosado por período (hoy, esta semana, este mes).
+  </Card>
+  <Card title="Tiempo de respuesta" icon="clock">
+    Tiempo promedio que toma responder a un cliente, con métricas de P50 (mediana) y P95 para identificar outliers.
+  </Card>
+  <Card title="Conversaciones por día" icon="calendar-days">
+    Tendencia diaria de nuevas conversaciones para identificar patrones de demanda.
+  </Card>
+  <Card title="Rendimiento por asistente" icon="robot">
+    Desglose de conversaciones y mensajes manejados por cada asistente de IA.
+  </Card>
+</CardGroup>
+
+### Satisfacción y calidad
+
+<CardGroup cols={2}>
+  <Card title="Satisfacción de clientes" icon="face-smile">
+    Indicadores de conversaciones resueltas vs. no resueltas para medir la calidad de tu atención.
+  </Card>
+  <Card title="Preguntas frecuentes" icon="clipboard-question">
+    Las preguntas más comunes que hacen tus clientes, con frecuencia y porcentaje, para que identifiques patrones y mejores tu base de conocimiento.
+  </Card>
+  <Card title="Rendimiento por canal" icon="chart-pie">
+    Distribución de conversaciones y mensajes por cada canal conectado.
+  </Card>
+  <Card title="Calidad de conocimiento" icon="star">
+    Qué tan bien están respondiendo tus documentos a las preguntas de los clientes.
+  </Card>
+</CardGroup>
+
+## Tipos de visualización
+
+Los bloques del Dashboard pueden mostrarse en diferentes formatos visuales:
+
+| Tipo | Descripción |
+|------|-------------|
+| **KPI** | Un número grande destacado con etiqueta — ideal para métricas principales |
+| **KPI doble** | Dos indicadores lado a lado para comparar (ej: P50 vs P95 de tiempo de respuesta) |
+| **Grilla de estadísticas** | Múltiples números organizados en una cuadrícula compacta |
+| **Gráfico de líneas** | Tendencias a lo largo del tiempo (ej: conversaciones por día) |
+| **Gráfico de barras** | Comparación entre categorías (ej: mensajes por canal) |
+| **Gráfico de dona** | Distribución porcentual (ej: proporción por canal) |
+| **Lista** | Ranking con título, cantidad y porcentaje (ej: preguntas frecuentes) |
+| **Resumen** | Combinación de estadísticas clave con un desglose detallado |
+
+## Personalizar tu Dashboard
+
+Keebai te permite **armar tu propio Dashboard** con los bloques que más te interesen.
+
+### Modo edición
+
+<Steps>
+  <Step title="Entra en modo edición">
+    Haz clic en el botón **Editar dashboard** en la parte superior del panel. Verás que aparecen controles adicionales en cada bloque.
+  </Step>
+  <Step title="Agrega bloques">
+    Selecciona métricas del **catálogo de bloques** disponibles. Cada bloque tiene un tamaño predeterminado que puedes ajustar después.
+  </Step>
+  <Step title="Mueve y redimensiona">
+    **Arrastra** los bloques para cambiar su posición en la grilla. Usa las **esquinas** de cada bloque para redimensionarlo (puedes hacerlo desde las 4 esquinas).
+  </Step>
+  <Step title="Elimina bloques">
+    Haz clic en el botón **X** de cualquier bloque para quitarlo de tu Dashboard.
+  </Step>
+  <Step title="Guarda tu layout">
+    Cuando estés conforme con la disposición, haz clic en **Guardar** para conservar tu configuración personal.
+  </Step>
+</Steps>
+
+<Tip>
+  Tu layout personal se guarda independientemente del layout de la empresa. Puedes experimentar sin afectar a otros usuarios.
+</Tip>
+
+### Dashboard personal vs. de empresa
+
+Keebai soporta **dos vistas** de Dashboard:
 
 <AccordionGroup>
-  <Accordion title="Satisfacción de clientes" icon="face-smile">
-    Indicadores de conversaciones resueltas vs. no resueltas para medir la calidad de atención.
+  <Accordion title="Dashboard personal" icon="user">
+    Cada usuario puede crear y personalizar su propio Dashboard con los bloques y disposición que prefiera. Esta vista es privada y solo tú la ves.
+
+    - **Crear**: Requiere permiso de *Crear reportes*
+    - **Editar**: Arrastra, redimensiona y agrega bloques a tu gusto
+    - **Resetear**: Puedes vaciar tu Dashboard personal y empezar de cero
   </Accordion>
-  <Accordion title="Preguntas frecuentes" icon="clipboard-question">
-    Las preguntas más comunes que hacen tus clientes, para que identifiques patrones y mejores tu base de conocimiento.
-  </Accordion>
-  <Accordion title="Gráficos de actividad" icon="chart-line">
-    Visualización del volumen de conversaciones y mensajes a lo largo del tiempo.
+
+  <Accordion title="Dashboard de empresa" icon="building">
+    Los administradores pueden configurar un Dashboard base que sirve como referencia para todo el equipo. Incluye un sistema de **borradores** para editar sin afectar la vista publicada.
+
+    - **Editar**: Requiere permiso de *Gestionar reportes*
+    - **Borradores**: Edita en modo borrador sin que los cambios se vean inmediatamente
+    - **Publicar**: Cuando estés conforme, publica el borrador para que todo el equipo vea la nueva versión
   </Accordion>
 </AccordionGroup>
 
-## Filtros de periodo
+## Filtros de período
 
-Puedes ajustar el rango de fechas para ver métricas de:
-- Hoy
-- Últimos 7 días
-- Últimos 30 días
-- Rango personalizado
+En la parte superior del Dashboard puedes seleccionar el **rango de tiempo** para todas las métricas:
+
+| Período | Descripción |
+|---------|-------------|
+| **7 días** | Última semana |
+| **30 días** | Último mes *(selección predeterminada)* |
+| **90 días** | Últimos 3 meses |
+| **1 año** | Últimos 12 meses |
 
 <Info>
-  El Dashboard se actualiza en tiempo real. No necesitas recargar la página para ver datos nuevos.
+  Cambiar el período afecta **todos los bloques** del Dashboard simultáneamente. Los datos se recalculan automáticamente.
 </Info>
+
+## Diseño responsivo
+
+El Dashboard se adapta automáticamente al tamaño de tu pantalla:
+
+| Dispositivo | Columnas | Comportamiento |
+|-------------|----------|----------------|
+| **Escritorio** | 12 columnas | Vista completa con todos los bloques visibles |
+| **Tablet** | 6 columnas | Los bloques se reorganizan en menos columnas |
+| **Móvil** | 1 columna | Los bloques se apilan verticalmente |
+
+## Preguntas frecuentes
+
+<AccordionGroup>
+  <Accordion title="¿El Dashboard se actualiza en tiempo real?" icon="circle-question">
+    Sí. Los datos del Dashboard se actualizan automáticamente sin necesidad de recargar la página. Cada vez que cambias el período, los datos se recalculan al instante.
+  </Accordion>
+
+  <Accordion title="¿Puedo volver al Dashboard original?" icon="circle-question">
+    Sí. Si personalizaste tu Dashboard y quieres empezar de nuevo, usa la opción **Resetear** para vaciar tu layout personal. También puedes cambiar a la vista de empresa para ver el Dashboard base configurado por tu administrador.
+  </Accordion>
+
+  <Accordion title="¿Otros usuarios ven mis cambios?" icon="circle-question">
+    No. Tu Dashboard personal es privado. Solo los administradores con permiso de *Gestionar reportes* pueden editar y publicar el Dashboard de empresa que ven todos.
+  </Accordion>
+
+  <Accordion title="No veo la opción de Dashboard en el menú" icon="circle-question">
+    Tu rol de usuario necesita el permiso **Ver reportes** para acceder al Dashboard. Contacta al administrador de tu cuenta para que te asigne este permiso.
+  </Accordion>
+</AccordionGroup>
