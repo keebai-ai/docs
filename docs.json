@@ -39,8 +39,13 @@
               "index",
               "get-started",
               "dashboard/overview",
-              "embudo/overview",
-              "comunicacion/overview"
+              "embudo/overview"
+            ]
+          },
+          {
+            "group": "Chat",
+            "pages": [
+              "chat/overview"
             ]
           },
           {
