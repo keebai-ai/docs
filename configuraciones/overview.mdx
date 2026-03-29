@@ -1,46 +1,375 @@
 ---
-title: "Configuraciones del Sistema"
+title: "Configuraciones"
 sidebarTitle: "Configuraciones"
-description: "Ajustes generales de la plataforma: roles, permisos, horarios, empresa y más"
+description: "Ajustes generales de la plataforma: roles, permisos, horarios de la IA, empresa, agenda, perfil y seguridad."
 ---
 
-Desde Configuraciones puedes ajustar todos los parámetros generales de tu plataforma Keebai.
+Desde **Configuraciones** puedes ajustar todos los parámetros de tu plataforma Keebai. Las configuraciones se dividen en dos áreas: **Configuraciones del Sistema** (afectan a toda la empresa) y **Perfil** (configuración personal de tu cuenta).
 
-<Frame>
-  <img src="/images/configuracion.png" alt="Configuraciones del Sistema" />
-</Frame>
+<Info>
+  La mayoría de las configuraciones del sistema requieren el permiso **Gestionar sistema**. Si no ves alguna opción, contacta al administrador de tu cuenta.
+</Info>
 
-## Configuración General
+---
+
+## Roles
+
+Los roles definen qué puede hacer cada miembro de tu equipo dentro de Keebai. Cada usuario tiene un rol asignado que controla su acceso a los módulos y acciones de la plataforma.
+
+### Gestionar roles
+
+<Steps>
+  <Step title="Accede a Roles">
+    Ve a **Configuraciones → Roles** para ver la lista de roles existentes.
+  </Step>
+  <Step title="Crea un rol nuevo">
+    Haz clic en **Crear rol** y define:
+    - **Nombre del rol** — Un nombre descriptivo (ej: "Supervisor de ventas", "Agente de soporte")
+    - **Descripción** — Qué hace este rol dentro de tu organización
+  </Step>
+  <Step title="Asigna permisos">
+    Selecciona los permisos que tendrá este rol. Los permisos se organizan por categorías (ver sección siguiente).
+  </Step>
+</Steps>
+
+<Warning>
+  Los **roles del sistema** (como Administrador) no se pueden eliminar ni modificar. Solo puedes editar los roles que tú hayas creado.
+</Warning>
+
+---
+
+## Matriz de Permisos
+
+La matriz de permisos te da una vista panorámica de **qué puede hacer cada rol**. Es una tabla donde las filas son los permisos y las columnas son los roles.
+
+### Categorías de permisos
+
+| Categoría | Qué controla |
+|-----------|-------------|
+| **Sistema y configuración** | Acceso a configuraciones generales del sistema |
+| **Usuarios y colaboradores** | Invitar, editar y eliminar miembros del equipo |
+| **Asistentes de IA** | Crear, editar y eliminar asistentes virtuales |
+| **Canales** | Conectar, configurar y eliminar canales de comunicación |
+| **Base de conocimiento** | Subir, editar y eliminar documentos de conocimiento |
+| **Funciones** | Crear y gestionar funciones personalizadas de los asistentes |
+| **Conversaciones** | Ver, participar y gestionar conversaciones con clientes |
+| **Reportes y analíticas** | Acceso al Dashboard, métricas y reportes |
+| **Auditoría** | Ver el registro de actividad de la plataforma |
+| **Difusión masiva** | Enviar campañas y mensajes masivos |
+| **Agenda e integraciones** | Gestionar calendario y reservas |
+| **Roles y permisos** | Crear, editar y asignar roles |
+| **CRM** | Pipelines, tickets, tareas, campos, tags |
+
+<Tip>
+  Puedes hacer clic en cualquier celda de la matriz para activar o desactivar un permiso específico para un rol.
+</Tip>
+
+---
+
+## Contexto de Chat
+
+Aquí configuras cómo se comporta la IA al procesar las conversaciones. Estos parámetros afectan la calidad y velocidad de las respuestas de todos tus asistentes.
+
+### Parámetros de contexto
+
+| Parámetro | Descripción |
+|-----------|-------------|
+| **Límite de mensajes de contexto** | Cuántos mensajes recientes de la conversación puede "recordar" la IA al responder. Un número mayor da más contexto pero puede ser más lento. |
+| **Límite de memoria** | Profundidad del historial de conversación que la IA toma en cuenta. |
+
+### Parámetros de herramientas
+
+| Parámetro | Descripción |
+|-----------|-------------|
+| **Iteraciones máximas de herramientas** | Cuántas veces puede la IA ejecutar herramientas (funciones) en una sola respuesta. |
+| **Largo máximo de resultado** | Cantidad máxima de caracteres que la IA puede recibir de una herramienta externa. |
+
+### Parámetros de búsqueda y mensajes
+
+| Parámetro | Descripción |
+|-----------|-------------|
+| **Largo máximo de mensaje** | Cantidad máxima de caracteres por mensaje que la IA procesa. |
+| **Top K de documentos** | Cuántos documentos de tu base de conocimiento se consultan para cada respuesta. |
+
+### Opciones avanzadas
+
+| Opción | Descripción |
+|--------|-------------|
+| **Escalamiento estructurado** | Activa una verificación automática para determinar si la conversación debe transferirse a un humano. |
+| **Obtener datos del usuario** | Permite a la IA acceder a la información del contacto durante la conversación. |
+
+<Warning>
+  Modifica estos valores con cuidado. Valores muy altos pueden hacer las respuestas más lentas; valores muy bajos pueden reducir la calidad de las respuestas.
+</Warning>
+
+---
+
+## Zona Horaria
+
+Configura la zona horaria de tu empresa. Este ajuste afecta:
+
+- Los **horarios de trabajo** de la IA
+- Las **fechas y horas** en reportes y Dashboard
+- La **programación de difusiones** masivas
+- Los **horarios de la agenda**
+
+### Zonas horarias disponibles
+
+| Zona horaria | Código |
+|-------------|--------|
+| Chile | CLT |
+| UTC | UTC |
+| Madrid | CET |
+| México | CST |
+| Buenos Aires | ART |
+| Nueva York | EST |
+| Londres | GMT |
+| Tokio | JST |
+
+<Info>
+  Al cambiar la zona horaria, todos los horarios configurados se ajustan automáticamente. Asegúrate de verificar tus horarios de trabajo de la IA después de un cambio.
+</Info>
+
+---
+
+## Horarios de Trabajo de la IA
+
+Controla **cuándo están activos** tus asistentes de IA y qué sucede fuera de horario.
+
+### Configurar horarios
+
+<Steps>
+  <Step title="Activa los horarios">
+    Habilita el interruptor de **Horarios de trabajo** para restringir cuándo responde la IA. Si está desactivado, la IA responde 24/7.
+  </Step>
+  <Step title="Define el horario por día">
+    Para cada día de la semana (lunes a domingo):
+    - **Activa o desactiva** el día
+    - Define la **hora de inicio** y **hora de fin**
+    - Usa formato de 24 horas (ej: 09:00 a 18:00)
+  </Step>
+  <Step title="Configura la respuesta fuera de horario">
+    Cuando la IA está fuera de horario, puedes:
+    - **Activar auto-respuesta**: Envía un mensaje automático al cliente indicando que está fuera de horario
+    - **Personalizar el mensaje**: Escribe el texto exacto que recibirán los clientes
+  </Step>
+</Steps>
+
+### Desactivar la IA completamente
+
+Existe la opción de **desactivar toda la plataforma de IA**. Esto apaga todos los asistentes en todos los canales simultáneamente.
+
+<Warning>
+  Desactivar la plataforma de IA significa que **ningún asistente** responderá a los clientes en ningún canal. Usa esta opción solo si necesitas detener toda la automatización temporalmente.
+</Warning>
+
+---
+
+## Empresa
+
+Gestiona la información general de tu empresa. Esta información se usa en la plataforma y puede ser utilizada por los asistentes de IA como contexto.
+
+### Información básica
+
+| Campo | Descripción |
+|-------|-------------|
+| **Nombre de la empresa** | El nombre que aparece en la plataforma *(obligatorio)* |
+| **Descripción** | Una descripción breve de tu empresa |
+| **Contexto de la empresa** | Información adicional que se incluye en el prompt del sistema de la IA para dar contexto sobre tu negocio |
+
+### Datos de contacto
+
+| Campo | Descripción |
+|-------|-------------|
+| **Correo electrónico** | Email principal de la empresa |
+| **Teléfono** | Número de contacto |
+| **Sitio web** | URL de tu página web |
+| **Dirección** | Ubicación física de tu empresa |
+
+### Datos de la empresa
+
+| Campo | Descripción |
+|-------|-------------|
+| **Industria** | Selecciona el rubro de tu empresa (Retail, Salud, Educación, Tecnología, Finanzas, Inmobiliaria, Restaurante, Turismo, Legal, Marketing, Manufactura, Transporte, Entretenimiento, Deportes, Belleza, Automotriz, Alimentación, Consultoría, Construcción, Agricultura, Energía, Telecomunicaciones, Seguros, Logística, entre otros) |
+| **País** | País de operación principal |
+
+### Sucursales
+
+Si tu empresa tiene múltiples ubicaciones, puedes gestionarlas desde aquí:
+
+<Steps>
+  <Step title="Agrega una sucursal">
+    Haz clic en **Agregar sucursal** y completa:
+    - Nombre de la sucursal
+    - Descripción
+    - Dirección
+    - Información de contacto
+  </Step>
+  <Step title="Gestiona sucursales">
+    Puedes **activar/desactivar**, **editar** o **eliminar** sucursales existentes. Cada sucursal tiene su propio estado independiente.
+  </Step>
+</Steps>
+
+---
+
+## Agenda
+
+Configura las opciones de tu calendario para gestionar reservas y citas con clientes.
+
+### Link de agenda online
+
+Keebai genera un **link público de reservas** que puedes compartir con tus clientes para que agenden directamente.
+
+- **Copiar link** — Copia el URL de tu agenda para compartir
+- **Abrir link** — Previsualiza cómo ven tus clientes el formulario de reserva
+
+### Flujo de registro
+
+Puedes elegir el orden del flujo de reserva para tus clientes:
+
+| Flujo | Orden de pasos |
+|-------|---------------|
+| **Inicio** | Recopilar información → Seleccionar horario → Confirmación → Resumen |
+| **Final** | Seleccionar horario → Recopilar información → Confirmación → Resumen |
+
+<Tip>
+  El flujo **Final** es recomendado si quieres que el cliente primero vea la disponibilidad antes de registrar sus datos. El flujo **Inicio** es mejor si necesitas filtrar la disponibilidad según la información del cliente.
+</Tip>
+
+### Configuración general
+
+| Parámetro | Descripción |
+|-----------|-------------|
+| **Intervalo de tiempo** | Duración por defecto de cada bloque de la agenda (5 a 60 minutos, en incrementos de 5) |
+| **Vista predeterminada** | Cómo se muestra la agenda al abrirla: vista de **Semana** o vista de **Mes** |
+
+### Horario de la agenda
+
+| Parámetro | Descripción |
+|-----------|-------------|
+| **Hora de inicio** | Hora a la que inicia tu agenda cada día (formato 24h) |
+| **Hora de fin** | Hora a la que termina tu agenda cada día (formato 24h) |
+
+### Días laborales
+
+Selecciona qué días de la semana está disponible tu agenda. Puedes activar o desactivar cada día individualmente (lunes a domingo).
+
+### Funcionalidades
+
+| Opción | Descripción |
+|--------|-------------|
+| **Permitir bloquear horarios** | Habilita la opción de bloquear manualmente slots de tiempo en la agenda |
+| **Permitir selección por arrastre** | Permite seleccionar múltiples slots arrastrando el cursor sobre la agenda |
+
+---
+
+## Perfil de usuario
+
+Además de las configuraciones del sistema, cada usuario puede gestionar su **perfil personal** desde el menú de usuario.
+
+### Información personal
+
+| Campo | Descripción |
+|-------|-------------|
+| **Nombre completo** | Tu nombre como aparece en la plataforma *(solo lectura)* |
+| **Correo electrónico** | Tu email de acceso *(solo lectura)* |
+| **Teléfono** | Número de teléfono de tu cuenta |
+| **Idioma** | Idioma de la interfaz: Español, English, Português, Français, Deutsch, Italiano |
+| **Zona horaria** | Tu zona horaria personal (puede diferir de la de la empresa) |
+
+### Logo de la empresa
+
+Desde tu perfil puedes subir o cambiar el **logo de tu empresa**:
+
+- **Formatos aceptados**: PNG, JPEG, JPG, SVG, WebP
+- **Tamaño máximo**: 5 MB
+- Puedes previsualizar el logo antes de guardarlo
+- Opción de eliminar el logo actual
+
+### Colaboradores
+
+Gestiona los miembros de tu equipo desde la sección de colaboradores:
+
+<Steps>
+  <Step title="Invita colaboradores">
+    Envía invitaciones por correo electrónico. El destinatario recibirá un link para unirse a tu plataforma.
+  </Step>
+  <Step title="Asigna roles">
+    Al invitar o editar un colaborador, asígnale un rol que defina sus permisos en la plataforma.
+  </Step>
+  <Step title="Gestiona el equipo">
+    Puedes ver las invitaciones pendientes, editar la información de los colaboradores o eliminar miembros del equipo.
+  </Step>
+</Steps>
+
+### Seguridad
+
+Protege tu cuenta con opciones de seguridad avanzadas:
 
 <AccordionGroup>
-  <Accordion title="Roles" icon="shield-halved">
-    Define y gestiona roles de usuario con permisos específicos. Cada miembro de tu equipo puede tener un rol diferente que controla a qué módulos y acciones tiene acceso.
+  <Accordion title="Autenticación multifactor (MFA)" icon="shield-check">
+    Agrega una capa extra de seguridad a tu cuenta:
+    - **Activar/desactivar** MFA
+    - **Método predeterminado** — Elige tu método preferido de verificación
+    - **Múltiples métodos** — Configura más de un método de autenticación
+    - **Códigos de respaldo** — Genera códigos de emergencia por si pierdes acceso a tu método principal
   </Accordion>
-  <Accordion title="Matriz de Permisos" icon="table-cells">
-    Gestiona permisos granulares basados en roles para tu equipo. Define quién puede ver, editar, crear o eliminar en cada módulo.
+
+  <Accordion title="Cambiar contraseña" icon="key">
+    Actualiza tu contraseña de acceso. Se requiere verificar tu contraseña actual antes de establecer una nueva.
   </Accordion>
-  <Accordion title="Contexto de Chat" icon="message">
-    Configura los límites y parámetros del contexto de conversación. Define cuántos mensajes previos considera la IA al responder.
-  </Accordion>
-  <Accordion title="Zona Horaria" icon="clock">
-    Configura la zona horaria de tu empresa. Esto afecta los horarios de trabajo, reportes y programación de difusiones.
-  </Accordion>
-  <Accordion title="Horarios de Trabajo IA" icon="robot">
-    Configura los horarios de tus asistentes de IA y su comportamiento fuera de horario: si siguen respondiendo, envían un mensaje automático o dejan de atender.
-  </Accordion>
-  <Accordion title="Empresa" icon="building">
-    Gestiona la información general de tu empresa: nombre, logo, datos de contacto y descripción.
-  </Accordion>
-  <Accordion title="Configuración de Agenda" icon="calendar">
-    Configura las opciones y preferencias de la agenda: duración de citas, disponibilidad, recordatorios automáticos.
-  </Accordion>
-  <Accordion title="Políticas de Eventos" icon="bell">
-    Configura políticas para notificaciones y acciones automáticas cuando ocurren eventos específicos en la plataforma.
+
+  <Accordion title="Dispositivos activos" icon="laptop">
+    Visualiza todos los dispositivos que tienen sesión iniciada en tu cuenta:
+    - Ver tipo de dispositivo y navegador
+    - Fecha de último acceso
+    - Cerrar sesiones en otros dispositivos si detectas actividad sospechosa
   </Accordion>
 </AccordionGroup>
 
-## Configuración Clínica
+<Tip>
+  Recomendamos activar la **autenticación multifactor** para proteger tu cuenta, especialmente si eres administrador o tienes acceso a información sensible.
+</Tip>
 
-<Info>
-  Si tu negocio opera en un entorno clínico o de salud, Keebai ofrece opciones adicionales de configuración adaptadas a esos requerimientos.
-</Info>
+---
+
+## Resumen de permisos requeridos
+
+| Sección | Permiso necesario |
+|---------|------------------|
+| Roles | Ver roles |
+| Matriz de permisos | Ver roles |
+| Contexto de chat | Gestionar sistema |
+| Zona horaria | Gestionar sistema |
+| Horarios de la IA | Gestionar sistema |
+| Empresa | Gestionar sistema |
+| Agenda | Gestionar sistema |
+| Perfil | Cualquier usuario autenticado |
+| Colaboradores | Gestionar usuarios |
+| Seguridad | Cualquier usuario autenticado |
+
+---
+
+## Preguntas frecuentes
+
+<AccordionGroup>
+  <Accordion title="¿Puedo tener diferentes horarios de IA para cada canal?" icon="circle-question">
+    Actualmente los horarios de trabajo de la IA se configuran a nivel global (afectan todos los canales y asistentes). Si necesitas que un canal responda 24/7 y otro solo en horario laboral, puedes desactivar los horarios globales y configurar el comportamiento directamente en cada asistente.
+  </Accordion>
+
+  <Accordion title="¿Cómo cambio mi nombre o correo?" icon="circle-question">
+    El nombre completo y correo electrónico se muestran en tu perfil como solo lectura. Para modificarlos, contacta al administrador de tu cuenta o a soporte de Keebai.
+  </Accordion>
+
+  <Accordion title="¿Qué pasa si pierdo acceso a mi MFA?" icon="circle-question">
+    Si configuraste códigos de respaldo, puedes usar uno de ellos para iniciar sesión. Si no tienes códigos, contacta a soporte de Keebai para recuperar el acceso a tu cuenta.
+  </Accordion>
+
+  <Accordion title="No veo la sección de Configuraciones en el menú" icon="circle-question">
+    Necesitas el permiso **Gestionar sistema** o **Ver roles** para acceder a las configuraciones. Contacta al administrador de tu cuenta para que te asigne los permisos necesarios.
+  </Accordion>
+
+  <Accordion title="¿Puedo tener más de un idioma en la plataforma?" icon="circle-question">
+    Cada usuario puede seleccionar su idioma preferido desde su perfil. Los idiomas disponibles son: Español, English, Português, Français, Deutsch e Italiano. Esto solo cambia la interfaz; las respuestas de la IA se configuran por separado en cada asistente.
+  </Accordion>
+</AccordionGroup>
