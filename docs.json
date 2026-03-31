@@ -70,11 +70,15 @@
           {
             "group": "CRM",
             "pages": [
+              "crm/pipelines",
+              "crm/tickets",
               "crm/clientes",
+              "crm/fusionar-contactos",
               "crm/tareas",
               "crm/campos",
               "crm/tags",
-              "crm/configurar-ticket"
+              "crm/configurar-ticket",
+              "crm/lead-ads"
             ]
           },
           {

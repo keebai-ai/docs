@@ -1,0 +1,132 @@
+---
+title: "Tickets"
+sidebarTitle: "Tickets"
+description: "Gestiona oportunidades y casos de soporte dentro de tus pipelines con seguimiento completo"
+---
+
+Un ticket es una unidad de trabajo dentro de un [pipeline](/crm/pipelines). Representa una oportunidad de venta, un caso de soporte o cualquier proceso que necesitas llevar desde el inicio hasta su resolución. A diferencia de una conversación general, el ticket tiene etapa, prioridad, asignado y seguimiento formal.
+
+---
+
+## Crear un ticket
+
+<Tabs>
+  <Tab title="Desde el pipeline">
+    En la vista embudo o tabla del pipeline, haz clic en **+ Nuevo ticket** (botón en la parte superior o dentro de cualquier etapa). Completa los datos del ticket y selecciona el contacto asociado.
+  </Tab>
+  <Tab title="Desde el perfil del contacto">
+    Abre el [perfil del contacto](/crm/clientes), ve a la pestaña **Tickets** y haz clic en **Crear ticket**. El contacto se asocia automáticamente.
+  </Tab>
+  <Tab title="Automáticamente">
+    Los [flows de automatización](/canales/flows) y el asistente de IA pueden crear tickets cuando se cumplen condiciones específicas (ej: el usuario pregunta por un producto, llega un lead de Meta, etc.).
+  </Tab>
+</Tabs>
+
+---
+
+## Datos de un ticket
+
+Cada ticket tiene los siguientes campos configurables:
+
+| Campo | Descripción |
+|-------|-------------|
+| **Contacto** | El [cliente](/crm/clientes) asociado al ticket (requerido) |
+| **Etapa** | La etapa del [pipeline](/crm/pipelines) en la que se encuentra |
+| **Prioridad** | Baja, Media, Alta, Urgente (por defecto: Media) |
+| **Categoría** | Clasificación libre del tipo de caso |
+| **Asignado a** | Agente o miembro del equipo responsable |
+| **Tags** | [Etiquetas](/crm/tags) para clasificar el ticket (scope: Ticket) |
+| **Campos personalizados** | Campos adicionales definidos en [Campos](/crm/campos) (scope: Ticket) |
+
+---
+
+## Mover un ticket entre etapas
+
+<Tabs>
+  <Tab title="Drag & drop">
+    En la vista embudo, arrastra la tarjeta del ticket de una columna a otra. Ideal para mover uno o pocos tickets visualmente.
+  </Tab>
+  <Tab title="Selector de etapa">
+    Abre el ticket y usa el selector de etapa en el panel de información. También disponible desde el panel lateral en la vista de conversación.
+  </Tab>
+  <Tab title="Acción masiva">
+    En la vista tabla, selecciona múltiples tickets y usa **Mover a etapa** para moverlos todos a la vez.
+  </Tab>
+</Tabs>
+
+---
+
+## Resolución de tickets
+
+Cuando un ticket llega a una etapa de tipo **Ganado** o **Perdido**, se marca la resolución correspondiente y el ticket se cierra.
+
+<CardGroup cols={2}>
+  <Card title="Ganado" icon="trophy">
+    El proceso terminó con éxito: la venta se concretó, el caso se resolvió, el lead se convirtió.
+  </Card>
+  <Card title="Perdido" icon="xmark">
+    El proceso terminó sin conversión: la oportunidad no prosperó, el cliente no siguió adelante.
+  </Card>
+</CardGroup>
+
+También puedes cerrar o reabrir un ticket manualmente desde el detalle sin necesidad de moverlo a una etapa de cierre.
+
+---
+
+## Ticket en la vista de conversación
+
+Cuando una conversación tiene un ticket asociado, el panel lateral derecho muestra la información del ticket en tiempo real.
+
+<AccordionGroup>
+  <Accordion title="Panel de información del ticket" icon="sidebar">
+    Desde la conversación puedes ver y editar directamente:
+    - Etapa actual (con selector para moverlo)
+    - Prioridad y categoría
+    - Agente asignado
+    - Tags del ticket
+    - Campos personalizados del ticket
+  </Accordion>
+  <Accordion title="Mover etapa desde conversación" icon="arrow-right-arrow-left">
+    Usa el selector de etapa en el panel lateral para avanzar el ticket en el pipeline sin salir de la conversación.
+  </Accordion>
+  <Accordion title="Marcar como Ganado / Perdido" icon="flag-checkered">
+    En el panel del ticket, usa las acciones de resolución para cerrar el ticket como Ganado o Perdido directamente desde la conversación.
+  </Accordion>
+  <Accordion title="Editar campos personalizados" icon="pen-to-square">
+    Los campos personalizados de scope Ticket son editables desde el panel lateral. Los cambios se guardan en tiempo real y pueden disparar automatizaciones si están configuradas.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Filtrar tickets en el pipeline
+
+Desde la vista del pipeline usa los filtros para encontrar tickets:
+
+- **Keyword**: busca en el contenido del ticket
+- **Asignado a**: Sin asignar / Yo / cualquier agente
+- **Estado**: Abiertos / Todos / Cerrados
+- **Actividad**: filtra por última actividad (última semana, 2 semanas, 4 semanas, sin actividad)
+- **Canal**: filtra por canal de origen del contacto
+- **Categorías**: filtra por tipo de caso
+
+---
+
+## Prioridades
+
+Las prioridades te permiten identificar visualmente qué tickets necesitan atención inmediata.
+
+| Nivel | Uso sugerido |
+|-------|-------------|
+| **Baja** | Sin urgencia, puede esperar |
+| **Media** | Prioridad estándar (valor por defecto) |
+| **Alta** | Requiere atención pronto |
+| **Urgente** | Necesita atención inmediata |
+
+<Tip>
+  Usa los filtros de actividad para detectar tickets sin movimiento reciente y hacer seguimiento proactivo antes de que se "enfríen".
+</Tip>
+
+<Info>
+  Los campos personalizados de scope Ticket se definen en [Campos](/crm/campos) y se pueden asociar a pipelines específicos desde [Configurar Ticket](/crm/configurar-ticket).
+</Info>

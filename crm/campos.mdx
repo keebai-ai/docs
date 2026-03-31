@@ -1,50 +1,137 @@
 ---
-title: "Campos"
+title: "Campos Personalizados"
 sidebarTitle: "Campos"
-description: "Campos personalizados para almacenar la información específica de tu negocio"
+description: "Crea campos adicionales para enriquecer los perfiles de contactos y los datos de tickets en tus pipelines"
 ---
 
-Los campos personalizados te permiten guardar información específica de tu negocio en los perfiles de tus contactos, más allá de los campos estándar.
+Los campos personalizados te permiten registrar información específica de tu negocio que no está cubierta por los campos estándar. Puedes crear campos para contactos (scope Cliente) y para tickets de tus pipelines (scope Ticket).
 
-## Campos estándar
+Navega a **CRM → Campos** para gestionar todos los campos personalizados de tu workspace.
 
-| Campo | Tipo |
-|-------|------|
-| Nombre | Texto |
-| Email | Email |
-| Teléfono | Teléfono |
-| Empresa | Texto |
-| Notas | Texto largo |
+---
 
-## Crear un campo personalizado
+## Scopes: Cliente vs Ticket
+
+El scope determina dónde aparece el campo:
+
+<CardGroup cols={2}>
+  <Card title="Cliente" icon="user">
+    Aparece en el perfil del contacto (barra lateral). Sirve para registrar datos propios del cliente: empresa, cargo, región, segmento, etc.
+  </Card>
+  <Card title="Ticket" icon="ticket">
+    Aparece en los tickets del pipeline. Sirve para datos específicos del proceso: monto de la operación, motivo del caso, número de orden, etc.
+  </Card>
+</CardGroup>
+
+Usa el selector de scope en la vista de campos para cambiar entre los campos de Cliente y los de Ticket.
+
+---
+
+## Tipos de campo
+
+| Tipo | Descripción | Ejemplo |
+|------|-------------|---------|
+| **Texto** | Texto libre de una línea | Empresa, Cargo, Referencia |
+| **Número** | Valor numérico | Presupuesto, Cantidad, Puntuación |
+| **Selección** | Lista de opciones predefinidas (elige una) | Industria, Segmento, Prioridad custom |
+| **Fecha** | Selector de fecha | Fecha de vencimiento, Fecha de reunión |
+| **Booleano** | Sí / No | ¿Es cliente VIP?, ¿Acepta comunicaciones? |
+
+---
+
+## Crear un campo
 
 <Steps>
-  <Step title="Ve a Campos">
-    Navega a **CRM → Campos** y haz clic en **+ Nuevo Campo**.
+  <Step title="Haz clic en Nuevo campo">
+    En **CRM → Campos**, selecciona el scope (Cliente o Ticket) y haz clic en **+ Nuevo campo**.
   </Step>
-  <Step title="Define el campo">
-    Elige nombre y tipo:
+  <Step title="Configura el campo">
+    Completa la información del campo:
 
-    | Tipo | Para qué sirve |
-    |------|----------------|
-    | **Texto** | Texto libre corto |
-    | **Texto largo** | Notas o descripciones extensas |
-    | **Número** | Valores numéricos |
-    | **Fecha** | Fechas |
-    | **Selección** | Lista de opciones predefinidas |
-    | **Selección múltiple** | Varias opciones a la vez |
-    | **Checkbox** | Sí/No |
-    | **URL** | Enlaces |
+    | Atributo | Descripción |
+    |----------|-------------|
+    | **Etiqueta** | El nombre que verán los agentes en la interfaz |
+    | **Clave (key)** | Identificador técnico único, usado en automatizaciones y la API |
+    | **Tipo** | Texto, Número, Selección, Fecha o Booleano |
+    | **Opciones** | (Solo para Selección) Lista de valores posibles |
+    | **Descripción** | Texto de ayuda para los agentes |
+    | **Requerido** | Si el campo es obligatorio al crear el registro |
+    | **Orden** | Posición en la que aparece en la interfaz |
+  </Step>
+  <Step title="Configura los permisos de edición">
+    Define quién puede modificar el valor del campo:
+
+    | Permiso | Descripción |
+    |---------|-------------|
+    | **Visible en UI** | El campo aparece en la interfaz del portal |
+    | **Editable por usuarios** | Los agentes pueden modificar el valor manualmente |
+    | **Editable por IA** | El asistente de IA puede escribir o actualizar este campo |
+  </Step>
+  <Step title="Guarda el campo">
+    Haz clic en **Guardar**. El campo queda disponible de inmediato en todos los contactos o tickets según el scope.
   </Step>
 </Steps>
 
-## ¿Dónde se usan?
+---
 
-- **Perfil del cliente** — se muestran y editan en cada contacto
-- **Filtros** — filtra la [lista de clientes](/crm/clientes) por cualquier campo
-- **Variables en mensajes** — úsalos en [templates](/canales/templates) y [difusiones](/canales/difusion-masiva)
-- **IA** — el [asistente](/ia-asistentes/mis-asistentes) puede leer y escribir campos durante una conversación
+## Clave del campo (key)
 
-<Info>
-  Los campos personalizados aplican a todos los contactos del workspace.
-</Info>
+La clave es el identificador técnico del campo. Se usa para:
+- Referenciar el campo en automatizaciones y flows
+- Filtrar en la API
+- Mapear campos de formularios de [Lead Ads](/crm/lead-ads)
+
+**Reglas para la clave:**
+- Solo letras, números y guiones bajos
+- Debe ser único por scope y workspace
+- No se puede cambiar una vez creado
+
+Ejemplo: para un campo llamado "Empresa cliente", la clave podría ser `empresa_cliente`.
+
+---
+
+## Actualización masiva de valores
+
+Puedes actualizar el valor de un campo para múltiples contactos a la vez usando filtros.
+
+<Steps>
+  <Step title="Accede a actualización masiva">
+    En la lista de campos, haz clic en el menú del campo y selecciona **Actualizar valores masivamente**.
+  </Step>
+  <Step title="Define los filtros">
+    Filtra los contactos a los que quieres actualizar el valor:
+    - Por tipo de canal
+    - Por canal específico
+    - Por ID de usuario externo
+  </Step>
+  <Step title="Establece el nuevo valor">
+    Ingresa el valor que quieres asignar. Déjalo vacío para borrar el valor actual en los registros filtrados.
+  </Step>
+  <Step title="Confirma la actualización">
+    El sistema actualiza todos los registros que cumplen los filtros.
+  </Step>
+</Steps>
+
+<Warning>
+  La actualización masiva sobreescribe los valores existentes en todos los registros que cumplen los filtros. No hay forma de revertirlo.
+</Warning>
+
+---
+
+## Asociar campos Ticket a pipelines
+
+Los campos de scope Ticket se pueden asociar a pipelines específicos desde [Configurar Ticket](/crm/configurar-ticket). Esto permite que cada pipeline muestre solo los campos relevantes para su proceso.
+
+---
+
+## Campos editables por el asistente de IA
+
+Al activar **Editable por IA**, el asistente puede leer y modificar el campo automáticamente durante las conversaciones. Esto es útil para:
+
+- Registrar información recopilada durante el chat (empresa, cargo, interés)
+- Actualizar el estado del proceso según lo que el usuario responde
+- Clasificar automáticamente leads según criterios definidos
+
+<Tip>
+  Crea campos con **Editable por IA** activado y entrena a tu asistente para que los complete durante la conversación. Así enriqueces el perfil del contacto sin que el agente tenga que hacerlo manualmente.
+</Tip>

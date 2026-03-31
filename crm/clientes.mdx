@@ -1,63 +1,135 @@
 ---
 title: "Clientes"
 sidebarTitle: "Clientes"
-description: "Directorio central de contactos con historial de interacciones"
+description: "Directorio central de contactos con historial completo de interacciones, notas, tickets y documentos"
 ---
 
-Clientes es tu directorio central de contactos. Cada persona que interactúa contigo a través de cualquier canal se registra automáticamente aquí con todo su historial.
+Clientes es el directorio central de contactos. Cada persona que interactúa contigo a través de cualquier canal se registra automáticamente aquí con todo su historial. También puedes crear y gestionar contactos manualmente.
 
-## Vista de clientes
+---
 
-La vista principal muestra una tabla con todos tus contactos:
-- Nombre y datos de contacto
-- Canal por el que llegó
-- Etiquetas asignadas
-- Último mensaje
-- Agente asignado
+## Lista de clientes
 
-## Perfil de un cliente
+Navega a **CRM → Clientes** para ver todos los contactos de tu workspace.
 
-Haz clic en cualquier contacto para ver su perfil completo:
+La vista principal muestra:
+
+| Columna | Descripción |
+|---------|-------------|
+| **Nombre** | Nombre completo del contacto |
+| **Canal** | Canal por el que se registró (WhatsApp, Instagram, Messenger, etc.) |
+| **Teléfono / Email** | Datos de contacto disponibles |
+| **Último mensaje** | Preview del último mensaje intercambiado |
+| **Última actividad** | Fecha de la última interacción |
+
+### Buscar y filtrar
+
+Usa la barra superior para buscar y filtrar contactos:
+
+- **Búsqueda de texto**: busca por nombre, teléfono, email o ID de usuario
+- **Filtro por canal**: muestra solo los contactos de un canal específico (WhatsApp, Instagram, Messenger, etc.)
+
+---
+
+## Crear un contacto manualmente
+
+Haz clic en **Nuevo contacto** e ingresa los datos:
+
+- Canal y tipo de canal
+- Nombre, apellido
+- Teléfono, email
+- Campos personalizados (scope Cliente)
+
+<Info>
+  Los contactos se crean automáticamente cuando alguien te escribe por primera vez en cualquier canal. La creación manual es útil para registrar contactos que aún no han iniciado conversación.
+</Info>
+
+---
+
+## Perfil del contacto
+
+Haz clic en cualquier contacto para ver su perfil completo. El perfil tiene una barra lateral con los datos principales y pestañas con todo el historial.
+
+### Barra lateral — Datos personales
+
+Muestra los datos estándar del contacto:
+- Nombre completo y foto de perfil
+- Canal y tipo de canal de origen
+- Teléfono, email
+- ID externo del usuario
+- Fechas de primera y última actividad
+
+Los **campos personalizados de scope Cliente** también aparecen en la barra lateral. Son editables directamente desde aquí. Ver [Campos personalizados](/crm/campos).
+
+### Pestañas del perfil
 
 <AccordionGroup>
-  <Accordion title="Datos personales" icon="user">
-    Nombre, email, teléfono, empresa y [campos personalizados](/crm/campos).
+  <Accordion title="Todo — Actividad reciente" icon="clock-rotate-left">
+    Vista unificada de la actividad más reciente del contacto: mensajes, notas, cambios de etapa, documentos y cualquier evento registrado. Ideal para tener contexto rápido antes de una interacción.
   </Accordion>
-  <Accordion title="Historial de conversaciones" icon="clock-rotate-left">
-    Todas las conversaciones del contacto en todos los canales, en orden cronológico.
+  <Accordion title="Historial — Conversaciones" icon="message">
+    Todas las conversaciones del contacto en todos los canales, ordenadas cronológicamente. Haz clic en cualquier conversación para abrirla.
   </Accordion>
-  <Accordion title="Etiquetas" icon="tags">
-    [Tags](/crm/tags) asignados para clasificar al contacto.
+  <Accordion title="Notas" icon="note-sticky">
+    Notas internas del equipo sobre el contacto. Tipos disponibles: Nota general, Llamada, Email, Reunión.
+
+    Para agregar una nota, haz clic en **+ Nueva nota**, escribe el contenido y selecciona el tipo.
+  </Accordion>
+  <Accordion title="Tickets" icon="ticket">
+    Todos los [tickets](/crm/tickets) asociados a este contacto en todos los pipelines. Muestra etapa actual, prioridad, pipeline y fecha de creación.
+
+    Desde aquí puedes crear un nuevo ticket para el contacto directamente.
   </Accordion>
   <Accordion title="Tareas" icon="list-check">
-    [Tareas](/crm/tareas) vinculadas a este contacto.
+    [Tareas](/crm/tareas) vinculadas a este contacto. Muestra estado, fecha de vencimiento y agente asignado.
+
+    Puedes crear nuevas tareas desde esta pestaña.
   </Accordion>
-  <Accordion title="Pipeline" icon="filter">
-    Posición actual en el [embudo](/embudo/overview) de ventas.
+  <Accordion title="Documentos" icon="file">
+    Archivos y documentos asociados al contacto: imágenes, PDFs, archivos recibidos por WhatsApp, Instagram u otros canales, o subidos manualmente.
   </Accordion>
 </AccordionGroup>
 
-## Filtros y búsqueda
+---
 
-| Filtro | Descripción |
-|--------|------------|
-| **Nombre / teléfono / email** | Búsqueda directa por texto |
-| **Etiqueta** | Filtra por tags asignados |
-| **Canal** | Filtra por canal de origen (Facebook, WhatsApp, etc.) |
-| **Agente asignado** | Contactos asignados a un miembro del equipo |
-| **Campos personalizados** | Filtra por cualquier [campo](/crm/campos) que hayas creado |
+## Editar un contacto
 
-## Importar y exportar
+Haz clic en el ícono de edición en el perfil del contacto para modificar:
+- Nombre, apellido, teléfono, email
+- Campos personalizados de scope Cliente
+
+---
+
+## Importar contactos por CSV
 
 <Steps>
-  <Step title="Importar">
-    Haz clic en **Importar** y sube un archivo CSV. Mapea las columnas del CSV a los campos de Keebai.
+  <Step title="Descarga el ejemplo">
+    En la lista de clientes, haz clic en **Importar** y descarga el archivo CSV de ejemplo para ver el formato requerido.
   </Step>
-  <Step title="Exportar">
-    Haz clic en **Exportar** para descargar tu base como CSV (todos o solo los filtrados).
+  <Step title="Prepara tu archivo CSV">
+    Completa el CSV con los datos de tus contactos. Las columnas mínimas requeridas son el canal de origen y al menos un identificador (teléfono, email o nombre).
+  </Step>
+  <Step title="Sube el archivo">
+    Haz clic en **Importar**, selecciona tu CSV y confírmalo. Los contactos se crean en segundos.
   </Step>
 </Steps>
 
-<Info>
-  Los contactos se crean automáticamente cuando alguien te escribe por primera vez en cualquier canal.
-</Info>
+<Warning>
+  Si un contacto ya existe con el mismo teléfono o email, no se duplica — se actualiza con los nuevos datos.
+</Warning>
+
+---
+
+## Fusionar contactos duplicados
+
+Cuando un mismo cliente te escribe desde diferentes canales (ej: WhatsApp y Instagram), puede quedar registrado como dos contactos distintos. La fusión los unifica en uno solo.
+
+Desde el perfil del contacto, haz clic en **Fusionar** para iniciar el wizard. Ver la guía completa en [Fusionar Contactos](/crm/fusionar-contactos).
+
+### Historial de fusiones
+
+En el perfil del contacto puedes ver si ha sido parte de una fusión previa: quién era el contacto primario, con quién se fusionó y cuándo. Desde aquí también puedes deshacer la fusión si es necesario.
+
+<Tip>
+  Usa la búsqueda con el teléfono del contacto para verificar si ya existe antes de crearlo manualmente y así evitar duplicados.
+</Tip>
