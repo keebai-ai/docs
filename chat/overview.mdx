@@ -1,0 +1,293 @@
+---
+title: "Chat"
+sidebarTitle: "Chat"
+description: "Bandeja de entrada unificada para gestionar todas tus conversaciones de WhatsApp, Instagram, Messenger y Webchat en un solo lugar"
+---
+
+El Chat es tu centro de operaciones para todas las conversaciones con clientes. Desde aquí puedes ver, responder y gestionar mensajes de todos tus canales conectados — WhatsApp, Instagram, Messenger y Webchat — en una sola pantalla.
+
+<Info>
+  Accede al Chat desde el menú principal haciendo clic en **Chat** o navega directamente a la ruta `/chat`.
+</Info>
+
+---
+
+## Interfaz del Chat
+
+La pantalla del Chat está dividida en **tres paneles** que puedes ver simultáneamente:
+
+| Panel | Ubicación | Función |
+|-------|-----------|---------|
+| **Bandeja de entrada** | Izquierda | Navegación y filtros para organizar tus conversaciones |
+| **Lista de conversaciones** | Centro | Listado de todas las conversaciones con vista previa del último mensaje |
+| **Área de chat** | Derecha | La conversación seleccionada con el historial de mensajes y área de respuesta |
+
+Puedes activar el **modo pantalla completa** para que el chat ocupe toda la ventana del navegador.
+
+---
+
+## Bandeja de entrada (panel izquierdo)
+
+La bandeja de entrada te permite organizar y filtrar tus conversaciones de diferentes formas:
+
+### Vistas disponibles
+
+<CardGroup cols={2}>
+  <Card title="Mi bandeja" icon="inbox">
+    Muestra solo las conversaciones asignadas a ti. Ideal para enfocarte en tus casos.
+  </Card>
+  <Card title="Todos los chats" icon="comments">
+    Todas las conversaciones de la empresa, sin importar quién las atiende.
+  </Card>
+  <Card title="Sin asignar" icon="user-slash">
+    Conversaciones que aún no tienen un agente asignado. Aquí puedes tomar nuevos casos.
+  </Card>
+  <Card title="Por canal" icon="tower-broadcast">
+    Filtra por canal específico: WhatsApp, Messenger, Instagram o Web.
+  </Card>
+</CardGroup>
+
+### Filtro por pipeline
+
+Debajo de los canales, puedes filtrar por las etapas de tus pipelines del CRM. Cada pipeline se muestra como un grupo expandible, y cada etapa aparece con un punto de color para identificarla visualmente. Al seleccionar una etapa, solo verás las conversaciones cuyos tickets estén en esa etapa.
+
+---
+
+## Lista de conversaciones (panel central)
+
+### Pestañas
+
+La lista de conversaciones tiene **4 pestañas** en la parte superior, cada una con un contador:
+
+| Pestaña | Muestra |
+|---------|---------|
+| **Todas** | Todas las conversaciones sin filtro |
+| **Activas** | Conversaciones con tickets abiertos (en curso) |
+| **Cerradas** | Conversaciones con tickets cerrados |
+| **Transferidas** | Conversaciones que están en una etapa de atención humana |
+
+### Buscador
+
+Usa la barra de búsqueda para encontrar conversaciones por nombre del contacto o contenido del último mensaje.
+
+### Información de cada conversación
+
+Cada conversación en la lista muestra:
+
+- **Foto de perfil** del contacto (o iniciales si no tiene)
+- **Ícono del canal** (WhatsApp, Instagram, Messenger, Web)
+- **Nombre del contacto** y nombre de usuario
+- **Vista previa** del último mensaje
+- **Tiempo** desde el último mensaje (ej: "Hace 5 min", "Hace 2 horas")
+- **Tags** del ticket (hasta 4 etiquetas de color)
+- **Indicadores de estado:**
+  - 🔵 Azul: atención manual en progreso (un agente está respondiendo)
+  - 🟡 Amarillo: requiere atención manual (la IA señaló que necesita intervención humana)
+  - ⚫ Gris: conversación cerrada
+
+---
+
+## Área de chat (panel derecho)
+
+### Encabezado
+
+El encabezado de la conversación muestra:
+
+- **Foto y nombre** del contacto (haz clic para ver su perfil completo)
+- **Indicador de conexión** (punto verde cuando la conversación está activa)
+- **Quién atiende**: muestra si la conversación está siendo atendida por la **IA** o por un **agente humano**
+- **Selector de etapa**: permite mover el ticket a otra etapa del pipeline directamente desde aquí
+
+### Historial de mensajes
+
+Los mensajes se organizan de forma visual para que puedas seguir la conversación fácilmente:
+
+- **Separadores por fecha**: Cada día tiene un separador con la fecha
+- **Secciones por ticket**: Los mensajes se agrupan dentro de secciones que indican a qué ticket pertenecen, con banners de color:
+  - 🔵 Azul: ticket abierto
+  - 🟢 Verde: ticket cerrado como ganado
+  - 🔴 Rojo: ticket cerrado como perdido
+  - ⚫ Gris: ticket cerrado sin resolución
+
+- **Mensajes del cliente**: Aparecen a la izquierda con fondo oscuro
+- **Mensajes de la IA**: Aparecen a la derecha con fondo gris claro
+- **Mensajes de agentes**: Aparecen a la derecha con fondo azul claro y borde azul
+
+**Indicador de escritura**: Cuando la IA está preparando una respuesta, verás tres puntos animados.
+
+**Scroll infinito**: Los mensajes se cargan progresivamente al hacer scroll hacia arriba. Un botón flotante te lleva al final de la conversación con un clic.
+
+### Estados de entrega
+
+Los mensajes enviados muestran su estado de entrega:
+
+| Estado | Indicador |
+|--------|-----------|
+| **Enviado** | ✓ Un check gris |
+| **Entregado** | ✓✓ Dos checks grises |
+| **Leído** | ✓✓ Dos checks azules |
+
+### Respuestas citadas
+
+Si un mensaje es una respuesta a otro mensaje anterior, se muestra una barra de cita encima con la vista previa del mensaje original. Al hacer clic en la cita, el chat se desplaza al mensaje original con una animación de resaltado.
+
+---
+
+## Tipos de contenido soportados
+
+El chat soporta múltiples tipos de contenido multimedia:
+
+<Tabs>
+  <Tab title="Texto">
+    Mensajes de texto con soporte de formato. Los mensajes de la IA se renderizan con formato enriquecido (negritas, listas, enlaces, etc.).
+  </Tab>
+  <Tab title="Imágenes">
+    Se muestran como miniaturas en la conversación. Haz clic para ver en pantalla completa con controles de zoom (acercar, alejar, restablecer). Botón de descarga disponible.
+  </Tab>
+  <Tab title="Audio">
+    Reproductor personalizado con botón play/pausa, barra de progreso (clic para avanzar) y duración. Si el audio tiene transcripción, se muestra el texto debajo.
+  </Tab>
+  <Tab title="Video">
+    Reproductor de video integrado. Haz clic para ver en pantalla completa. Botón de descarga disponible.
+  </Tab>
+  <Tab title="Documentos">
+    Tarjeta con ícono del tipo de archivo, nombre y enlace de descarga. Soporta PDF, Word, TXT y más.
+  </Tab>
+  <Tab title="Stickers">
+    Se muestran como imágenes pequeñas sin burbuja de fondo.
+  </Tab>
+  <Tab title="Formularios (Flows)">
+    Las respuestas de [WhatsApp Flows](/canales/flows) se muestran como tarjetas estructuradas con los campos y valores que el cliente completó.
+  </Tab>
+</Tabs>
+
+---
+
+## Responder conversaciones
+
+El área de entrada tiene **tres modos** que puedes alternar con las pestañas superiores:
+
+### Responder (mensaje al cliente)
+
+Para enviar un mensaje al cliente:
+
+1. Escribe tu mensaje en el campo de texto
+2. Presiona **Enter** para enviar (usa **Shift + Enter** para saltos de línea)
+
+**Opciones adicionales:**
+- **Emojis**: Haz clic en el ícono de emoji para abrir el selector
+- **Archivos adjuntos**: Haz clic en el ícono de clip para adjuntar imágenes, audio, video, PDFs o documentos Word
+- **Grabación de voz**: Mantén presionado el ícono del micrófono para grabar un mensaje de voz. Verás un indicador rojo pulsante con el tiempo de grabación. Al soltar, puedes escuchar la grabación, confirmarla o descartarla
+
+<Warning>
+  **Ventana de 24 horas**: En WhatsApp, solo puedes enviar mensajes si el cliente escribió en las últimas 24 horas. Si la ventana expiró, verás un aviso amarillo sugiriendo usar [campañas de difusión](/canales/difusion-masiva) para recontactar.
+</Warning>
+
+<Note>
+  Para responder manualmente, el ticket debe estar en una **etapa humana** del pipeline. Si el ticket está en una etapa de IA, verás un aviso azul indicando que primero debes activar la atención manual moviendo el ticket a la etapa correspondiente.
+</Note>
+
+### Notas internas
+
+Las notas internas son mensajes privados que **solo tu equipo puede ver**. El cliente nunca las verá. Son útiles para:
+
+- Dejar contexto sobre un caso para otro agente
+- Anotar acuerdos o compromisos con el cliente
+- Registrar información relevante de la conversación
+
+Las notas se muestran con fondo amarillo en el panel de documentos del sidebar derecho.
+
+### Tareas
+
+*(Próximamente)* — Podrás crear tareas vinculadas directamente a la conversación.
+
+---
+
+## Panel lateral derecho
+
+Al hacer clic en los íconos del borde derecho, se abre un panel lateral con tres secciones:
+
+### Ticket
+
+Gestiona el ticket asociado a la conversación:
+
+| Elemento | Descripción |
+|----------|------------|
+| **Estado** | Indicador visual: Sin atender, Cerrado, Ganado o Perdido |
+| **Etapa** | Selector para mover el ticket entre etapas del pipeline |
+| **Tags** | Etiquetas de color para clasificar el ticket. Puedes agregar y quitar tags |
+| **Campos personalizados** | Edita los campos personalizados del ticket directamente (texto, número, fecha, selector, etc.) |
+| **Resolución** | Marca el ticket como Ganado o Perdido |
+| **Siguiente etapa** | Configura a qué pipeline y etapa se moverá el próximo ticket del mismo contacto |
+| **Cerrar ticket** | Interruptor para cerrar el ticket actual |
+
+### Contacto
+
+Información del cliente asociado a la conversación:
+
+| Elemento | Descripción |
+|----------|------------|
+| **Tags** | Etiquetas de color para clasificar al contacto |
+| **Agente asignado** | Muestra qué agente tiene asignada esta conversación |
+| **Campos personalizados** | Edita los campos personalizados del contacto (nombre, email, teléfono, etc.) |
+
+### Documentos y notas
+
+Vista centralizada de todos los archivos y notas de la conversación:
+
+- **Notas**: Tarjetas amarillas con el contenido de cada nota, fecha de creación y opción de eliminar. Botón para agregar nuevas notas.
+- **Documentos y medios**: Lista de todos los archivos intercambiados en la conversación (imágenes, videos, audios, PDFs). Cada archivo muestra su tipo, nombre, tamaño, desde qué canal se envió y la fecha. Incluye enlace de descarga directa.
+
+---
+
+## IA vs. atención humana
+
+El chat funciona en conjunto con los [asistentes de IA](/ia-asistentes/mis-asistentes) a través del pipeline del CRM:
+
+- **Etapas con IA**: El asistente responde automáticamente. El campo de texto para agentes está bloqueado.
+- **Etapas humanas**: Un agente del equipo puede responder manualmente. La IA no interviene.
+
+Para transferir una conversación de IA a humano (o viceversa), simplemente **mueve el ticket a la etapa correspondiente** usando el selector de etapa en el encabezado o en el panel lateral derecho.
+
+El encabezado siempre indica quién está atendiendo:
+- **"Atendido por IA"** — con ícono morado
+- **"Atendido por humano"** — con ícono azul
+
+---
+
+## Actualizaciones en tiempo real
+
+El chat se actualiza automáticamente sin necesidad de recargar la página:
+
+- **Mensajes nuevos** aparecen instantáneamente en la conversación activa
+- **Indicadores de escritura** muestran cuando la IA está preparando una respuesta
+- **Estados de entrega** se actualizan en tiempo real (enviado → entregado → leído)
+- **Lista de conversaciones** se reordena automáticamente cuando llega un nuevo mensaje
+- **Cambios de ticket** se reflejan al instante (cambios de etapa, tags, campos)
+
+Si la conexión se pierde, el sistema intenta reconectarse automáticamente.
+
+---
+
+## Buenas prácticas
+
+<AccordionGroup>
+  <Accordion title="Usa las notas internas para contexto" icon="sticky-note">
+    Antes de transferir una conversación a otro agente, deja una nota interna con el contexto del caso. Esto evita que el cliente tenga que repetir su historia.
+  </Accordion>
+  <Accordion title="Clasifica con tags" icon="tags">
+    Usa tags tanto en el ticket como en el contacto para poder filtrar y encontrar conversaciones fácilmente después.
+  </Accordion>
+  <Accordion title="Cierra los tickets resueltos" icon="check">
+    Marca los tickets como Ganado o Perdido y ciérralos cuando se resuelvan. Esto mantiene tu bandeja ordenada y ayuda con las métricas.
+  </Accordion>
+  <Accordion title="Revisa la bandeja de Sin asignar" icon="user-slash">
+    Visita frecuentemente la sección "Sin asignar" para que ningún cliente quede sin atender.
+  </Accordion>
+  <Accordion title="Aprovecha el filtro por pipeline" icon="filter">
+    Si manejas múltiples pipelines (ventas, soporte, etc.), usa los filtros por etapa para enfocarte en los casos más urgentes.
+  </Accordion>
+  <Accordion title="Respeta la ventana de 24 horas en WhatsApp" icon="clock">
+    Si la ventana expiró, usa difusión masiva con templates aprobados para recontactar al cliente. No podrás enviar mensajes libres.
+  </Accordion>
+</AccordionGroup>

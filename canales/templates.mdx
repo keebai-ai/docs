@@ -1,0 +1,115 @@
+---
+title: "Templates"
+sidebarTitle: "Templates"
+description: "Plantillas de mensajes pre-aprobadas por Meta para WhatsApp Business"
+---
+
+Los **Templates** son plantillas de mensajes que Meta debe aprobar antes de que puedas usarlas. Son obligatorios en WhatsApp Business API para enviar mensajes fuera de la ventana de 24 horas o para [difusiones masivas](/canales/difusion-masiva).
+
+## ¿Cuándo necesitas un template?
+
+<AccordionGroup>
+  <Accordion title="Difusiones masivas por WhatsApp" icon="paper-plane">
+    Toda [difusión masiva](/canales/difusion-masiva) por WhatsApp requiere un template aprobado.
+  </Accordion>
+  <Accordion title="Recontactar después de 24 horas" icon="clock">
+    WhatsApp solo permite mensajes libres dentro de una ventana de 24 horas desde el último mensaje del cliente. Después de ese período, necesitas un template aprobado.
+  </Accordion>
+  <Accordion title="Notificaciones proactivas" icon="bell">
+    Confirmaciones de cita, recordatorios de pago, actualizaciones de pedido, y cualquier mensaje que inicies tú al cliente.
+  </Accordion>
+</AccordionGroup>
+
+## Categorías
+
+| Categoría | Descripción | Ejemplo |
+|-----------|------------|---------|
+| **Marketing** | Promociones, ofertas, novedades | "Aprovecha 20% de descuento en tu próxima compra" |
+| **Utilidad** | Confirmaciones, recordatorios, actualizaciones | `Tu pedido #{{order_id}} ha sido enviado` |
+| **Autenticación** | Códigos de verificación y OTP | `Tu código de verificación es {{code}}` |
+
+## Crear un template
+
+<Steps>
+  <Step title="Ve a Templates">
+    Navega a **Canales → Templates** y haz clic en **+ Nuevo Template**.
+  </Step>
+  <Step title="Selecciona el canal">
+    Elige el canal de WhatsApp al que pertenecerá el template.
+  </Step>
+  <Step title="Configura la información básica">
+    - **Nombre** del template (obligatorio, se genera un identificador único con prefijo `kb_`)
+    - **Idioma** del mensaje
+    - **Categoría**: Marketing, Utilidad o Autenticación
+  </Step>
+  <Step title="Diseña los componentes del mensaje">
+    Un template se compone de secciones (componentes):
+
+    | Componente | Descripción |
+    |-----------|------------|
+    | **Encabezado** (Header) | Texto, imagen, video o documento. Opcional. |
+    | **Cuerpo** (Body) | Texto principal del mensaje. Obligatorio. |
+    | **Pie** (Footer) | Texto secundario al final del mensaje. Opcional. |
+    | **Botones** | Acciones interactivas. Opcional. |
+  </Step>
+  <Step title="Agrega variables">
+    Inserta variables dinámicas que se llenan con datos del contacto al enviar:
+    - **Formato con nombre:** `{{customer_name}}`, `{{order_id}}`
+    - **Formato posicional:** `{{1}}`, `{{2}}`
+  </Step>
+  <Step title="Envía a aprobación">
+    Al guardar, el template se envía automáticamente a Meta para revisión.
+  </Step>
+</Steps>
+
+### Tipos de botones
+
+| Tipo | Descripción |
+|------|------------|
+| **Respuesta rápida** | Botón que envía un texto predefinido como respuesta |
+| **URL** | Abre un enlace en el navegador |
+| **Teléfono** | Inicia una llamada al número configurado |
+| **Flow** | Abre un [WhatsApp Flow](/canales/flows) interactivo |
+| **Copiar código** | Copia un código al portapapeles (útil para OTP) |
+
+## Estados de un template
+
+| Estado | Significado |
+|--------|------------|
+| **Pendiente** | Creado localmente, pendiente de envío a Meta |
+| **En revisión** | Enviado a Meta, esperando aprobación |
+| **Aprobado** | Listo para usar en mensajes y difusiones |
+| **Rechazado** | No cumple las políticas de Meta. Puedes editarlo y reenviarlo |
+| **Pausado** | Desactivado temporalmente por baja calidad o reportes de usuarios |
+| **Deshabilitado** | Desactivado por Meta |
+| **En apelación** | Se ha solicitado revisión de un rechazo |
+
+## Calidad del template
+
+Meta asigna una puntuación de calidad basada en las interacciones de los usuarios:
+
+| Calidad | Significado |
+|---------|------------|
+| **Alta** | Buen rendimiento, sin problemas |
+| **Media** | Algunos reportes o baja interacción |
+| **Baja** | Alto nivel de reportes. Riesgo de ser pausado |
+| **Pendiente** | Aún sin datos suficientes para evaluar |
+
+<Warning>
+  Si la calidad de un template baja demasiado, Meta puede pausarlo o deshabilitarlo automáticamente. Monitorea regularmente la calidad de tus templates.
+</Warning>
+
+## Sincronizar desde Meta
+
+Si ya tienes templates creados directamente en WhatsApp Manager o Meta Business Suite, puedes importarlos a Keebai:
+
+1. Haz clic en **Sincronizar desde Meta**
+2. Selecciona el canal de WhatsApp
+3. Se muestran los templates de Meta que aún no están en Keebai
+4. Selecciona los que quieres importar y confirma
+
+Los templates importados mantienen su estado actual en Meta (aprobado, pendiente, etc.).
+
+<Tip>
+  Los cambios de estado de tus templates (aprobación, rechazo, pausa) se actualizan automáticamente vía webhooks. No necesitas sincronizar manualmente para ver cambios de estado.
+</Tip>

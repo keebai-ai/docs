@@ -1,0 +1,106 @@
+---
+title: "Configurar Ticket"
+sidebarTitle: "Configurar Ticket"
+description: "Personaliza cómo se gestionan los tickets en cada pipeline: nombre, módulos y campos personalizados"
+---
+
+La configuración de tickets en Keebai es **por pipeline**. Cada pipeline puede tener su propio nombre para los tickets, sus módulos activados y sus campos personalizados asociados. Esto te permite que un pipeline de ventas maneje "Oportunidades" mientras que uno de soporte maneje "Casos".
+
+Navega a **CRM → Configurar Ticket** para ver la lista de pipelines y acceder a la configuración de cada uno.
+
+---
+
+## Seleccionar el pipeline a configurar
+
+La vista principal muestra todos tus pipelines. Haz clic en uno para editar su configuración de tickets.
+
+---
+
+## Nombre del tipo de ticket
+
+Personaliza cómo se llaman los tickets en este pipeline. Este nombre aparece en la interfaz para los agentes.
+
+Ejemplos:
+- **Ventas**: "Oportunidad"
+- **Soporte**: "Caso"
+- **Marketing**: "Lead"
+- **Onboarding**: "Cliente nuevo"
+
+---
+
+## Módulos opcionales
+
+Activa o desactiva módulos adicionales para los tickets de este pipeline:
+
+<CardGroup cols={2}>
+  <Card title="Monto" icon="dollar-sign">
+    Agrega un campo de valor monetario al ticket. Útil en pipelines de ventas para registrar el valor de cada oportunidad.
+  </Card>
+  <Card title="Score" icon="star">
+    Agrega un campo de puntuación al ticket. Útil para calificar leads o priorizar oportunidades.
+  </Card>
+  <Card title="Feedback" icon="thumbs-up">
+    Habilita la recolección de feedback del cliente al cerrar el ticket (NPS/CSAT).
+  </Card>
+  <Card title="SLA" icon="clock">
+    Activa el control de tiempos de respuesta y resolución. Permite definir y monitorear si los tickets se resuelven dentro del tiempo comprometido.
+  </Card>
+</CardGroup>
+
+---
+
+## Campos personalizados del ticket
+
+Los [campos personalizados](/crm/campos) de scope **Ticket** se pueden asociar a pipelines específicos, de forma que solo aparezcan en los tickets de ese pipeline.
+
+<Steps>
+  <Step title="Abre la configuración del pipeline">
+    Ve a **CRM → Configurar Ticket** y selecciona el pipeline que deseas configurar.
+  </Step>
+  <Step title="Asocia campos personalizados">
+    En la sección **Campos del ticket**, haz clic en **Asociar campos**. Verás la lista de campos con scope Ticket disponibles.
+  </Step>
+  <Step title="Selecciona los campos">
+    Elige qué campos deben aparecer en los tickets de este pipeline y en qué orden. Solo aparecerán los campos que hayas seleccionado.
+  </Step>
+  <Step title="Guarda los cambios">
+    Haz clic en **Guardar**. Los cambios se aplican inmediatamente a todos los tickets existentes y nuevos de este pipeline.
+  </Step>
+</Steps>
+
+<Info>
+  Los campos se definen globalmente en [CRM → Campos](/crm/campos). La configuración de ticket solo determina qué campos se muestran en cada pipeline y en qué orden.
+</Info>
+
+---
+
+## Etiquetas del ticket
+
+También puedes personalizar las etiquetas de los campos estándar del ticket para que coincidan con la terminología de tu industria:
+
+- Renombra "Prioridad" como "Urgencia"
+- Renombra "Categoría" como "Tipo de caso"
+
+Esto no cambia la funcionalidad, solo el texto que ven los agentes en la interfaz.
+
+---
+
+## Ejemplo de configuración por industria
+
+<AccordionGroup>
+  <Accordion title="Agencia de ventas" icon="handshake">
+    - Nombre: "Oportunidad"
+    - Módulos: **Monto** (valor de la venta), **Score** (calificación del lead)
+    - Campos custom: "Producto de interés", "Presupuesto", "Decisor"
+  </Accordion>
+  <Accordion title="Soporte al cliente" icon="headset">
+    - Nombre: "Caso"
+    - Módulos: **SLA** (tiempo de resolución), **Feedback** (CSAT al cerrar)
+    - Campos custom: "Número de orden", "Versión del producto", "Motivo de contacto"
+  </Accordion>
+  <Accordion title="Marketing / Lead nurturing" icon="bullseye">
+    - Nombre: "Lead"
+    - Módulos: **Score** (lead scoring), **Monto** (valor potencial)
+    - Campos custom: "Fuente del lead", "Industria", "Tamaño de empresa"
+  </Accordion>
+</AccordionGroup>

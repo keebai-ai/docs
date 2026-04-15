@@ -1,0 +1,243 @@
+---
+title: "Mis Asistentes"
+sidebarTitle: "Mis Asistentes"
+description: "Crea y configura asistentes de IA con múltiples especialistas que atienden a tus clientes automáticamente"
+---
+
+Los asistentes son agentes de IA que responden automáticamente a tus clientes a través de WhatsApp, Webchat, Instagram o Messenger. Cada asistente puede tener múltiples **especialistas** — cada uno enfocado en un tema diferente — que trabajan juntos para atender la conversación completa.
+
+<Info>
+  Keebai usa un sistema multiagente: un asistente no es un solo bot, sino un equipo de especialistas coordinados. Un router inteligente decide automáticamente qué especialista responde según lo que el cliente necesita.
+</Info>
+
+## Interfaz principal
+
+Al ingresar a **IA & Asistentes → Mis Asistentes**, verás una cuadrícula con todos tus asistentes. Cada tarjeta muestra el nombre, descripción, estado (activo/inactivo) y avatar.
+
+Puedes buscar por nombre, filtrar por estado, y ver las estadísticas de asistentes totales, activos e inactivos.
+
+---
+
+## Crear un asistente
+
+<Steps>
+  <Step title="Haz clic en + Nuevo Asistente">
+    Desde **IA & Asistentes → Mis Asistentes**, haz clic en crear nuevo.
+  </Step>
+  <Step title="Dale un nombre y descripción">
+    Elige un nombre que identifique su función (ej: "Atención al Cliente", "Ventas", "Soporte Técnico").
+  </Step>
+  <Step title="Configura la personalidad">
+    Define el tono, extensión de respuestas, uso de emojis y nivel de formalidad.
+  </Step>
+  <Step title="Crea los especialistas">
+    Agrega especialistas para cada área que el asistente deba cubrir (ej: "Resolver Dudas", "Agendar Citas", "Gestionar Reclamos").
+  </Step>
+  <Step title="Guarda y asigna">
+    Guarda el asistente y asígnalo a una etapa de tu pipeline en el [CRM](/crm/configurar-ticket) para que empiece a atender conversaciones.
+  </Step>
+</Steps>
+
+---
+
+## Configuración del asistente
+
+La pantalla de edición de un asistente tiene 4 secciones principales accesibles desde la barra lateral:
+
+### 1. Personalidad
+
+Define cómo se expresa el asistente en todas sus respuestas. Estos ajustes aplican a **todos los especialistas** del asistente.
+
+<Tabs>
+  <Tab title="Tono">
+    Elige cómo "suena" el asistente:
+
+    | Tono | Descripción |
+    |------|------------|
+    | Amigable | Cercano y cálido |
+    | Neutral | Equilibrado, sin énfasis emocional |
+    | Profesional | Formal y corporativo |
+    | Directo | Va al grano, sin rodeos |
+    | Resolutivo | Enfocado en solucionar rápido |
+    | Motivacional | Entusiasta y positivo |
+    | Empático | Comprensivo y sensible |
+    | Juguetón | Informal y divertido |
+    | Autoritario | Firme y con confianza |
+  </Tab>
+  <Tab title="Extensión de respuestas">
+    Controla qué tan largas son las respuestas:
+
+    | Opción | Descripción |
+    |--------|------------|
+    | Muy conciso | Respuestas mínimas, 1-2 líneas |
+    | Conciso | Breve pero completo |
+    | Medio | Balance entre detalle y brevedad |
+    | Detallado | Explicaciones completas |
+    | Exhaustivo | Máximo detalle posible |
+  </Tab>
+  <Tab title="Uso de emojis">
+    | Opción | Descripción |
+    |--------|------------|
+    | Ninguno | Sin emojis |
+    | Mínimo | Solo ocasionalmente |
+    | Moderado | Uso equilibrado |
+    | Frecuente | En la mayoría de mensajes |
+    | Abundante | Emojis en cada mensaje |
+  </Tab>
+  <Tab title="Trato al cliente">
+    | Opción | Descripción |
+    |--------|------------|
+    | Muy formal | "Estimado/a", "usted" |
+    | Formal | Respetuoso pero no rígido |
+    | Semi formal | Balance entre cercanía y respeto |
+    | Casual | Tuteo, lenguaje cotidiano |
+    | Muy casual | Como hablar con un amigo |
+  </Tab>
+</Tabs>
+
+### 2. Especialistas
+
+Los especialistas son el corazón del asistente. Cada especialista es un agente enfocado en una tarea o tema específico.
+
+#### Plantillas disponibles
+
+Al crear los especialistas, puedes elegir entre plantillas predefinidas o crear uno personalizado:
+
+| Plantilla | Para qué sirve |
+|-----------|---------------|
+| **Flujo Inicial** | Saluda al cliente, identifica su necesidad y lo dirige al especialista correcto |
+| **Resolver Dudas** | Responde preguntas frecuentes usando la base de conocimientos |
+| **Gestionar Reclamos** | Maneja quejas con empatía, recopila información y escala si es necesario |
+| **Cotización** | Gestiona consultas de precios y presupuestos |
+| **Proceso de Venta** | Guía al cliente en el proceso de compra |
+| **Post Venta** | Seguimiento de pedidos, devoluciones, garantías |
+| **Personalizado** | Plantilla en blanco para configurar desde cero |
+
+#### Configuración de cada especialista
+
+Cada especialista tiene tres campos clave:
+
+<AccordionGroup>
+  <Accordion title="Nombre" icon="tag">
+    Un nombre descriptivo que identifique su rol (ej: "Agendar Citas", "Soporte Técnico", "Ventas").
+  </Accordion>
+  <Accordion title="Cuándo se activa (trigger)" icon="bolt">
+    Describe en lenguaje natural **cuándo** debe intervenir este especialista. Ejemplo: *"Cuando el cliente quiere agendar una cita, consultar disponibilidad de horarios o reagendar una hora"*.
+  </Accordion>
+  <Accordion title="Instrucciones" icon="scroll">
+    Las instrucciones detalladas de cómo debe comportarse el especialista. Usa el editor de texto enriquecido para escribir sus directrices: qué hacer, qué no hacer, cómo responder, qué información pedir, etc.
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+  El trigger es lo que el router usa para decidir qué especialista responde. Escríbelo de forma clara y específica. Ejemplo bueno: *"Cuando el cliente tiene una queja, reclamo o está insatisfecho con el servicio"*. Ejemplo malo: *"Reclamos"*.
+</Tip>
+
+#### Funciones y conocimientos de cada especialista
+
+Cada especialista puede tener:
+- **Funciones asignadas:** Las acciones que puede ejecutar (agendar citas, mover tickets, llamar APIs). Se configuran desde [Mis Funciones](/ia-asistentes/mis-funciones).
+- **Conocimientos asignados:** Los documentos de tu [Base de Conocimientos](/ia-asistentes/mis-conocimientos) que puede consultar para responder con información de tu negocio.
+
+### 3. Restricciones
+
+Define lo que el asistente **no debe hacer**. Las restricciones aplican a todos los especialistas por igual. Usa el editor de texto enriquecido para escribirlas.
+
+Ejemplos comunes de restricciones:
+- No procesar pagos ni solicitar datos bancarios
+- No ofrecer descuentos no autorizados
+- No inventar información que no esté en la base de conocimientos
+- No compartir datos internos de la empresa
+- No hacer promesas de tiempos de entrega sin verificar
+
+### 4. Escalamiento
+
+Configura cuándo y cómo el asistente debe transferir la conversación a un agente humano.
+
+| Campo | Descripción |
+|-------|------------|
+| **Pipeline** | Selecciona el pipeline del CRM donde se moverá el ticket al escalar |
+| **Etapa** | Selecciona la etapa específica a la que se moverá el ticket (ej: "Atención Humana") |
+| **Instrucciones de escalamiento** | Describe las situaciones en que se debe escalar y qué información recopilar antes de hacerlo |
+
+Ejemplos de cuándo escalar:
+- El cliente pide explícitamente hablar con una persona
+- El asistente no puede resolver la consulta después de varios intentos
+- Se trata de un reclamo grave o un caso sensible
+- El cliente necesita hacer un trámite que requiere intervención manual
+
+<Note>
+  Al escalar, el asistente genera un mensaje de despedida contextual y mueve el ticket a la etapa configurada. El equipo humano puede ver todo el historial de la conversación.
+</Note>
+
+---
+
+## Modelo de IA
+
+En el encabezado del formulario del asistente puedes seleccionar el **modelo de IA** que usarán todos los especialistas. El modelo que elijas afecta la calidad, velocidad y costo de las respuestas.
+
+<Warning>
+  El modelo se configura a nivel del asistente y aplica a todos sus especialistas. No es posible usar modelos diferentes por especialista.
+</Warning>
+
+---
+
+## ¿Cómo funciona el sistema multiagente?
+
+Cuando un cliente envía un mensaje, esto es lo que sucede:
+
+1. **El router analiza el mensaje** y decide qué especialista es el más adecuado para responder, basándose en los triggers de cada uno.
+2. **El especialista seleccionado responde**, usando sus instrucciones, conocimientos asignados y funciones disponibles.
+3. **Si el tema cambia**, el router puede redirigir la conversación a otro especialista automáticamente.
+4. **Si se necesita escalar**, el asistente transfiere la conversación a un agente humano según las reglas configuradas.
+
+<Info>
+  El router mantiene el contexto de la conversación completa. Si un cliente pasa del especialista de ventas al de soporte, el nuevo especialista sabe lo que se habló antes.
+</Info>
+
+---
+
+## Asignar asistentes a conversaciones
+
+Los asistentes se activan a través del **pipeline del CRM**:
+
+1. Configura un [pipeline](/crm/configurar-ticket) con sus etapas
+2. En cada etapa, asigna el asistente que debe atender
+3. Cuando un cliente escribe, se crea un ticket en la primera etapa del pipeline
+4. El asistente asignado a esa etapa comienza a responder automáticamente
+
+Si una etapa está marcada como **etapa humana**, el asistente no interviene y la conversación queda para atención manual.
+
+---
+
+## Estado de los asistentes
+
+| Estado | Significado |
+|--------|------------|
+| **Activo** | Disponible para atender conversaciones cuando está asignado a una etapa del pipeline |
+| **Inactivo** | Configurado pero no atiende conversaciones |
+
+---
+
+## Buenas prácticas
+
+<AccordionGroup>
+  <Accordion title="Diseña especialistas con roles claros" icon="users">
+    Cada especialista debe tener un rol bien definido. Evita especialistas que hagan "de todo". Es mejor tener 4 especialistas específicos que 1 genérico.
+  </Accordion>
+  <Accordion title="Escribe triggers específicos" icon="crosshairs">
+    El trigger es lo que el router usa para decidir. *"Cuando el cliente quiere agendar, reagendar o cancelar una cita médica"* es mucho mejor que *"Citas"*.
+  </Accordion>
+  <Accordion title="Vincula los conocimientos correctos" icon="book">
+    Si el especialista es de ventas, vincúlalo con el catálogo y precios. Si es de soporte, vincúlalo con manuales y FAQ. No asignes todo a todos.
+  </Accordion>
+  <Accordion title="Configura siempre el escalamiento" icon="arrow-up-right-from-square">
+    Siempre ten una salida a agente humano. Hay situaciones que la IA no puede resolver y es mejor escalar a tiempo.
+  </Accordion>
+  <Accordion title="Prueba antes de publicar" icon="flask-vial">
+    Prueba tu asistente en una conversación real antes de ponerlo en producción. Verifica que los especialistas se activen correctamente y que las funciones respondan bien.
+  </Accordion>
+  <Accordion title="Mantén las restricciones actualizadas" icon="shield">
+    A medida que descubras casos en que el asistente responde algo incorrecto, agrega restricciones. Es un proceso iterativo.
+  </Accordion>
+</AccordionGroup>

@@ -1,0 +1,149 @@
+---
+title: "Pipelines"
+sidebarTitle: "Pipelines"
+description: "Organiza y gestiona tus oportunidades de venta en embudos visuales con etapas personalizables"
+---
+
+Los pipelines son embudos de ventas que te permiten organizar tus [tickets](/crm/tickets) por etapas del proceso comercial. Puedes tener múltiples pipelines para diferentes productos, servicios o equipos.
+
+## Vista principal
+
+Al ingresar a **CRM → Pipelines** verás el pipeline predeterminado en vista de embudo (kanban). Desde aquí puedes:
+
+<CardGroup cols={2}>
+  <Card title="Vista Embudo" icon="columns-3">
+    Columnas por etapa con tarjetas arrastrables. Ideal para mover tickets visualmente entre etapas.
+  </Card>
+  <Card title="Vista Tabla" icon="table">
+    Lista todos los tickets en formato tabular. Ideal para analizar y filtrar grandes volúmenes.
+  </Card>
+</CardGroup>
+
+Usa el selector en la parte superior para cambiar entre pipelines.
+
+---
+
+## Crear un pipeline
+
+Haz clic en **Nuevo Pipeline** para iniciar el wizard de creación en 4 pasos.
+
+<Steps>
+  <Step title="Elige el tipo o plantilla">
+    Selecciona una plantilla de industria (ventas, soporte, onboarding, etc.) o comienza desde cero. Las plantillas incluyen etapas predefinidas que puedes personalizar.
+  </Step>
+  <Step title="Nómbralo y configúralo">
+    - **Nombre** del pipeline
+    - **Predeterminado**: marca esta opción si quieres que sea el pipeline principal
+  </Step>
+  <Step title="Define las etapas">
+    Agrega y ordena las etapas del proceso. Para cada etapa puedes establecer:
+    - Nombre y descripción
+    - **Tipo de etapa**: Normal, Ganado o Perdido
+    - Si es una etapa de atención humana
+    - Asistente de IA asignado a esta etapa
+  </Step>
+  <Step title="Configura el tipo de ticket">
+    Define cómo se llamarán los tickets en este pipeline (ej: "Oportunidad", "Caso", "Lead") y qué módulos activar. Ver [Configurar Ticket](/crm/configurar-ticket) para más detalle.
+  </Step>
+</Steps>
+
+---
+
+## Gestión de etapas
+
+Cada pipeline tiene sus propias etapas que definen el flujo del proceso.
+
+### Tipos de etapa
+
+| Tipo | Descripción |
+|------|-------------|
+| **Normal** | Etapa intermedia del proceso |
+| **Ganado** | El ticket se cerró con éxito (conversión) |
+| **Perdido** | El ticket se cerró sin conversión |
+
+### Configurar una etapa
+
+Haz clic en el ícono de edición de cualquier etapa para configurar:
+
+<AccordionGroup>
+  <Accordion title="Notificaciones por etapa" icon="bell">
+    Envía notificaciones automáticas cuando un ticket entra a esta etapa:
+    - **Canal**: Email y/o notificación push
+    - **Destinatarios**: selecciona los miembros del equipo a notificar
+    - **Notificar en nuevos mensajes**: avisa también cuando llega un mensaje nuevo en esta etapa
+  </Accordion>
+  <Accordion title="Asignación de agentes" icon="users">
+    Configura cómo se asignan los tickets a los agentes cuando entran a esta etapa:
+    - **Balanceado**: distribución equitativa entre los agentes disponibles
+    - **Aleatorio**: asignación al azar
+    - **Sin asignar**: el ticket queda sin agente asignado
+    - **Actualizar en nuevos tickets**: reasigna cuando llega un nuevo ticket
+    - **Agentes disponibles**: selecciona qué agentes participan en la rotación
+  </Accordion>
+  <Accordion title="Asistente de IA" icon="robot">
+    Asigna un asistente de IA específico para manejar los tickets en esta etapa automáticamente.
+  </Accordion>
+  <Accordion title="Etapa siguiente por defecto" icon="arrow-right">
+    Define a qué etapa de otro pipeline deben moverse los tickets creados desde esta etapa.
+  </Accordion>
+</AccordionGroup>
+
+### Reordenar etapas
+
+Arrastra las etapas desde el modo de edición del pipeline para cambiar su orden en el embudo.
+
+---
+
+## Filtros del pipeline
+
+Usa el panel de filtros para encontrar tickets específicos dentro del pipeline:
+
+| Filtro | Opciones |
+|--------|----------|
+| **Búsqueda** | Palabra clave en el ticket |
+| **Asignado a** | Sin asignar / Yo / Cualquier agente |
+| **Estado** | Abiertos / Todos / Cerrados |
+| **Categorías** | Por categoría de ticket |
+| **Canales** | Por canal de origen (WhatsApp, Instagram, etc.) |
+| **Actividad** | Última semana / Últimas 2 semanas / Últimas 4 semanas / Sin actividad |
+| **Coincidencia** | Cumplir todos los filtros / Cualquier filtro |
+
+---
+
+## Acciones masivas
+
+En la vista tabla, selecciona múltiples tickets para realizar acciones en lote:
+
+- **Mover de etapa**: mueve todos los tickets seleccionados a una etapa específica
+- Útil para reorganizar el pipeline después de cambios en el proceso
+
+---
+
+## Canales asociados al pipeline
+
+Puedes asociar canales específicos a un pipeline para que los nuevos tickets de esos canales se asignen automáticamente.
+
+<Steps>
+  <Step title="Accede a la configuración del pipeline">
+    En el pipeline, abre el menú de opciones y selecciona **Gestionar canales**.
+  </Step>
+  <Step title="Selecciona los canales">
+    Elige qué canales (WhatsApp, Instagram, Messenger, etc.) deben alimentar este pipeline.
+  </Step>
+</Steps>
+
+---
+
+## Pipeline predeterminado
+
+El pipeline predeterminado es el que se usa cuando se crea un ticket sin especificar pipeline. Solo puede haber uno activo a la vez.
+
+Para cambiarlo, edita el pipeline que deseas establecer como predeterminado y activa la opción **Pipeline predeterminado**.
+
+<Tip>
+  Si tienes múltiples equipos comerciales, crea un pipeline por equipo y asigna los canales correspondientes a cada uno.
+</Tip>
+
+<Info>
+  Los tickets se pueden mover entre pipelines usando la función de mover etapa desde el detalle del ticket.
+</Info>

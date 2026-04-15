@@ -1,0 +1,284 @@
+---
+title: "Base de Conocimientos"
+sidebarTitle: "Mis Conocimientos"
+description: "Gestiona la información que alimenta a tus asistentes de IA con documentos, carpetas e integraciones externas"
+---
+
+La Base de Conocimientos es el centro de información de tu operación en Keebai. Aquí gestionas todos los documentos, carpetas y conexiones externas que alimentan a tus asistentes de IA. Cuando un cliente hace una pregunta, el asistente busca automáticamente en estos documentos para dar respuestas precisas basadas en datos reales de tu negocio.
+
+<Info>
+  La Base de Conocimientos funciona como un explorador de archivos: puedes crear carpetas, organizar documentos en una estructura jerárquica, y editar contenido directamente desde la plataforma.
+</Info>
+
+## Interfaz principal
+
+Al ingresar a **IA & Asistentes → Mis Conocimientos**, verás una interfaz tipo explorador de archivos con tres áreas principales:
+
+| Área | Descripción |
+|------|------------|
+| **Barra lateral** | Árbol de navegación con todas tus carpetas y documentos. Incluye buscador y filtros. |
+| **Encabezado** | Título de la ubicación actual, modo de selección y acciones masivas (mover, copiar, asignar, eliminar). |
+| **Área principal** | Vista de cuadrícula con el contenido de la carpeta actual, acceso rápido y editor de documentos. |
+
+### Acceso rápido
+
+Puedes fijar hasta **5 documentos o carpetas** como acceso rápido para tenerlos siempre a mano en la parte superior del explorador. Haz clic derecho sobre cualquier elemento y selecciona **"Agregar a acceso rápido"**.
+
+---
+
+## Tipos de elementos
+
+La base de conocimientos maneja dos tipos de elementos:
+
+<CardGroup cols={2}>
+  <Card title="Carpetas" icon="folder">
+    Contenedores para organizar tus documentos en una estructura jerárquica. Puedes anidar carpetas dentro de otras carpetas.
+  </Card>
+  <Card title="Documentos" icon="file-lines">
+    Archivos con contenido que alimentará a tus asistentes. Pueden ser creados internamente con el editor o importados desde fuentes externas.
+  </Card>
+</CardGroup>
+
+### Origen del contenido
+
+Cada documento tiene un **tipo de origen** que determina cómo se gestiona:
+
+| Origen | Descripción | Editable |
+|--------|------------|----------|
+| **Interno** | Creado directamente en Keebai con el editor de texto enriquecido | ✅ Sí |
+| **Externo** | Importado desde Google Drive o Notion | ❌ Solo lectura (se edita en la fuente original) |
+
+<Tip>
+  Si necesitas editar un documento externo dentro de Keebai, puedes **copiarlo**. La copia se convierte en un documento interno completamente editable.
+</Tip>
+
+---
+
+## Crear contenido
+
+### Crear una carpeta
+
+<Steps>
+  <Step title="Haz clic en + Crear">
+    Desde el explorador, haz clic en el botón de crear nuevo elemento.
+  </Step>
+  <Step title="Selecciona 'Carpeta'">
+    Elige el tipo **Carpeta** e ingresa un nombre descriptivo.
+  </Step>
+  <Step title="Confirma">
+    La carpeta se crea en la ubicación actual. Puedes moverla después si lo necesitas.
+  </Step>
+</Steps>
+
+### Crear un documento
+
+<Steps>
+  <Step title="Haz clic en + Crear">
+    Desde el explorador, haz clic en el botón de crear nuevo elemento.
+  </Step>
+  <Step title="Selecciona 'Documento'">
+    Elige el tipo **Documento** e ingresa un título.
+  </Step>
+  <Step title="Escribe el contenido">
+    Se abrirá el editor de texto enriquecido donde puedes escribir y formatear tu contenido.
+  </Step>
+</Steps>
+
+---
+
+## Editor de texto enriquecido
+
+Los documentos internos se editan con un editor de bloques que soporta formato rico. Usa el comando `/` (slash) para insertar diferentes tipos de bloques:
+
+| Bloque | Descripción |
+|--------|------------|
+| **Encabezados** | H1, H2, H3 para estructurar el contenido |
+| **Párrafos** | Texto normal con formato (negrita, cursiva, subrayado) |
+| **Listas** | Con viñetas o numeradas |
+| **Tablas** | Tablas con filas y columnas |
+| **Bloques de código** | Para contenido técnico |
+| **Citas** | Bloques de texto destacado |
+
+<Info>
+  El contenido se guarda automáticamente y queda disponible para que tus asistentes lo utilicen al responder consultas.
+</Info>
+
+---
+
+## Conexiones externas
+
+Keebai permite conectar fuentes externas de información para importar documentos automáticamente. Actualmente se soportan dos proveedores:
+
+<CardGroup cols={2}>
+  <Card title="Google Drive" icon="google-drive">
+    Importa documentos de Google Docs, PDFs, archivos Word (.docx), archivos de texto, CSV, JSON y más.
+  </Card>
+  <Card title="Notion" icon="n">
+    Importa páginas y bases de datos de Notion con todo su contenido y formato.
+  </Card>
+</CardGroup>
+
+### Conectar una fuente externa
+
+<Steps>
+  <Step title="Ve a la vista 'Externas'">
+    En el explorador de conocimientos, cambia a la vista de **Conexiones Externas**.
+  </Step>
+  <Step title="Selecciona el proveedor">
+    Elige **Google Drive** o **Notion** y haz clic en **Conectar**.
+  </Step>
+  <Step title="Autoriza el acceso">
+    Se abrirá una ventana de autorización para que permitas a Keebai leer tus documentos. Tus credenciales se almacenan de forma segura y encriptada.
+  </Step>
+  <Step title="Selecciona archivos y carpetas">
+    Usa el explorador de archivos remotos para elegir qué documentos y carpetas quieres sincronizar. Puedes seleccionar hasta **500 elementos** por conexión.
+  </Step>
+  <Step title="Sincroniza">
+    Haz clic en **Sincronizar** para importar el contenido. Los documentos aparecerán en tu explorador de conocimientos.
+  </Step>
+</Steps>
+
+### Formatos soportados por proveedor
+
+<Tabs>
+  <Tab title="Google Drive">
+    | Formato | Soporte |
+    |---------|---------|
+    | Google Docs | ✅ Importa el contenido completo |
+    | PDF | ✅ Extrae texto y tablas |
+    | Word (.docx) | ✅ Importa contenido formateado |
+    | Word (.doc) antiguo | ❌ No soportado |
+    | Texto plano (.txt) | ✅ |
+    | CSV | ✅ |
+    | JSON | ✅ |
+    | XML | ✅ |
+    | Markdown (.md) | ✅ |
+    | Accesos directos de Drive | ✅ Importa el archivo al que apunta |
+  </Tab>
+  <Tab title="Notion">
+    | Formato | Soporte |
+    |---------|---------|
+    | Páginas | ✅ Importa contenido completo con formato |
+    | Bases de datos | ✅ |
+    | Texto enriquecido | ✅ Negrita, cursiva, código, enlaces |
+    | Tablas | ✅ |
+    | Páginas anidadas | ✅ |
+  </Tab>
+</Tabs>
+
+### Sincronización automática
+
+Las conexiones externas se sincronizan automáticamente cada **60 minutos**. Keebai detecta cambios en los archivos y actualiza el contenido.
+
+También puedes forzar una sincronización manual:
+- **Conexión completa:** Desde la vista de conexiones externas, haz clic en **Sincronizar** en la conexión.
+- **Documento individual:** Haz clic derecho sobre un documento externo y selecciona **Sincronizar**.
+
+<Warning>
+  Los documentos externos son de **solo lectura** en Keebai. Para modificar el contenido, edítalo en la fuente original (Google Drive o Notion) y luego sincroniza.
+</Warning>
+
+---
+
+## Organizar contenido
+
+### Mover
+
+Selecciona uno o más elementos y usa la acción **Mover** del encabezado o del menú contextual (clic derecho). Se abrirá un selector de carpeta destino.
+
+### Copiar
+
+La acción **Copiar** crea un duplicado. Las copias de documentos externos se convierten en documentos internos editables. Las carpetas se copian con todo su contenido.
+
+### Reordenar
+
+Cambia la posición de los elementos dentro de una carpeta arrastrándolos o usando las opciones de reordenamiento.
+
+### Eliminar
+
+Al eliminar un documento o carpeta, se desactiva y deja de estar disponible para los asistentes. La eliminación de carpetas incluye todo su contenido interior.
+
+---
+
+## Asignar conocimientos a asistentes
+
+Para que un asistente pueda usar la información de tus documentos, debes asignarlos.
+
+<Steps>
+  <Step title="Selecciona documentos">
+    En el explorador, activa el modo de selección y elige los documentos que quieres asignar.
+  </Step>
+  <Step title="Haz clic en 'Asignar'">
+    Usa la acción **Asignar** del encabezado o del menú contextual (clic derecho).
+  </Step>
+  <Step title="Elige los asistentes">
+    Selecciona a qué asistentes quieres vincular estos documentos.
+  </Step>
+</Steps>
+
+<Info>
+  Un mismo documento puede estar asignado a múltiples asistentes. No necesitas duplicar contenido.
+</Info>
+
+---
+
+## ¿Cómo usan los asistentes esta información?
+
+Cuando un cliente hace una pregunta, el asistente busca automáticamente en los documentos asignados para encontrar la respuesta más relevante. No necesitas configurar nada adicional — solo asigna los documentos y el asistente los utilizará.
+
+<Note>
+  Cada vez que creas, editas o sincronizas un documento, Keebai actualiza automáticamente la información disponible para los asistentes. No necesitas hacer nada manualmente.
+</Note>
+
+---
+
+## Menú contextual
+
+Haz clic derecho sobre cualquier documento o carpeta para ver las opciones disponibles:
+
+| Acción | Descripción |
+|--------|------------|
+| **Abrir** | Abre el documento en el editor o la carpeta en el explorador |
+| **Sincronizar** | Fuerza la sincronización de un documento externo |
+| **Acceso rápido** | Agrega o quita de tu barra de acceso rápido |
+| **Asignar** | Vincula el documento a asistentes |
+| **Renombrar** | Cambia el nombre |
+| **Mover** | Mueve a otra carpeta |
+| **Copiar** | Duplica el elemento (documentos externos se convierten en editables) |
+| **Eliminar** | Elimina el documento o carpeta |
+
+---
+
+## Límites
+
+| Concepto | Límite |
+|----------|--------|
+| Documentos en acceso rápido | 5 por usuario |
+| Elementos por conexión externa | 500 |
+| Largo máximo del título | 300 caracteres |
+| Contenido máximo por documento | 200,000 caracteres |
+
+---
+
+## Buenas prácticas
+
+<AccordionGroup>
+  <Accordion title="Organiza por tema con carpetas" icon="folder-tree">
+    Crea una estructura de carpetas lógica: Precios, Políticas, Productos, FAQ, etc. Esto facilita la gestión y permite asignar conocimientos específicos a cada asistente.
+  </Accordion>
+  <Accordion title="Mantén documentos focalizados" icon="bullseye">
+    Es mejor tener varios documentos cortos y específicos que uno solo muy largo. Un documento por tema funciona mejor que un documento gigante con toda la información.
+  </Accordion>
+  <Accordion title="Usa encabezados y estructura" icon="heading">
+    Los encabezados (H1, H2, H3) ayudan a Keebai a entender mejor el contenido y a dar respuestas más precisas.
+  </Accordion>
+  <Accordion title="Sincroniza fuentes externas regularmente" icon="arrows-rotate">
+    Aunque la sincronización automática ocurre cada 60 minutos, si hiciste cambios importantes en Google Drive o Notion, fuerza una sincronización manual.
+  </Accordion>
+  <Accordion title="Verifica la asignación a asistentes" icon="robot">
+    Un documento sin asignar no será usado por ningún asistente. Verifica que tus documentos clave estén vinculados a los asistentes correctos.
+  </Accordion>
+  <Accordion title="Aprovecha la copia para personalizar" icon="copy">
+    Si necesitas una versión ligeramente diferente de un documento externo, cópialo. La copia será editable y podrás ajustarla sin afectar el original.
+  </Accordion>
+</AccordionGroup>

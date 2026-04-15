@@ -1,0 +1,225 @@
+---
+title: "Embudo"
+sidebarTitle: "Embudo"
+description: "Tablero Kanban para gestionar tu pipeline de ventas y organizar oportunidades por etapas."
+---
+
+El Embudo es un **tablero tipo Kanban** donde organizas tus oportunidades de ventas, leads y tickets por etapas. Cada tarjeta representa un ticket que puedes mover entre columnas a medida que avanza en tu proceso comercial.
+
+## Vista general del tablero
+
+El tablero está compuesto por **columnas** (etapas) y **tarjetas** (tickets). La vista es horizontal y scrolleable, permitiéndote ver todo tu pipeline de un vistazo.
+
+### Encabezado del Embudo
+
+En la parte superior encontrarás los siguientes controles:
+
+| Control | Descripción |
+|---------|-------------|
+| **Selector de pipeline** | Si tienes varios embudos, selecciona cuál ver desde el dropdown |
+| **Vista Embudo / Lista** | Alterna entre vista Kanban (columnas) y vista de lista (tabla) |
+| **Filtros** | Filtra tickets por diferentes criterios |
+| **Pestañas** | Alterna entre tickets abiertos, todos los tickets y tickets cerrados |
+| **Modo edición** | Configura las etapas del pipeline |
+| **Acciones masivas** | Selecciona múltiples tickets para moverlos o cerrarlos en lote |
+| **Test de pipeline** | Prueba las reglas de tu pipeline |
+| **Canales** | Gestiona qué canales alimentan este pipeline |
+
+## Etapas del pipeline
+
+Las etapas representan las **fases de tu proceso** de ventas o atención. Cada columna tiene un color que indica su tipo:
+
+| Tipo de etapa | Color | Descripción |
+|---------------|-------|-------------|
+| **Normal** | Azul | Etapas estándar del proceso |
+| **Ganado** | Verde | El ticket se cerró exitosamente (venta concretada, cita confirmada, etc.) |
+| **Perdido** | Rojo | El ticket se cerró sin éxito |
+| **Asistencia humana** | Naranja | Requiere atención de un agente humano |
+
+### Etapas predeterminadas
+
+Al crear un pipeline, Keebai incluye etapas por defecto que puedes personalizar:
+
+| Etapa | Descripción |
+|-------|-------------|
+| **Información y dudas generales** | El contacto tiene preguntas iniciales |
+| **Agendamiento** | Se está coordinando una cita o llamada |
+| **Cita agendada** | La cita fue confirmada |
+| **Reunión agendada** | Reunión formal programada |
+| **Asistencia humana** | Requiere atención de un agente humano |
+
+<Tip>
+  Puedes renombrar, agregar, eliminar y reordenar las etapas según tu proceso. No estás limitado a las etapas por defecto.
+</Tip>
+
+### Configuración de cada etapa
+
+Cada columna tiene un **menú de configuración** (ícono de engranaje) con las siguientes opciones:
+
+<AccordionGroup>
+  <Accordion title="Notificaciones" icon="bell">
+    Configura alertas automáticas cuando un ticket llega a esta etapa:
+    - **Canales de notificación**: Elige por dónde recibir la alerta
+    - **Destinatarios**: Quién recibe la notificación
+    - **Disparadores**: Qué evento activa la notificación (ticket nuevo, ticket movido, etc.)
+  </Accordion>
+
+  <Accordion title="Auto-asignación" icon="user-check">
+    Configura cómo se asignan automáticamente los tickets a tu equipo:
+    - **Balanceado**: Distribuye equitativamente entre los agentes disponibles
+    - **Aleatorio**: Asigna al azar
+    - **Desasignar**: Quita la asignación al llegar a esta etapa
+    - **Selección de agentes**: Elige qué agentes participan en la rotación
+  </Accordion>
+
+  <Accordion title="Tipo de etapa" icon="tag">
+    Cambia el tipo de la etapa (normal, ganado o perdido) para reflejar correctamente el resultado en tus métricas.
+  </Accordion>
+</AccordionGroup>
+
+## Tarjetas de tickets
+
+Cada tarjeta en el tablero muestra la información esencial del ticket de un vistazo:
+
+### Información visible en cada tarjeta
+
+- **Ícono del canal** — WhatsApp, Messenger, Instagram o Webchat
+- **Nombre del contacto** — Nombre completo, nombre de usuario, o ID del ticket
+- **Estado de atención**:
+  - 🟢 **Atendido por IA** — El asistente de IA está manejando la conversación
+  - 🔵 **Atendido por humano** — Un agente humano tomó el control
+- **Último mensaje** — Vista previa del último mensaje de la conversación (máximo 2 líneas)
+- **Etiquetas (Tags)** — Hasta 3 etiquetas visibles con colores, y un indicador "+N más" si hay adicionales
+- **Fecha y hora** — Cuándo fue la última actividad en el ticket
+
+### Acciones en cada tarjeta
+
+- **Clic en la tarjeta** — Abre el detalle de la conversación en un panel lateral
+- **Arrastrar y soltar** — Mueve el ticket a otra etapa arrastrándolo a la columna correspondiente
+- **Botón gestionar** — Abre opciones para cerrar el ticket, marcarlo como ganado/perdido, o moverlo a otra etapa
+
+## Filtrar tickets
+
+El panel de filtros te permite encontrar tickets específicos rápidamente:
+
+| Filtro | Opciones |
+|--------|----------|
+| **Búsqueda** | Busca por palabra clave en el nombre o contenido del ticket |
+| **Asignación** | Sin asignar, asignados a mí, asignados a cualquier agente |
+| **Estado** | Todos, completos, incompletos |
+| **Categoría** | Filtra por las categorías que hayas definido |
+| **Canal** | WhatsApp, Messenger, Instagram, Webchat, o cualquier combinación |
+| **Actividad** | Todos, última semana, últimas 2 semanas, últimas 4 semanas, inactivos |
+
+<Info>
+  Puedes combinar múltiples filtros a la vez y elegir si quieres que coincidan **todos** los criterios o **cualquiera** de ellos.
+</Info>
+
+## Pestañas de visualización
+
+El embudo tiene **tres pestañas** para organizar la vista:
+
+| Pestaña | Qué muestra |
+|---------|-------------|
+| **Abiertos** | Solo tickets activos que están en proceso |
+| **Todos** | Todos los tickets, incluyendo abiertos y cerrados |
+| **Cerrados** | Solo tickets que ya fueron finalizados |
+
+## Acciones masivas
+
+Cuando necesitas mover o cerrar muchos tickets a la vez, activa el **modo de acciones masivas**:
+
+<Steps>
+  <Step title="Activa el modo masivo">
+    Haz clic en el botón de **acciones masivas** en el encabezado del embudo.
+  </Step>
+  <Step title="Selecciona tickets">
+    Marca las casillas de los tickets que quieres procesar. También puedes usar **Seleccionar todos** para marcar todos los tickets de una etapa o del pipeline completo.
+  </Step>
+  <Step title="Elige la acción">
+    - **Mover etapa**: Selecciona la etapa destino y mueve todos los tickets seleccionados
+    - **Cerrar tickets**: Cierra todos los tickets seleccionados de una vez
+  </Step>
+  <Step title="Confirma">
+    Revisa la cantidad de tickets seleccionados y confirma la acción.
+  </Step>
+</Steps>
+
+## Crear un pipeline nuevo
+
+<Steps>
+  <Step title="Inicia la creación">
+    Desde el menú del embudo, selecciona **Crear nuevo pipeline**. Se abrirá un asistente de configuración.
+  </Step>
+  <Step title="Elige un template">
+    Selecciona una plantilla según tu tipo de negocio (ventas, soporte, agendamiento, etc.) o comienza desde cero.
+  </Step>
+  <Step title="Configura las etapas">
+    Personaliza las etapas de tu pipeline:
+    - Agrega o elimina etapas
+    - Renombra cada etapa según tu proceso
+    - Reordena las etapas arrastrándolas con las flechas
+    - Configura la asignación de agentes por etapa
+  </Step>
+  <Step title="Configura los tickets">
+    Define cómo se crean los tickets en este pipeline. Puedes crear un nuevo tipo de ticket o reutilizar uno existente.
+  </Step>
+  <Step title="Revisa y confirma">
+    Revisa un resumen visual de tu pipeline y confirma para crearlo.
+  </Step>
+</Steps>
+
+<Tip>
+  Puedes tener **múltiples pipelines** activos simultáneamente. Por ejemplo: uno para ventas, otro para soporte y otro para onboarding de clientes.
+</Tip>
+
+## Gestionar tickets
+
+Al hacer clic en el botón de gestión de un ticket, puedes:
+
+| Acción | Descripción |
+|--------|-------------|
+| **Marcar como ganado** | Cierra el ticket con resolución exitosa |
+| **Marcar como perdido** | Cierra el ticket con resolución negativa |
+| **Cerrar ticket** | Cierra el ticket sin resolución específica |
+| **Reabrir ticket** | Vuelve a abrir un ticket cerrado |
+| **Mover a otra etapa** | Cambia el ticket de etapa después de cerrarlo |
+
+## Canales conectados
+
+Cada pipeline puede tener **canales específicos** asociados. Esto determina desde qué canales llegan tickets automáticamente a ese pipeline.
+
+Para configurar los canales de un pipeline, haz clic en el botón **Canales** en el encabezado del embudo.
+
+## Actualizaciones en tiempo real
+
+El embudo se actualiza automáticamente cuando:
+
+- Un **nuevo ticket** se crea en el pipeline
+- Un ticket es **movido de etapa** (por otro usuario o por la IA)
+- Un **contacto envía un nuevo mensaje** (se actualiza la vista previa)
+- Un ticket es **cerrado o reabierto**
+
+<Info>
+  No necesitas recargar la página. Los cambios que hagan otros miembros de tu equipo aparecen instantáneamente en tu vista del tablero.
+</Info>
+
+## Preguntas frecuentes
+
+<AccordionGroup>
+  <Accordion title="¿Puedo tener múltiples pipelines?" icon="circle-question">
+    Sí. Puedes crear tantos pipelines como necesites, cada uno con sus propias etapas, canales y configuración. Es útil para separar procesos como ventas, soporte, onboarding, etc.
+  </Accordion>
+
+  <Accordion title="¿La IA puede mover tickets entre etapas?" icon="circle-question">
+    Sí. Si configuras funciones y reglas en tu asistente de IA, puede mover tickets automáticamente según el contenido de la conversación. Por ejemplo, si el cliente confirma una cita, la IA puede mover el ticket a "Cita agendada".
+  </Accordion>
+
+  <Accordion title="¿Cómo elimino un pipeline?" icon="circle-question">
+    Abre el menú del embudo (los tres puntos o el menú desplegable) y selecciona **Eliminar pipeline**. Ten en cuenta que esta acción no se puede deshacer.
+  </Accordion>
+
+  <Accordion title="No veo el Embudo en mi menú" icon="circle-question">
+    Tu rol de usuario necesita el permiso **Gestionar CRM / Pipelines** para acceder al Embudo. Contacta al administrador de tu cuenta.
+  </Accordion>
+</AccordionGroup>

@@ -1,0 +1,119 @@
+---
+title: "Lead Ads"
+sidebarTitle: "Lead Ads"
+description: "Captura leads desde formularios de Meta (Facebook/Instagram) y gestiónalos automáticamente en tu CRM"
+---
+
+Lead Ads te permite conectar los formularios de captura de Meta (Facebook Ads e Instagram Ads) con Keebai. Cuando alguien completa tu formulario en una campaña, el lead llega automáticamente a tu workspace y se envía un mensaje de bienvenida por el canal que configures.
+
+---
+
+## Cómo funciona
+
+1. Creas un formulario de lead en Meta Ads Manager
+2. Configuras ese formulario en Keebai (ID del formulario, canal de salida, mensaje de bienvenida)
+3. Cuando alguien lo completa, Keebai crea el contacto y le envía el mensaje de bienvenida automáticamente
+4. Puedes asignar un asistente de IA para que continúe la conversación
+
+---
+
+## Formularios
+
+Navega a **CRM → Lead Ads** para gestionar tus formularios.
+
+### Crear un formulario
+
+<Steps>
+  <Step title="Obtén el ID del formulario en Meta">
+    En Meta Ads Manager o Meta Business Suite, accede al formulario de captura y copia su **Form ID** (identificador numérico del formulario).
+  </Step>
+  <Step title="Configura el formulario en Keebai">
+    Haz clic en **Nuevo formulario** y completa los campos:
+
+    | Campo | Descripción |
+    |-------|-------------|
+    | **Nombre** | Nombre interno para identificar el formulario |
+    | **Form ID** | El ID del formulario en Meta |
+    | **Página de Meta** | ID de la página de Facebook vinculada |
+    | **Canal fuente** | Canal de Meta por el que llegan los leads |
+    | **Canal de salida** | Canal por el que Keebai contactará al lead (WhatsApp, Instagram, Messenger) |
+    | **Mensaje de bienvenida** | Mensaje que se envía automáticamente al lead cuando completa el formulario |
+    | **Asistente de IA** | (Opcional) Asistente que continúa la conversación después del mensaje de bienvenida |
+  </Step>
+  <Step title="Configura el mapeo de campos">
+    Mapea los campos del formulario de Meta a los campos de contacto en Keebai:
+    - Campos estándar: nombre, apellido, teléfono, email
+    - Campos personalizados de scope Cliente que hayas creado en [Campos](/crm/campos)
+
+    Esto permite que los datos del formulario se guarden automáticamente en el perfil del contacto.
+  </Step>
+  <Step title="Activa el formulario">
+    Activa el formulario con el toggle **Activo**. A partir de ese momento, los nuevos leads que completen el formulario serán procesados automáticamente.
+  </Step>
+</Steps>
+
+### Testear un formulario
+
+Antes de lanzar tu campaña, puedes testear el flujo:
+
+<Steps>
+  <Step title="Abre el formulario">
+    En la lista de formularios, haz clic en **Testear** junto al formulario que quieres probar.
+  </Step>
+  <Step title="Ingresa un número de teléfono">
+    Escribe el número de teléfono al que quieres enviar el mensaje de prueba.
+  </Step>
+  <Step title="Verifica el resultado">
+    Keebai enviará el mensaje de bienvenida al número indicado. Verifica que llegue correctamente y que el flujo funcione como esperado.
+  </Step>
+</Steps>
+
+### Editar y desactivar formularios
+
+- Para editar un formulario, haz clic en el ícono de edición y modifica los campos necesarios
+- Para pausar un formulario sin eliminarlo, desactiva el toggle **Activo**
+- Para eliminar un formulario, usa la opción **Eliminar** (esto no afecta los leads ya capturados)
+
+---
+
+## Leads capturados
+
+Navega a **CRM → Lead Ads → Leads** para ver todos los leads que han completado tus formularios.
+
+### Vista de leads
+
+La tabla muestra:
+
+| Columna | Descripción |
+|---------|-------------|
+| **Contacto** | Nombre y datos del lead capturado |
+| **Formulario** | De qué formulario proviene el lead |
+| **Estado** | Estado de procesamiento del lead |
+| **Fecha** | Cuándo completó el formulario |
+| **Canal** | Canal por el que fue contactado |
+
+### Filtros disponibles
+
+- **Por formulario**: muestra solo los leads de un formulario específico
+- **Por fecha**: filtra por rango de fechas (desde / hasta)
+- **Por estado**: filtra por estado de procesamiento del lead
+
+---
+
+## Flujo automático tras la captura
+
+Cuando un lead completa el formulario:
+
+1. Keebai recibe el webhook de Meta con los datos del formulario
+2. Se crea el contacto en Keebai (o se actualiza si ya existe)
+3. Se mapean los datos del formulario a los campos del contacto
+4. Se envía el **mensaje de bienvenida** por el canal de salida configurado
+5. Si hay un **asistente de IA** configurado, este toma el control de la conversación
+
+<Tip>
+  Configura un asistente de IA en el formulario para que el lead reciba atención inmediata 24/7, incluso fuera del horario laboral.
+</Tip>
+
+<Info>
+  Para que los webhooks de Meta funcionen, asegúrate de que Keebai esté conectado como aplicación autorizada en tu Meta Business Suite.
+</Info>

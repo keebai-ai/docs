@@ -1,0 +1,108 @@
+---
+title: "Tags"
+sidebarTitle: "Tags"
+description: "Etiquetas para clasificar y segmentar contactos y tickets con identificación visual por color"
+---
+
+Los tags son etiquetas de colores que puedes asignar a tus contactos y tickets para clasificarlos, segmentarlos y filtrarlos. Cada tag tiene un nombre y un color para identificación visual rápida.
+
+Navega a **CRM → Tags** para gestionar todos los tags de tu workspace.
+
+---
+
+## Scopes: Cliente vs Ticket
+
+Al igual que los [campos personalizados](/crm/campos), los tags tienen un scope que determina dónde se usan:
+
+<CardGroup cols={2}>
+  <Card title="Cliente" icon="user">
+    Se asignan al perfil del contacto. Útiles para segmentar audiencias, marcar el origen o clasificar el tipo de cliente.
+  </Card>
+  <Card title="Ticket" icon="ticket">
+    Se asignan a los tickets dentro de los pipelines. Útiles para categorizar el tipo de caso, el estado o la urgencia dentro del proceso.
+  </Card>
+</CardGroup>
+
+Usa el selector de scope en la vista de tags para cambiar entre los tags de Cliente y los de Ticket.
+
+---
+
+## Crear un tag
+
+<Steps>
+  <Step title="Haz clic en Nuevo tag">
+    En **CRM → Tags**, selecciona el scope (Cliente o Ticket) y haz clic en **+ Nuevo tag**.
+  </Step>
+  <Step title="Define nombre y color">
+    Elige un nombre descriptivo y un color para identificarlo visualmente en la interfaz.
+  </Step>
+  <Step title="Guarda">
+    Haz clic en **Guardar**. El tag queda disponible de inmediato para asignar.
+  </Step>
+</Steps>
+
+---
+
+## Asignar tags a contactos
+
+| Método | Cómo |
+|--------|------|
+| **Desde el perfil del contacto** | Abre un [cliente](/crm/clientes) y en la barra lateral haz clic en **+ Tag** |
+| **Desde la conversación** | En la ventana de chat, usa el panel lateral para agregar tags al contacto |
+| **Masivamente** | Selecciona varios contactos en la lista y asigna un tag a todos |
+| **Con automatizaciones** | Los [Flows](/canales/flows) pueden agregar o quitar tags automáticamente |
+| **Por el asistente de IA** | El asistente puede etiquetar al contacto según la conversación |
+
+---
+
+## Asignar tags a tickets
+
+| Método | Cómo |
+|--------|------|
+| **Desde el pipeline** | Abre el ticket en la vista embudo o tabla y edita los tags |
+| **Desde la conversación** | En el panel lateral de la conversación, sección de ticket, agrega tags |
+| **Con automatizaciones** | Los flows pueden agregar o quitar tags de tickets automáticamente |
+
+---
+
+## Usos comunes
+
+<CardGroup cols={2}>
+  <Card title="Segmentar audiencias" icon="users">
+    "Interesados en Producto A", "Newsletter", "Evento 2025" — para enviar [difusiones masivas](/canales/difusion-masiva) a segmentos específicos.
+  </Card>
+  <Card title="Marcar estado" icon="flag">
+    "Pendiente de documento", "Esperando aprobación", "En negociación" — para que el equipo vea el estado del proceso de un vistazo.
+  </Card>
+  <Card title="Clasificar origen" icon="location-dot">
+    "Evento CDMX", "Referido", "Lead Ads Facebook", "Orgánico" — para analizar qué canales generan más clientes.
+  </Card>
+  <Card title="Priorizar" icon="star">
+    "VIP", "Lead caliente", "Urgente" — para que tu equipo sepa a quién atender primero.
+  </Card>
+</CardGroup>
+
+---
+
+## Filtrar por tags
+
+Los tags se pueden usar como filtros en:
+- La lista de [Clientes](/crm/clientes) — filtra contactos con un tag específico
+- La vista del [Pipeline](/crm/pipelines) — filtra tickets por tag
+- Las [Difusiones masivas](/canales/difusion-masiva) — envía mensajes solo a contactos con un tag
+
+---
+
+## Editar y eliminar tags
+
+Para **editar** un tag, haz clic en el ícono de edición y modifica el nombre o color.
+
+Para **eliminar** un tag, usa la opción eliminar. El tag se quitará automáticamente de todos los contactos y tickets a los que estaba asignado.
+
+<Tip>
+  Revisa periódicamente tus tags y elimina los que ya no uses para mantener el directorio limpio y evitar confusiones en el equipo.
+</Tip>
+
+<Info>
+  Los tags de scope Cliente y los de scope Ticket son independientes. Puedes tener un tag "VIP" para contactos y otro "VIP" para tickets sin que se mezclen.
+</Info>

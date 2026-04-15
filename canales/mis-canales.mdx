@@ -1,0 +1,176 @@
+---
+title: "Mis Canales"
+sidebarTitle: "Mis Canales"
+description: "Conecta y administra tus canales de comunicación multicanal"
+---
+
+Los canales son los medios por los que tus clientes te contactan. Al conectarlos a Keebai, todos los mensajes llegan a tu [bandeja de Comunicación](/comunicacion/overview) de forma centralizada.
+
+<Frame>
+  <img src="/images/canales.png" alt="Canales de Comunicación" />
+</Frame>
+
+## Canales disponibles
+
+<CardGroup cols={3}>
+  <Card title="Webchat" icon="comment">
+    Widget de chat embebido en tu sitio web con personalización completa de apariencia y comportamiento.
+  </Card>
+  <Card title="WhatsApp Business" icon="whatsapp" color="#25D366">
+    Conecta tu número de WhatsApp Business API vía Cloud API para atender clientes por WhatsApp.
+  </Card>
+  <Card title="Instagram" icon="instagram" color="#E1306C">
+    Recibe y responde mensajes directos y comentarios de tu cuenta de Instagram Business.
+  </Card>
+  <Card title="Facebook Messenger" icon="facebook-messenger" color="#0084FF">
+    Conecta tu página de Facebook para atender mensajes de Messenger.
+  </Card>
+  <Card title="TikTok" icon="tiktok">
+    Próximamente — la integración con TikTok estará disponible en una futura actualización.
+  </Card>
+</CardGroup>
+
+## Panel de canales
+
+La pantalla principal de **Canales → Mis Canales** muestra todos tus canales conectados en una grilla de tarjetas. Cada tarjeta incluye:
+
+- Icono y color del tipo de canal
+- Nombre del canal
+- Descripción (si tiene)
+- Badge de estado: **Activo** o **Inactivo**
+
+Puedes usar los controles superiores para:
+
+| Control | Descripción |
+|---------|------------|
+| **Buscador** | Filtra canales por nombre o descripción |
+| **Filtro por tipo** | Muestra solo canales de un tipo específico (Web, WhatsApp, etc.) |
+| **Filtro por estado** | Muestra solo canales activos o inactivos |
+
+## Conectar un canal
+
+<Steps>
+  <Step title="Haz clic en + Conectar Canal">
+    En la pantalla de **Mis Canales**, haz clic en el botón **+ Conectar Canal** en la esquina superior derecha.
+  </Step>
+  <Step title="Selecciona el tipo de canal">
+    Se abre un modal con 5 opciones:
+    - **Web** — abre un [asistente de configuración de 4 pasos](/canales/webchat)
+    - **WhatsApp** (vía Cloud API) — inicia el flujo de conexión OAuth con Meta
+    - **Instagram** — inicia el flujo de conexión OAuth con Instagram
+    - **Facebook Messenger** — inicia el flujo de conexión OAuth con Meta
+    - **TikTok** — próximamente
+  </Step>
+  <Step title="Completa la conexión">
+    - **Web:** completa los 4 pasos del wizard y haz clic en **Crear**
+    - **Canales sociales:** serás redirigido a Meta/Instagram para autorizar la conexión. Al finalizar, vuelves automáticamente a Keebai
+  </Step>
+</Steps>
+
+## Conectar canales sociales
+
+Los canales sociales (WhatsApp, Instagram y Messenger) se conectan mediante un flujo de autorización OAuth con Meta. Cada canal tiene sus propios requisitos y pasos.
+
+### WhatsApp Business
+
+<AccordionGroup>
+  <Accordion title="Requisitos previos" icon="list-check">
+    - Cuenta de WhatsApp Business
+    - Acceso a [Meta Business Suite](https://business.facebook.com)
+    - Número de teléfono verificado en WhatsApp Business API
+  </Accordion>
+  <Accordion title="Flujo de conexión" icon="link">
+    1. Selecciona **WhatsApp** en el modal de conexión
+    2. Serás redirigido a Meta para iniciar sesión
+    3. Autoriza los permisos de gestión y mensajería de WhatsApp Business
+    4. Selecciona la cuenta de negocio y el número de teléfono
+    5. Al confirmar, vuelves a Keebai con el canal conectado
+  </Accordion>
+  <Accordion title="Información visible al conectar" icon="circle-info">
+    - Número de teléfono asociado
+    - ID de la cuenta de negocio
+  </Accordion>
+</AccordionGroup>
+
+### Instagram
+
+<AccordionGroup>
+  <Accordion title="Requisitos previos" icon="list-check">
+    - Cuenta de Instagram Business o Creator
+    - Página de Facebook vinculada a la cuenta de Instagram
+    - Permisos de mensajes habilitados en la configuración de Instagram
+  </Accordion>
+  <Accordion title="Flujo de conexión" icon="link">
+    1. Selecciona **Instagram** en el modal de conexión
+    2. Serás redirigido a Instagram para autorizar la aplicación
+    3. Otorga los permisos de mensajes, comentarios y publicación
+    4. Al confirmar, vuelves a Keebai con el canal conectado
+  </Accordion>
+  <Accordion title="Información visible al conectar" icon="circle-info">
+    - Nombre de usuario de Instagram
+    - Foto de perfil
+  </Accordion>
+</AccordionGroup>
+
+### Facebook Messenger
+
+<AccordionGroup>
+  <Accordion title="Requisitos previos" icon="list-check">
+    - Página de Facebook activa
+    - Rol de administrador en la página
+  </Accordion>
+  <Accordion title="Flujo de conexión" icon="link">
+    1. Selecciona **Facebook Messenger** en el modal de conexión
+    2. Serás redirigido a Facebook para iniciar sesión
+    3. Autoriza los permisos de mensajería y gestión de la página
+    4. Selecciona la página de Facebook que quieres conectar
+    5. Al confirmar, vuelves a Keebai con el canal conectado
+  </Accordion>
+  <Accordion title="Información visible al conectar" icon="circle-info">
+    - Nombre de la página de Facebook
+    - Foto de perfil de la página
+  </Accordion>
+</AccordionGroup>
+
+<Info>
+  Puedes conectar múltiples cuentas del mismo tipo (ej: 2 números de WhatsApp diferentes para distintas áreas de tu negocio).
+</Info>
+
+## Gestión de canales
+
+### Activar o desactivar un canal
+
+Cada canal tiene un estado **Activo** o **Inactivo** que controla si recibe mensajes. Puedes cambiar el estado desde la configuración del canal.
+
+### Editar un canal
+
+- **Canales Web:** haz clic en el icono de engranaje en la tarjeta del canal para abrir el [wizard de configuración](/canales/webchat)
+- **Canales sociales:** la edición permite reconectar o desconectar la cuenta asociada
+
+### Desconectar un canal social
+
+Para desconectar un canal social (WhatsApp, Instagram o Messenger):
+
+1. Accede a la configuración del canal
+2. Haz clic en **Desconectar**
+3. Confirma la acción en el modal de confirmación
+
+Al desconectar, se revocan los permisos de la aplicación en Meta y se limpia la información de la cuenta. El canal queda disponible para reconectar.
+
+### Eliminar un canal
+
+1. Haz clic en el icono de papelera en la tarjeta del canal
+2. Confirma la eliminación en el modal
+
+<Warning>
+  Al eliminar un canal, se desvinculan sus webhooks y se limpia la configuración. Esta acción no se puede deshacer desde la interfaz.
+</Warning>
+
+## Canales en el CRM
+
+Los canales se pueden asociar a los **pipelines** del [embudo de ventas](/embudo/overview) para organizar tus conversaciones por canal:
+
+- Desde el panel lateral de un pipeline, puedes agregar o quitar canales asociados
+- Un pipeline puede tener múltiples canales
+- Un canal puede estar asociado a múltiples pipelines
+- Puedes conectar nuevos canales directamente desde el panel del pipeline

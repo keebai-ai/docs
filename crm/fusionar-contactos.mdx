@@ -1,0 +1,116 @@
+---
+title: "Fusionar Contactos"
+sidebarTitle: "Fusionar Contactos"
+description: "Unifica contactos duplicados de distintos canales en un único perfil consolidado"
+---
+
+Cuando un mismo cliente te contacta desde diferentes canales (por ejemplo, WhatsApp y luego Instagram), puede quedar registrado como dos contactos distintos. La fusión te permite unificarlos en un único perfil, consolidando todo su historial: mensajes, notas, tickets y documentos.
+
+---
+
+## ¿Cuándo fusionar?
+
+Fusiona contactos cuando:
+- Un cliente te escribió desde WhatsApp y también desde Instagram o Messenger
+- Importaste una base de datos con duplicados
+- Un mismo usuario tiene registros con distintos teléfonos o emails
+
+<Warning>
+  La fusión es reversible: puedes deshacerla si cometiste un error. Sin embargo, hazlo con cuidado — el proceso consolida historial de múltiples contactos en uno.
+</Warning>
+
+---
+
+## Iniciar la fusión
+
+Desde el [perfil del contacto](/crm/clientes) que quieres conservar como principal, haz clic en **Fusionar contacto**. Se abrirá el wizard de 4 pasos.
+
+---
+
+## Wizard de fusión — 4 pasos
+
+<Steps>
+  <Step title="Buscar contactos a fusionar">
+    Escribe el nombre, teléfono o email del contacto duplicado que quieres fusionar. El buscador muestra resultados en tiempo real.
+
+    Selecciona uno o más contactos que deseas fusionar con el actual. Puedes agregar múltiples contactos a la vez.
+
+    El sistema excluye automáticamente el contacto desde el que iniciaste el proceso (será el principal).
+  </Step>
+  <Step title="Elegir el contacto primario">
+    Selecciona cuál será el **contacto principal** — el que permanecerá activo con todos los datos consolidados. Los contactos secundarios quedarán marcados como fusionados.
+
+    Revisa los datos básicos de cada candidato (nombre, canal, teléfono, email) para tomar la mejor decisión.
+  </Step>
+  <Step title="Resolver conflictos de campos">
+    Si los contactos tienen valores distintos para el mismo campo (por ejemplo, distintos emails o campos personalizados), el sistema muestra un conflicto por cada campo diferente.
+
+    Para cada conflicto elige cuál valor mantener en el contacto primario:
+    - El valor del contacto principal
+    - El valor de alguno de los contactos secundarios
+
+    Los campos sin conflicto se consolidan automáticamente.
+  </Step>
+  <Step title="Previsualizar y confirmar">
+    Antes de ejecutar la fusión, revisa el resumen completo:
+
+    | Dato | Descripción |
+    |------|-------------|
+    | **Contacto primario** | El que quedará activo |
+    | **Contactos a fusionar** | Los que se marcarán como fusionados |
+    | **Tickets** | Total de tickets que se consolidarán |
+    | **Mensajes** | Historial de conversaciones que se unifica |
+    | **Notas** | Notas de todos los contactos |
+    | **Documentos** | Archivos adjuntos que se consolidan |
+    | **Eventos** | Registros de actividad que se unifica |
+    | **Advertencias** | Avisos importantes antes de confirmar |
+
+    Si todo está correcto, haz clic en **Confirmar fusión**.
+  </Step>
+</Steps>
+
+---
+
+## Qué sucede después de la fusión
+
+- El **contacto primario** permanece activo con todos los datos consolidados
+- Los **contactos secundarios** quedan marcados como fusionados y ya no aparecen en la lista activa
+- Todo el historial (tickets, mensajes, notas, documentos) del contacto secundario queda disponible en el perfil del primario
+- Los campos se resuelven según las elecciones del paso 3
+
+---
+
+## Deshacer una fusión
+
+Si cometiste un error, puedes revertir la fusión:
+
+<Steps>
+  <Step title="Accede al historial de fusiones">
+    En el perfil del contacto primario, busca la sección **Historial de fusiones** o accede desde **CRM → Clientes → (menú de opciones) → Historial de fusiones**.
+  </Step>
+  <Step title="Selecciona la fusión a deshacer">
+    Identifica la fusión que quieres revertir. Muestra la fecha, quién la realizó y los contactos involucrados.
+  </Step>
+  <Step title="Confirma el undo">
+    Haz clic en **Deshacer fusión** y confirma. Los contactos secundarios se restauran a su estado original.
+  </Step>
+</Steps>
+
+<Info>
+  Al deshacer una fusión, cualquier dato editado en el contacto primario después de la fusión se mantiene. Los contactos secundarios se restauran con su historial original.
+</Info>
+
+---
+
+## Historial de fusiones
+
+Desde el perfil del contacto puedes ver el historial completo de fusiones:
+
+- Fecha y hora de cada fusión
+- Quién realizó la fusión
+- Contactos que fueron fusionados
+- Estado (completada / deshecha)
+
+<Tip>
+  Para encontrar rápidamente duplicados potenciales, busca en la lista de clientes por teléfono o email y compara los resultados antes de iniciar la fusión.
+</Tip>

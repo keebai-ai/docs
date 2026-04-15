@@ -1,0 +1,163 @@
+---
+title: "Integraciones"
+sidebarTitle: "Integraciones"
+description: "Conecta servicios externos como Google Calendar, Reservo, AgendaPro y más con tus asistentes de IA"
+---
+
+Las integraciones permiten conectar servicios externos con Keebai para que tus asistentes puedan realizar acciones reales durante las conversaciones: agendar citas, consultar disponibilidad, gestionar reservas y más.
+
+<Info>
+  Al conectar una integración, habilitas las acciones que luego puedes agregar como [funciones](/ia-asistentes/mis-funciones) a tus asistentes.
+</Info>
+
+## Integraciones disponibles
+
+Al ingresar a **IA & Asistentes → Integraciones**, verás un catálogo de servicios organizados por categoría:
+
+<Tabs>
+  <Tab title="Calendario">
+    <CardGroup cols={2}>
+      <Card title="Google Calendar" icon="google">
+        Consulta disponibilidad, crea eventos y cancela citas directamente desde la conversación.
+      </Card>
+      <Card title="Outlook Calendar" icon="microsoft">
+        Mismas funcionalidades que Google Calendar para cuentas de Microsoft. *(Próximamente)*
+      </Card>
+    </CardGroup>
+  </Tab>
+  <Tab title="Agendamiento">
+    <CardGroup cols={2}>
+      <Card title="Reservo" icon="calendar-check">
+        Plataforma de agendamiento. Permite buscar sucursales, profesionales, tratamientos y gestionar citas completas.
+      </Card>
+      <Card title="AgendaPro" icon="calendar-plus">
+        Sistema de reservas con gestión de locales, servicios, prestadores y disponibilidad de horarios.
+      </Card>
+      <Card title="Keebai Agendamiento" icon="calendar-days">
+        Sistema de agendamiento nativo de Keebai. Gestiona sucursales, servicios, profesionales y citas sin necesidad de una plataforma externa.
+      </Card>
+    </CardGroup>
+  </Tab>
+  <Tab title="Próximamente">
+    <CardGroup cols={2}>
+      <Card title="Medilink" icon="stethoscope">
+        Gestión de citas médicas.
+      </Card>
+      <Card title="Shopify" icon="shop">
+        Integración con tiendas en línea.
+      </Card>
+      <Card title="Fintoc" icon="credit-card">
+        Pagos y enlaces de cobro.
+      </Card>
+      <Card title="Google Sheets" icon="table">
+        Lectura y escritura en hojas de cálculo.
+      </Card>
+    </CardGroup>
+  </Tab>
+</Tabs>
+
+---
+
+## Conectar Google Calendar
+
+<Steps>
+  <Step title="Ve a Integraciones">
+    Navega a **IA & Asistentes → Integraciones** y selecciona **Google Calendar**.
+  </Step>
+  <Step title="Conecta tu cuenta de Google">
+    Haz clic en **"Conectar con Google Calendar"**. Se abrirá una ventana para autorizar el acceso a tu cuenta de Google.
+  </Step>
+  <Step title="Selecciona los calendarios">
+    Una vez conectada la cuenta, elige qué calendarios quieres que estén disponibles para tus asistentes. También puedes crear un calendario nuevo desde aquí.
+  </Step>
+  <Step title="Crea las funciones">
+    Ve a [Mis Funciones](/ia-asistentes/mis-funciones) y crea funciones de tipo **Google Calendar** para que tus asistentes puedan consultar disponibilidad, crear eventos o cancelar citas.
+  </Step>
+</Steps>
+
+<Info>
+  Una vez conectada, verás el correo de la cuenta vinculada y la lista de calendarios disponibles. Puedes desconectar la cuenta en cualquier momento.
+</Info>
+
+---
+
+## Conectar Reservo
+
+Reservo se configura a nivel de cuenta. Contacta a [soporte](mailto:support@keebai.com) para activar la conexión con tu cuenta de Reservo.
+
+Una vez configurada, podrás crear funciones para que tus asistentes realicen estas acciones:
+
+| Acción | Descripción |
+|--------|------------|
+| Obtener sucursales | Lista las sucursales disponibles |
+| Obtener tratamientos | Lista los tratamientos/servicios |
+| Obtener profesionales | Lista los profesionales por sucursal |
+| Obtener horarios disponibles | Consulta el próximo horario libre |
+| Verificar cliente | Busca si el cliente ya existe en Reservo |
+| Obtener formulario | Recupera formularios de ingreso |
+| Crear cita | Agenda una cita nueva |
+| Actualizar estado de cita | Confirma, cancela o modifica una cita |
+| Reagendar cita | Cambia la fecha/hora de una cita existente |
+
+---
+
+## Conectar AgendaPro
+
+<Steps>
+  <Step title="Ve a Integraciones">
+    Navega a **IA & Asistentes → Integraciones** y selecciona **AgendaPro**.
+  </Step>
+  <Step title="Ingresa tus credenciales">
+    Ingresa tu usuario y contraseña de AgendaPro. Estas credenciales se almacenan de forma segura.
+  </Step>
+  <Step title="Crea las funciones">
+    Ve a [Mis Funciones](/ia-asistentes/mis-funciones) y crea funciones de tipo **AgendaPro**.
+  </Step>
+</Steps>
+
+Con AgendaPro, tus asistentes pueden: crear y suspender reservas, listar locales, servicios, prestadores, planes, consultar disponibilidad de horarios y buscar reservas por paciente.
+
+---
+
+## Keebai Agendamiento
+
+El sistema de agendamiento nativo de Keebai no requiere conectar una plataforma externa. Viene integrado con tu cuenta y permite:
+
+| Acción | Descripción |
+|--------|------------|
+| Obtener sucursales | Lista tus sucursales configuradas |
+| Obtener servicios | Lista los servicios que ofreces |
+| Obtener profesionales | Lista los profesionales disponibles |
+| Obtener horarios disponibles | Consulta horarios libres |
+| Generar cita | Agenda una cita nueva |
+
+Para usarlo, crea funciones de tipo **Keebai** en [Mis Funciones](/ia-asistentes/mis-funciones).
+
+---
+
+## ¿Cómo funcionan las integraciones?
+
+1. **Conectas** el servicio externo desde la página de integraciones
+2. **Creas funciones** en [Mis Funciones](/ia-asistentes/mis-funciones) que usen esa integración
+3. **Asignas las funciones** a los asistentes que necesiten usarlas
+4. Durante la conversación, el asistente **ejecuta las acciones automáticamente** cuando el cliente lo necesita
+
+<Note>
+  Las integraciones solo están disponibles cuando se vinculan a funciones y estas se asignan a un asistente. Conectar una integración por sí sola no activa nada.
+</Note>
+
+---
+
+## Solución de problemas
+
+<AccordionGroup>
+  <Accordion title="La integración no aparece como opción al crear funciones" icon="plug">
+    Verifica que la integración esté conectada correctamente desde la página de Integraciones. Para Google Calendar, asegúrate de que la cuenta esté vinculada y al menos un calendario esté seleccionado.
+  </Accordion>
+  <Accordion title="El asistente no ejecuta la función durante la conversación" icon="triangle-exclamation">
+    Verifica que: (1) la función esté activa, (2) esté asignada al asistente, y (3) la descripción de la función sea clara para que la IA sepa cuándo usarla.
+  </Accordion>
+  <Accordion title="Necesito conectar un servicio que no aparece en la lista" icon="webhook">
+    Puedes usar funciones de tipo **Webhook** para conectarte con cualquier servicio que tenga una API. Ve a [Mis Funciones](/ia-asistentes/mis-funciones) para más detalles.
+  </Accordion>
+</AccordionGroup>
