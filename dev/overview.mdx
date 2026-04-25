@@ -1,0 +1,57 @@
+---
+title: "API Pública"
+sidebarTitle: "Visión general"
+description: "Conecta tus sistemas con Keebai usando la API REST pública. Tokens, scopes y endpoints versionados bajo api.keebai.com."
+---
+
+La API pública de Keebai te permite integrar tu CRM, tu propio backend, automatizaciones (Zapier, n8n, Make) y cualquier herramienta interna con los datos de tu cuenta. Está pensada para desarrolladores y administradores con perfil técnico.
+
+## Características
+
+<CardGroup cols={2}>
+  <Card title="REST + JSON" icon="code">
+    Todos los endpoints aceptan y devuelven JSON. Versionados bajo `/v1/`, sin breaking changes silenciosos.
+  </Card>
+  <Card title="Personal Access Tokens" icon="key">
+    Cada usuario del tenant puede generar sus propios tokens, con scopes acotados y revocación inmediata.
+  </Card>
+  <Card title="Menor privilegio" icon="shield">
+    Los scopes del token son siempre un subconjunto de los permisos del usuario. Si el token leakea, el daño queda contenido.
+  </Card>
+  <Card title="OpenAPI 3" icon="file-code">
+    Especificación auto-generada en [api.keebai.com/v1/docs-json](https://api.keebai.com/v1/docs-json). Importable en Postman, Insomnia o cualquier generador de SDK.
+  </Card>
+</CardGroup>
+
+## Base URL
+
+```
+https://api.keebai.com/v1
+```
+
+Todas las rutas de la API pública viven bajo este prefijo. La interfaz de Swagger UI navegable está en [api.keebai.com/v1/docs](https://api.keebai.com/v1/docs).
+
+## Próximos pasos
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/dev/quickstart">
+    Genera tu primer token y haz una request en menos de 5 minutos.
+  </Card>
+  <Card title="Generar API Keys" icon="key" href="/dev/api-keys">
+    Cómo crear, listar y revocar tokens desde el portal de Keebai.
+  </Card>
+  <Card title="Autenticación" icon="lock" href="/dev/authentication">
+    Cómo enviar el token en cada request y manejar errores de auth.
+  </Card>
+  <Card title="Referencia" icon="book" href="/dev/endpoints/me">
+    Endpoints disponibles y su contrato detallado.
+  </Card>
+</CardGroup>
+
+## Disponibilidad
+
+La API pública se está liberando endpoint a endpoint. Hoy está disponible:
+
+- `GET /v1/me` — información del token autenticado y permisos efectivos.
+
+Próximamente: contacts, conversations, broadcast, CRM, webhooks. Si necesitás un endpoint específico antes que el resto, escribinos a [support@keebai.com](mailto:support@keebai.com).

@@ -1,0 +1,101 @@
+---
+title: "Rate limits y errores"
+sidebarTitle: "Rate limits"
+description: "Límites de uso por token, formato de respuestas de error y mejores prácticas para integraciones estables con la API pública de Keebai."
+---
+
+## Rate limits
+
+Los límites se aplican **por token** (no por usuario, no por IP), así que cada integración tiene su propio cupo independiente.
+
+| Ventana | Límite |
+|---|---|
+| Por minuto | 60 requests |
+| Por hora | 1000 requests |
+
+Si pasás cualquiera de los dos límites, recibís:
+
+```http
+HTTP/1.1 429 Too Many Requests
+Content-Type: application/json
+```
+
+```json
+{
+  "message": "ThrottlerException: Too Many Requests",
+  "statusCode": 429
+}
+```
+
+<Tip>
+  Si tu caso de uso necesita throughput mayor (ej. sincronización masiva de un CRM con cientos de miles de contactos), escribinos a [support@keebai.com](mailto:support@keebai.com) con tu volumen estimado y te abrimos una excepción.
+</Tip>
+
+## Manejo correcto de 429
+
+Implementá **backoff exponencial con jitter**. Ejemplo en pseudocódigo:
+
+```ts
+async function callKeebaiWithRetry(path: string, attempt = 0): Promise<Response> {
+  const response = await fetch(`https://api.keebai.com/v1${path}`, {
+    headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` },
+  });
+
+  if (response.status === 429 && attempt < 5) {
+    const baseDelay = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s, 8s, 16s
+    const jitter = Math.random() * 500;
+    await new Promise((r) => setTimeout(r, baseDelay + jitter));
+    return callKeebaiWithRetry(path, attempt + 1);
+  }
+
+  return response;
+}
+```
+
+No hagas retries inmediatos en bucle: te ban-eás a vos mismo y la latencia de tu sistema se dispara.
+
+## Formato de errores
+
+Todas las respuestas de error siguen el formato estándar de NestJS:
+
+```json
+{
+  "message": "<descripción humana>",
+  "error": "<categoría>",
+  "statusCode": <número HTTP>
+}
+```
+
+| Status | Categoría | Cuándo |
+|---|---|---|
+| `400 Bad Request` | `Bad Request` | Body inválido, query params mal formados, validación de schema falló. |
+| `401 Unauthorized` | `Unauthorized` | Token inválido, ausente, revocado o expirado. Ver [Autenticación](/dev/authentication). |
+| `403 Forbidden` | `Forbidden` | Token válido pero le falta el scope requerido. Ver [Scopes](/dev/scopes). |
+| `404 Not Found` | `Not Found` | Recurso o ruta inexistente. |
+| `429 Too Many Requests` | `Throttler` | Pasaste el rate limit. |
+| `500 Internal Server Error` | `Internal Server Error` | Error del lado de Keebai. Si persiste, [reportalo](mailto:support@keebai.com). |
+| `503 Service Unavailable` | `Service Unavailable` | Mantenimiento o degradación temporal. Reintentar con backoff. |
+
+## Mejores prácticas
+
+<CardGroup cols={2}>
+  <Card title="Idempotencia" icon="repeat">
+    Diseñá tus integraciones para que reintentar la misma operación dos veces sea seguro. Las requests `GET` y `DELETE` ya son idempotentes; en `POST/PATCH` evitá duplicados con identificadores propios.
+  </Card>
+  <Card title="Timeouts razonables" icon="clock">
+    Configurá un timeout de cliente entre 10 y 30 segundos. Más bajo te corta requests legítimas; más alto te deja el thread bloqueado en caso de lentitud puntual.
+  </Card>
+  <Card title="Logging" icon="file-lines">
+    Loggeá `status`, `requestId` (si la API lo devuelve en headers) y duración de cada request. Cuando algo falle, vas a poder diagnosticar mucho más rápido.
+  </Card>
+  <Card title="Circuit breaker" icon="bolt-slash">
+    Si recibís 5xx repetidamente, frená nuevas requests por unos segundos. Tu sistema se mantiene funcionando para el resto de operaciones que no dependen de Keebai.
+  </Card>
+</CardGroup>
+
+## Operación en producción
+
+- **Monitoreo**: instrumentá métricas de latencia, error rate y código de status. Una alerta de error rate `>5%` te avisa antes que tus usuarios.
+- **Rotación de tokens**: rotá cada 90 días incluso sin incidente. Generá el nuevo, deployá, validá, revocá el viejo.
+- **Auditoría del último uso**: revisá la columna *Último uso* en la tabla de tokens cada cierto tiempo. Tokens sin uso por meses son candidatos a revocar.
+- **Status del servicio**: si sospechás que el problema es nuestro, escribinos a [support@keebai.com](mailto:support@keebai.com).

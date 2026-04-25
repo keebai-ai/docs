@@ -1,0 +1,79 @@
+---
+title: "Quickstart"
+sidebarTitle: "Quickstart"
+description: "Genera tu primer Personal Access Token y haz tu primera request a la API pública en menos de 5 minutos."
+---
+
+Esta guía te lleva del registro a la primera respuesta exitosa de la API.
+
+## Requisitos
+
+- Una cuenta activa en Keebai con acceso a [app.keebai.com](https://app.keebai.com).
+- El permiso `developer.manage_tokens` asignado a tu rol. Si no lo tenés, pedile al admin de tu tenant que te lo otorgue desde **System Settings → Roles**.
+- Una herramienta para hacer requests HTTP (`curl`, Postman, Insomnia, o el lenguaje que prefieras).
+
+## 1. Generar un token
+
+<Steps>
+  <Step title="Entrar a la sección de API Keys">
+    En el portal, andá a **System Settings**. Al final del listado vas a ver el banner **API para Desarrolladores**. Clic en **Ir a API Keys**.
+
+    Si no ves el banner es porque tu rol no tiene `developer.manage_tokens`. Pedíselo a un admin.
+  </Step>
+  <Step title="Crear un token nuevo">
+    Clic en **Crear API Key**. Te pide tres cosas:
+
+    - **Nombre**: descriptivo, te ayuda a identificarlo después. Ej: `Zapier integration`, `Reportes nocturnos`, `Local dev`.
+    - **Permisos del token (scopes)**: marcá solo los que el token va a necesitar. Solo aparecen los permisos que tu usuario ya tiene.
+    - **Expiración** *(opcional)*: recomendamos 90 días. Vacío significa que no expira.
+  </Step>
+  <Step title="Copiar el token">
+    Al confirmar, Keebai genera el token y te lo muestra **una sola vez**. Tiene el formato `kbai_pk_<64 chars hex>`.
+
+    <Warning>
+      Este es el único momento en que vas a ver el token completo. Copialo y guardalo en un gestor de secretos (1Password, AWS Secrets Manager, GitHub Actions secrets, `.env` local). Si lo perdés, tenés que revocarlo y crear uno nuevo.
+    </Warning>
+  </Step>
+</Steps>
+
+## 2. Probar el token
+
+Hacé tu primera request a `GET /v1/me`, que devuelve los permisos efectivos del token:
+
+```bash
+curl https://api.keebai.com/v1/me \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+Respuesta esperada (HTTP 200):
+
+```json
+{
+  "permissions": ["conversations.read", "contacts.read"]
+}
+```
+
+## 3. ¿Y si falla?
+
+| Status | Significado | Acción |
+|---|---|---|
+| `401 Unauthorized` | Token inválido, revocado o expirado. | Verificá que copiaste el token completo (incluyendo `kbai_pk_`). Si no aparece en tu lista de tokens activos, generá uno nuevo. |
+| `429 Too Many Requests` | Pasaste el rate limit (60 req/min, 1000 req/hora). | Esperá unos segundos y reintentá con backoff exponencial. |
+| `404 Not Found` | Ruta inexistente. | Confirmá que estás llamando a `/v1/<path>` y consultá la [referencia](/dev/endpoints/me). |
+
+## 4. Próximos pasos
+
+<CardGroup cols={2}>
+  <Card title="Cómo gestionar tokens" icon="key" href="/dev/api-keys">
+    Crear, listar, revocar y rotar tokens desde el portal.
+  </Card>
+  <Card title="Scopes y permisos" icon="shield" href="/dev/scopes">
+    Qué hace cada scope y cuándo usarlo.
+  </Card>
+  <Card title="Errores y rate limits" icon="circle-exclamation" href="/dev/rate-limits">
+    Cómo manejar errores comunes y operar tus integraciones de forma estable.
+  </Card>
+  <Card title="Spec OpenAPI" icon="file-code" href="https://api.keebai.com/v1/docs">
+    Swagger UI con todos los endpoints, schemas y ejemplos.
+  </Card>
+</CardGroup>

@@ -1,0 +1,137 @@
+---
+title: "Autenticación"
+sidebarTitle: "Autenticación"
+description: "Cómo enviar el Personal Access Token en cada request a la API pública de Keebai y cómo manejar los errores de autenticación."
+---
+
+La API pública usa el esquema **HTTP Bearer Authentication** ([RFC 6750](https://datatracker.ietf.org/doc/html/rfc6750)). Toda request necesita el token en el header `Authorization`.
+
+## Header de autorización
+
+```http
+Authorization: Bearer kbai_pk_a1b2c3d4e5f6...
+```
+
+- Formato: `Bearer <token>`. El espacio entre `Bearer` y el token es obligatorio.
+- El token va completo, incluyendo el prefijo `kbai_pk_`.
+- HTTPS es obligatorio. Las requests por HTTP plano son rechazadas en producción.
+
+## Ejemplos por lenguaje
+
+<CodeGroup>
+
+```bash curl
+curl https://api.keebai.com/v1/me \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+```js JavaScript (fetch)
+const response = await fetch("https://api.keebai.com/v1/me", {
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+  },
+});
+const data = await response.json();
+```
+
+```ts TypeScript (axios)
+import axios from "axios";
+
+const keebai = axios.create({
+  baseURL: "https://api.keebai.com/v1",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+  },
+});
+
+const { data } = await keebai.get("/me");
+```
+
+```python Python (requests)
+import os
+import requests
+
+response = requests.get(
+    "https://api.keebai.com/v1/me",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    timeout=10,
+)
+response.raise_for_status()
+data = response.json()
+```
+
+```go Go
+package main
+
+import (
+    "io"
+    "net/http"
+    "os"
+)
+
+func main() {
+    req, _ := http.NewRequest("GET", "https://api.keebai.com/v1/me", nil)
+    req.Header.Set("Authorization", "Bearer "+os.Getenv("KEEBAI_API_TOKEN"))
+    resp, err := http.DefaultClient.Do(req)
+    if err != nil { panic(err) }
+    defer resp.Body.Close()
+    io.Copy(os.Stdout, resp.Body)
+}
+```
+
+</CodeGroup>
+
+## Errores de autenticación
+
+Por seguridad, todos los errores de autenticación devuelven el mismo status y mensaje genérico — no diferencias entre "token inexistente" y "token revocado" para no facilitar enumeración por atacantes.
+
+```http
+HTTP/1.1 401 Unauthorized
+Content-Type: application/json
+```
+
+```json
+{
+  "message": "Invalid or missing API token",
+  "error": "Unauthorized",
+  "statusCode": 401
+}
+```
+
+Causas posibles, en orden de frecuencia:
+
+| Causa | Acción |
+|---|---|
+| Header `Authorization` ausente. | Agregalo. |
+| Header presente pero sin `Bearer ` adelante. | Asegurate de incluir el prefijo `Bearer ` con espacio. |
+| Token mal copiado (truncado, espacios extra, charset distinto). | Re-copialo del gestor de secretos. |
+| Token revocado. | Verificá en [API Keys](https://app.keebai.com/system-settings/api-keys); si está como `Revocado`, generá uno nuevo. |
+| Token expirado. | Lo mismo: verificá la columna *Estado*. |
+| Usuario dueño del token desactivado. | Pedile al admin de tu tenant que reactive tu cuenta. |
+
+## Cómo guardar el token de forma segura
+
+<CardGroup cols={2}>
+  <Card title="Gestores de secretos" icon="vault">
+    AWS Secrets Manager, GCP Secret Manager, HashiCorp Vault, 1Password, Doppler. La forma correcta para producción.
+  </Card>
+  <Card title="GitHub Actions" icon="github">
+    Repository Settings → Secrets → Actions → New secret. Referenciado como `${{ secrets.KEEBAI_API_TOKEN }}`.
+  </Card>
+  <Card title=".env local" icon="file">
+    Solo para desarrollo personal. Asegurate de que `.env` esté en `.gitignore`.
+  </Card>
+  <Card title="Variables de entorno" icon="terminal">
+    En servidores: `export KEEBAI_API_TOKEN=...`. Nunca en el código fuente.
+  </Card>
+</CardGroup>
+
+<Warning>
+  **Nunca** committees un token al repositorio. **Nunca** lo embebas en una app móvil, en una SPA pública o en cualquier código que un usuario final pueda inspeccionar. Si por error commiteás un token, [revocálo inmediatamente](/dev/api-keys#revocar-un-token) y reescribí el historial de git si es posible.
+</Warning>
+
+## Detección automática de leaks
+
+El prefijo `kbai_pk_` es reconocible por herramientas de secret scanning. Habilitamos detección en GitHub para los tokens Keebai: si por accidente subís un token a un repo público de GitHub, recibirás una alerta y el token será revocado automáticamente.
+
+Para habilitarlo en repos privados de tu organización: GitHub → Settings → Code security → Secret scanning.

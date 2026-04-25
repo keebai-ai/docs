@@ -1,0 +1,104 @@
+---
+title: "Scopes y permisos"
+sidebarTitle: "Scopes"
+description: "Cómo funcionan los scopes en los Personal Access Tokens de Keebai. Principio de menor privilegio y permisos efectivos."
+---
+
+Cada token tiene un conjunto de **scopes**, que son los permisos que ese token puede ejercer. Los scopes se eligen al crear el token y no se pueden modificar después — si necesitás cambiar los scopes, revocá el token y creá uno nuevo.
+
+## Cómo se calculan los permisos efectivos
+
+En cada request, el guard de la API pública calcula los **permisos efectivos** del token aplicando esta fórmula:
+
+```
+permisos_efectivos = scopes_del_token ∩ permisos_actuales_del_usuario
+```
+
+Es decir: la intersección entre los scopes que pediste al crear el token y los permisos que tu usuario tiene **en este momento**. Esto tiene tres consecuencias:
+
+1. **Solo podés crear tokens con scopes que ya tengas**. La UI te muestra únicamente los permisos asignados a tu rol.
+2. **Si un admin te quita un permiso, el token lo pierde automáticamente**. No hay que revocar el token: la próxima request ya no podrá usar ese scope.
+3. **Si te promueven (te dan más permisos), tus tokens existentes no los ganan automáticamente**. Solo los scopes que el token tenía al crearse cuentan. Para usar permisos nuevos hay que crear un token nuevo.
+
+## Scopes disponibles
+
+Los scopes son los mismos identificadores que los permisos del sistema. Algunos ejemplos:
+
+| Scope | Acción |
+|---|---|
+| `conversations.read` | Leer conversaciones y mensajes. |
+| `conversations.write` | Enviar mensajes, asignar conversaciones. |
+| `contacts.read` | Listar y consultar contactos. |
+| `contacts.write` | Crear, editar y borrar contactos. |
+| `crm.read` | Acceso de lectura al CRM (pipelines, tickets, tareas). |
+| `crm.write` | Modificar entidades del CRM. |
+| `broadcast.send` | Crear y disparar campañas de broadcast. |
+
+<Tip>
+  La lista completa de scopes que **vos** podés asignar aparece en el modal de creación de token, agrupada por categoría (Conversations, Contacts, CRM, etc.). Si un scope no aparece, es porque tu usuario no lo tiene.
+</Tip>
+
+## Principio de menor privilegio
+
+Asigná solo los scopes que el token realmente necesita. Algunos ejemplos prácticos:
+
+<CardGroup cols={2}>
+  <Card title="Integración de reportes (Looker, Metabase)">
+    Solo necesita lectura.
+
+    `conversations.read`, `contacts.read`, `crm.read`.
+  </Card>
+  <Card title="Bot de notificaciones (Slack)">
+    Solo necesita leer eventos.
+
+    `conversations.read`.
+  </Card>
+  <Card title="Sync con CRM externo (Salesforce)">
+    Lectura y escritura en CRM y contactos.
+
+    `crm.read`, `crm.write`, `contacts.read`, `contacts.write`.
+  </Card>
+  <Card title="Sender de campañas">
+    Solo necesita lanzar broadcasts.
+
+    `broadcast.send`.
+  </Card>
+</CardGroup>
+
+## Validación de scopes
+
+Si un endpoint requiere un scope que tu token no tiene, recibís:
+
+```http
+HTTP/1.1 403 Forbidden
+Content-Type: application/json
+```
+
+```json
+{
+  "message": "Insufficient scope",
+  "error": "Forbidden",
+  "statusCode": 403,
+  "required": ["conversations.write"]
+}
+```
+
+A diferencia de los errores de autenticación (que son intencionalmente genéricos), los errores de autorización indican qué scope falta — porque ya autenticaste correctamente, solo te falta permiso.
+
+## Cambiar los scopes de un token
+
+No se pueden modificar los scopes de un token existente. El flujo es:
+
+<Steps>
+  <Step title="Crear un token nuevo con los scopes correctos">
+    Desde [API Keys](https://app.keebai.com/system-settings/api-keys), clic en **Crear API Key** y elegí los nuevos scopes.
+  </Step>
+  <Step title="Actualizar tu integración">
+    Reemplazá el token viejo por el nuevo en tu gestor de secretos.
+  </Step>
+  <Step title="Revocar el viejo">
+    Una vez confirmado que la integración funciona con el token nuevo, revocá el viejo.
+  </Step>
+</Steps>
+
+Este flujo te permite hacer la rotación sin downtime de la integración.

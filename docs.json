@@ -88,6 +88,38 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "API & Desarrollo",
+        "groups": [
+          {
+            "group": "Empezar",
+            "pages": [
+              "dev/overview",
+              "dev/quickstart"
+            ]
+          },
+          {
+            "group": "Autenticación",
+            "pages": [
+              "dev/api-keys",
+              "dev/authentication",
+              "dev/scopes"
+            ]
+          },
+          {
+            "group": "Referencia",
+            "pages": [
+              "dev/endpoints/me"
+            ]
+          },
+          {
+            "group": "Operación",
+            "pages": [
+              "dev/rate-limits"
+            ]
+          }
+        ]
       }
     ],
     "global": {
