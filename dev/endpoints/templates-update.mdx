@@ -1,0 +1,166 @@
+---
+title: "PATCH /v1/templates/{id}"
+sidebarTitle: "PATCH templates"
+description: "Edita un template existente: componentes, categoría, idioma o status."
+openapi: "PATCH /v1/templates/{id}"
+---
+
+Actualiza un template existente. Internamente sincroniza los cambios con Meta cuando aplica (por ejemplo al editar `components` o `category`). Solo enviás los campos que querés modificar; el resto queda como está.
+
+<Warning>
+  Meta solo permite editar templates en ciertos estados (`APPROVED`, `REJECTED` o `PAUSED`, según el campo). Editar un template en `PENDING` o `IN_REVIEW` puede devolver `409 CONFLICT` desde el upstream. Si necesitás cambiar algo crítico antes de que Meta lo apruebe, suele ser más rápido crear un template nuevo con `POST /v1/templates`.
+</Warning>
+
+## Endpoint
+
+```
+PATCH https://api.keebai.com/v1/templates/{id}
+```
+
+## Scope requerido
+
+`templates:update`
+
+## Headers
+
+| Header | Requerido | Valor |
+|---|---|---|
+| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Sí | `application/json` |
+
+## Path params
+
+| Param | Tipo | Descripción |
+|---|---|---|
+| `id` | `string` | `ObjectId` interno del template. Es el `id` que devuelven `GET /v1/templates` y `POST /v1/templates`. |
+
+## Body
+
+| Campo | Tipo | Requerido | Descripción |
+|---|---|---|---|
+| `channel_id` | `string` | Sí | `ObjectId` del canal dueño del template. Lo exige el upstream para validar ownership. |
+| `name` | `string` | No | Nuevo nombre. Solo minúsculas, números y guiones bajos. Máx. 512. |
+| `language` | `string` | No | Código de idioma. Máx. 10. |
+| `category` | `string` | No | `MARKETING`, `UTILITY` o `AUTHENTICATION`. |
+| `parameter_format` | `string` | No | `NAMED` o `POSITIONAL`. |
+| `components` | `array` | No | Reemplaza la lista de componentes. Misma estructura que en `POST /v1/templates`. |
+| `status` | `string` | No | Estado a forzar localmente (`PAUSED`, `DISABLED`, etc.). Usar con cuidado. |
+| `metadata` | `object` | No | Metadatos libres. |
+
+## Ejemplo de request
+
+<CodeGroup>
+
+```bash curl
+curl -X PATCH https://api.keebai.com/v1/templates/65f3a1b2c3d4e5f6a7b8c9d2 \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "channel_id": "65f3a1b2c3d4e5f6a7b8c9d0",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Hola {{nombre}}, tu pedido por {{monto}} fue actualizado.",
+        "example": {
+          "body_text_named_params": [
+            { "param_name": "nombre", "example": "Lucio" },
+            { "param_name": "monto", "example": "$15.000" }
+          ]
+        }
+      }
+    ]
+  }'
+```
+
+```js JavaScript
+const resp = await fetch(
+  `https://api.keebai.com/v1/templates/${templateId}`,
+  {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      channel_id: "65f3a1b2c3d4e5f6a7b8c9d0",
+      components: [
+        {
+          type: "BODY",
+          text: "Hola {{nombre}}, tu pedido por {{monto}} fue actualizado.",
+          example: {
+            body_text_named_params: [
+              { param_name: "nombre", example: "Lucio" },
+              { param_name: "monto", example: "$15.000" },
+            ],
+          },
+        },
+      ],
+    }),
+  },
+);
+const template = await resp.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.patch(
+    f"https://api.keebai.com/v1/templates/{template_id}",
+    headers={
+        "Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}",
+        "Content-Type": "application/json",
+    },
+    json={
+        "channel_id": "65f3a1b2c3d4e5f6a7b8c9d0",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Hola {{nombre}}, tu pedido por {{monto}} fue actualizado.",
+                "example": {
+                    "body_text_named_params": [
+                        {"param_name": "nombre", "example": "Lucio"},
+                        {"param_name": "monto", "example": "$15.000"},
+                    ]
+                },
+            }
+        ],
+    },
+    timeout=20,
+)
+resp.raise_for_status()
+template = resp.json()
+```
+
+</CodeGroup>
+
+## Respuesta
+
+### 200 OK
+
+```json
+{
+  "id": "65f3a1b2c3d4e5f6a7b8c9d2",
+  "name": "welcome_v2",
+  "language": "es_CL",
+  "status": "PENDING",
+  "category": "UTILITY",
+  "parameter_format": "NAMED",
+  "variables": ["nombre", "monto"]
+}
+```
+
+Mismo shape que `POST /v1/templates`. Si la edición disparó una nueva revisión en Meta, `status` puede quedar en `IN_REVIEW` o `PENDING` hasta que Meta vuelva a aprobar.
+
+### 400 / 401 / 403 / 404 / 409 / 429
+
+Casos típicos:
+
+- `400 BAD_REQUEST`: validación del body.
+- `403 FORBIDDEN` con `code: INSUFFICIENT_SCOPE`: el PAT no tiene `templates:update`.
+- `404 NOT_FOUND`: el template no existe o no pertenece a tu company.
+- `409 CONFLICT`: Meta rechazó la edición porque el template no está en un estado editable.
+- `502 UPSTREAM_ERROR`: error genérico desde Meta. `details` describe el motivo.
+
+<Tip>
+  Después de editar componentes, hacé polling sobre [`GET /v1/templates`](/dev/endpoints/templates-list) para confirmar que Meta volvió a aprobar el template antes de seguir enviándolo en producción.
+</Tip>

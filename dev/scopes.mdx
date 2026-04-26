@@ -39,6 +39,8 @@ El catálogo vive en la colección `api_scopes` de MongoDB. El portal lo consume
 | `messages:send` | messages | Envío de un mensaje individual (texto o template) a un destinatario. |
 | `messages:bulk` | messages | Envío masivo de un template a múltiples destinatarios y consulta del estado de la campaña. |
 | `templates:read` | templates | Lectura del catálogo de templates aprobados de la company. |
+| `templates:create` | templates | Crear templates de WhatsApp y enviarlos a Meta para aprobación. |
+| `templates:update` | templates | Editar un template existente (componentes, categoría, idioma, status). |
 
 <Tip>
   La lista que aparece en el modal de **Crear API Key** se carga en vivo desde el backend. Si un scope no está, es porque está marcado como `is_active: false` en la base.
@@ -78,10 +80,15 @@ Asigná solo los scopes que el token realmente necesita. La separación de `mess
 
     `templates:read`.
   </Card>
+  <Card title="Gestión de templates (provisioning)">
+    Crea y mantiene los templates de la company sin tocar el portal.
+
+    `templates:read`, `templates:create`, `templates:update`.
+  </Card>
   <Card title="Integración full-stack (uso interno)">
     Combo completo si está bajo control directo del equipo.
 
-    `messages:send`, `messages:bulk`, `templates:read`.
+    `messages:send`, `messages:bulk`, `templates:read`, `templates:create`, `templates:update`.
   </Card>
 </CardGroup>
 

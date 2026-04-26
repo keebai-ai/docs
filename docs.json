@@ -147,7 +147,9 @@
           {
             "group": "Templates",
             "pages": [
-              "dev/endpoints/templates-list"
+              "dev/endpoints/templates-list",
+              "dev/endpoints/templates-create",
+              "dev/endpoints/templates-update"
             ]
           }
         ]
