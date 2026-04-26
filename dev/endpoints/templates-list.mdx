@@ -2,6 +2,7 @@
 title: "GET /v1/templates"
 sidebarTitle: "GET templates"
 description: "Lista los templates de WhatsApp aprobados de tu company, con sus variables esperadas, paginado."
+openapi: "GET /v1/templates"
 ---
 
 Devuelve los templates de WhatsApp de tu company. Por defecto solo los `APPROVED`, pero podés filtrar por estado. Cada item incluye las variables esperadas extraídas del cuerpo del template, lo que te permite construir el `variables` correcto para [`POST /v1/messages/template`](/dev/endpoints/messages-template) sin tener que mantener la lista en tu lado.

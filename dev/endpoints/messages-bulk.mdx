@@ -2,6 +2,7 @@
 title: "POST /v1/messages/bulk"
 sidebarTitle: "POST messages/bulk"
 description: "Envía un template aprobado a múltiples destinatarios en una sola request. Hasta 5000 recipients por llamada. Devuelve un broadcast id para seguimiento."
+openapi: "POST /v1/messages/bulk"
 ---
 
 Envía un mismo template a múltiples destinatarios, con variables potencialmente distintas para cada uno. Crea un broadcast en la base que podés trackear con [`GET /v1/messages/bulk/:broadcastId`](/dev/endpoints/messages-bulk-status).

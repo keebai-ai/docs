@@ -2,6 +2,7 @@
 title: "GET /v1/messages/bulk/:broadcastId"
 sidebarTitle: "GET messages/bulk/:id"
 description: "Devuelve el estado y los counters de un envío masivo: total, enviados, fallidos y pendientes."
+openapi: "GET /v1/messages/bulk/{broadcastId}"
 ---
 
 Consulta el estado de un broadcast creado por [`POST /v1/messages/bulk`](/dev/endpoints/messages-bulk) o por cualquier envío single (`/v1/messages/template`, `/v1/messages/text`) que internamente también crea un broadcast.

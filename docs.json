@@ -91,6 +91,7 @@
       },
       {
         "tab": "API & Desarrollo",
+        "openapi": "https://api.keebai.com/v1/docs-json",
         "groups": [
           {
             "group": "Empezar",

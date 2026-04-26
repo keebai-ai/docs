@@ -2,6 +2,7 @@
 title: "POST /v1/messages/text"
 sidebarTitle: "POST messages/text"
 description: "Envía texto libre a un destinatario que tiene la ventana de conversación de 24h abierta. Para fuera de esa ventana, usá un template."
+openapi: "POST /v1/messages/text"
 ---
 
 Envía un mensaje de texto libre a un destinatario. WhatsApp solo permite texto libre dentro de la **ventana de 24 horas** desde el último mensaje recibido del usuario; si la ventana está cerrada, el mensaje será rechazado por Meta y el broadcast quedará en `FAILED`. Para casos fuera de ventana, usá [`POST /v1/messages/template`](/dev/endpoints/messages-template).
