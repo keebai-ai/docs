@@ -31,7 +31,8 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Documentación",
+        "tab": "Docs",
+        "icon": "book-open",
         "groups": [
           {
             "group": "Inicio",
@@ -90,7 +91,8 @@
         ]
       },
       {
-        "tab": "API & Desarrollo",
+        "tab": "Autenticación",
+        "icon": "shield-check",
         "openapi": "https://api.keebai.com/v1/docs-json",
         "groups": [
           {
@@ -101,7 +103,7 @@
             ]
           },
           {
-            "group": "Autenticación",
+            "group": "Tokens",
             "pages": [
               "dev/api-keys",
               "dev/authentication",
@@ -109,20 +111,37 @@
             ]
           },
           {
-            "group": "Referencia",
+            "group": "Sesión actual",
             "pages": [
-              "dev/endpoints/me",
-              "dev/endpoints/messages-template",
-              "dev/endpoints/messages-text",
-              "dev/endpoints/messages-bulk",
-              "dev/endpoints/messages-bulk-status",
-              "dev/endpoints/templates-list"
+              "dev/endpoints/me"
             ]
           },
           {
             "group": "Operación",
             "pages": [
               "dev/rate-limits"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Messaging",
+        "icon": "messages-square",
+        "openapi": "https://api.keebai.com/v1/docs-json",
+        "groups": [
+          {
+            "group": "WhatsApp",
+            "pages": [
+              "dev/endpoints/messages-template",
+              "dev/endpoints/messages-text",
+              "dev/endpoints/messages-bulk",
+              "dev/endpoints/messages-bulk-status"
+            ]
+          },
+          {
+            "group": "Templates",
+            "pages": [
+              "dev/endpoints/templates-list"
             ]
           }
         ]
