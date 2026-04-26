@@ -93,7 +93,10 @@
       {
         "tab": "Autenticación",
         "icon": "shield-check",
-        "openapi": "https://api.keebai.com/v1/docs-json",
+        "openapi": {
+          "source": "https://api.keebai.com/v1/docs-json",
+          "directory": "_openapi/auth"
+        },
         "groups": [
           {
             "group": "Empezar",
@@ -126,8 +129,11 @@
       },
       {
         "tab": "Messaging",
-        "icon": "messages-square",
-        "openapi": "https://api.keebai.com/v1/docs-json",
+        "icon": "paper-plane",
+        "openapi": {
+          "source": "https://api.keebai.com/v1/docs-json",
+          "directory": "_openapi/messaging"
+        },
         "groups": [
           {
             "group": "WhatsApp",
