@@ -1,0 +1,178 @@
+---
+title: "POST /v1/messages/template"
+sidebarTitle: "POST messages/template"
+description: "Envía un template aprobado de WhatsApp a un destinatario único. Acepta variables nombradas y devuelve el id del envío para tracking."
+---
+
+Encola el envío de un **template aprobado por Meta** a un único destinatario. Útil para notificaciones transaccionales, recordatorios y mensajes 1 a 1 disparados desde tu backend.
+
+Internamente Keebai crea un broadcast con un único recipient, lo que permite consultar el estado más adelante con [`GET /v1/messages/bulk/:broadcastId`](/dev/endpoints/messages-bulk-status).
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/messages/template
+```
+
+## Scope requerido
+
+`messages:send`
+
+## Headers
+
+| Header | Requerido | Valor |
+|---|---|---|
+| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Sí | `application/json` |
+
+## Body
+
+| Campo | Tipo | Requerido | Descripción |
+|---|---|---|---|
+| `to` | `string` | Sí | Número del destinatario en formato E.164 (ej. `+5491155555555`). |
+| `channel_id` | `string` | Sí | `ObjectId` del canal de WhatsApp desde el que se envía. Lo obtenés en el portal en **Canales**. |
+| `template_name` | `string` | Sí | Nombre del template tal como está aprobado en Meta. |
+| `language` | `string` | Sí | Código de idioma del template (`es`, `en`, `pt_BR`, etc.). |
+| `variables` | `object<string, string>` | No | Mapa de variables nombradas que el template espera. Las claves deben coincidir con los placeholders `{{nombre}}` del template. Lista esperada disponible en [`GET /v1/templates`](/dev/endpoints/templates-list). |
+| `meta_data` | `object` | No | Metadata libre que se persiste con el mensaje. Útil para correlacionar con tu sistema. |
+
+## Ejemplo de request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/messages/template \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "+5491155555555",
+    "channel_id": "65a1f2b3c4d5e6f7a8b9c0d1",
+    "template_name": "welcome_v2",
+    "language": "es",
+    "variables": {
+      "nombre": "Lucio",
+      "monto": "1500"
+    },
+    "meta_data": {
+      "order_id": "ORD-2026-0042"
+    }
+  }'
+```
+
+```js JavaScript
+const response = await fetch("https://api.keebai.com/v1/messages/template", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    to: "+5491155555555",
+    channel_id: "65a1f2b3c4d5e6f7a8b9c0d1",
+    template_name: "welcome_v2",
+    language: "es",
+    variables: { nombre: "Lucio", monto: "1500" },
+  }),
+});
+const { broadcast_id } = await response.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/messages/template",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={
+        "to": "+5491155555555",
+        "channel_id": "65a1f2b3c4d5e6f7a8b9c0d1",
+        "template_name": "welcome_v2",
+        "language": "es",
+        "variables": {"nombre": "Lucio", "monto": "1500"},
+    },
+    timeout=10,
+)
+resp.raise_for_status()
+print(resp.json())
+```
+
+</CodeGroup>
+
+## Respuesta
+
+### 202 Accepted
+
+El envío fue aceptado y encolado. La entrega real a WhatsApp ocurre asincrónicamente.
+
+```json
+{
+  "broadcast_id": "65f4b5c6d7e8f9a0b1c2d3e4",
+  "status": "PENDING",
+  "total_recipients": 1,
+  "scheduled_at": null
+}
+```
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `broadcast_id` | `string` | Id del broadcast creado. Útil para consultar estado con `GET /v1/messages/bulk/:broadcastId`. |
+| `status` | `string` | Estado inicial del broadcast: `PENDING`, `IN_PROGRESS`, `COMPLETED`, `FAILED`. |
+| `total_recipients` | `number` | Siempre `1` para este endpoint. |
+| `scheduled_at` | `string \| null` | Fecha de agendamiento en ISO 8601 si aplica, `null` para envío inmediato. |
+
+### 400 Bad Request
+
+Body inválido (formato de teléfono incorrecto, `channel_id` mal formado, campos faltantes).
+
+### 401 Unauthorized
+
+Token ausente, inválido, revocado o expirado.
+
+### 403 Forbidden
+
+El token no tiene el scope `messages:send`.
+
+```json
+{
+  "error": {
+    "code": "INSUFFICIENT_SCOPE",
+    "message": "Forbidden",
+    "details": {
+      "required": ["messages:send"],
+      "missing": ["messages:send"]
+    }
+  }
+}
+```
+
+### 502 Bad Gateway
+
+Error contactando al servicio de envío upstream. Reintentar con backoff.
+
+## Patrones comunes
+
+### Notificación transaccional con correlación
+
+```python
+import os, requests
+
+def notify_order(order_id: str, customer_phone: str, customer_name: str, amount: float):
+    resp = requests.post(
+        "https://api.keebai.com/v1/messages/template",
+        headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+        json={
+            "to": customer_phone,
+            "channel_id": os.environ["KEEBAI_CHANNEL_ID"],
+            "template_name": "order_confirmation",
+            "language": "es",
+            "variables": {
+                "nombre": customer_name,
+                "monto": f"{amount:.2f}",
+            },
+            "meta_data": {"order_id": order_id},
+        },
+        timeout=10,
+    )
+    resp.raise_for_status()
+    return resp.json()["broadcast_id"]
+```

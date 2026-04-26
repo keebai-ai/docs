@@ -1,0 +1,121 @@
+---
+title: "GET /v1/messages/bulk/:broadcastId"
+sidebarTitle: "GET messages/bulk/:id"
+description: "Devuelve el estado y los counters de un envío masivo: total, enviados, fallidos y pendientes."
+---
+
+Consulta el estado de un broadcast creado por [`POST /v1/messages/bulk`](/dev/endpoints/messages-bulk) o por cualquier envío single (`/v1/messages/template`, `/v1/messages/text`) que internamente también crea un broadcast.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/messages/bulk/:broadcastId
+```
+
+## Scope requerido
+
+`messages:bulk`
+
+## Headers
+
+| Header | Requerido | Valor |
+|---|---|---|
+| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
+
+## Path params
+
+| Param | Tipo | Descripción |
+|---|---|---|
+| `broadcastId` | `string` | `ObjectId` del broadcast retornado al crear el envío. |
+
+## Ejemplo de request
+
+```bash
+curl https://api.keebai.com/v1/messages/bulk/65f4b5c6d7e8f9a0b1c2d3e4 \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+## Respuesta
+
+### 200 OK
+
+```json
+{
+  "broadcast_id": "65f4b5c6d7e8f9a0b1c2d3e4",
+  "status": "IN_PROGRESS",
+  "total_recipients": 1500,
+  "sent": 980,
+  "failed": 12,
+  "pending": 508,
+  "started_at": "2026-04-25T13:45:02.123Z",
+  "completed_at": null
+}
+```
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `broadcast_id` | `string` | Mismo id que pediste. |
+| `status` | `string` | `PENDING`, `IN_PROGRESS`, `COMPLETED`, `FAILED`, `CANCELLED`. |
+| `total_recipients` | `number` | Total de destinatarios al crear el broadcast. |
+| `sent` | `number` | Mensajes que Meta confirmó como enviados. |
+| `failed` | `number` | Mensajes que fallaron (Meta los rechazó o hubo error en el dispatch). |
+| `pending` | `number` | Mensajes aún en cola. |
+| `started_at` | `string \| null` | Timestamp ISO 8601 cuando empezó el procesamiento. `null` si aún no empezó. |
+| `completed_at` | `string \| null` | Timestamp ISO 8601 cuando terminó. `null` si todavía está en curso. |
+
+### 400 Bad Request
+
+`broadcastId` no es un `ObjectId` válido.
+
+```json
+{
+  "error": {
+    "code": "INVALID_BROADCAST_ID",
+    "message": "Bad Request"
+  }
+}
+```
+
+### 404 Not Found
+
+El broadcast no existe o pertenece a otra company.
+
+```json
+{
+  "error": {
+    "code": "BROADCAST_NOT_FOUND",
+    "message": "Not Found"
+  }
+}
+```
+
+### 401 / 403
+
+Errores estándar de auth y scope.
+
+## Patrón de polling
+
+Para esperar la finalización de un broadcast desde tu integración:
+
+```python
+import os, time, requests
+
+def wait_broadcast(broadcast_id: str, timeout: int = 600) -> dict:
+    start = time.monotonic()
+    headers = {"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"}
+    while time.monotonic() - start < timeout:
+        resp = requests.get(
+            f"https://api.keebai.com/v1/messages/bulk/{broadcast_id}",
+            headers=headers, timeout=10,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        if data["status"] in ("COMPLETED", "FAILED", "CANCELLED"):
+            return data
+        time.sleep(5)
+    raise TimeoutError(f"Broadcast {broadcast_id} no terminó en {timeout}s")
+```
+
+<Tip>
+  Usá un sleep razonable (≥5s) entre polls para no consumir tu rate limit. Para campañas grandes (>1000 destinatarios), polleá cada 30s.
+</Tip>

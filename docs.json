@@ -110,7 +110,12 @@
           {
             "group": "Referencia",
             "pages": [
-              "dev/endpoints/me"
+              "dev/endpoints/me",
+              "dev/endpoints/messages-template",
+              "dev/endpoints/messages-text",
+              "dev/endpoints/messages-bulk",
+              "dev/endpoints/messages-bulk-status",
+              "dev/endpoints/templates-list"
             ]
           },
           {

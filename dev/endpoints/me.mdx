@@ -1,16 +1,14 @@
 ---
 title: "GET /v1/me"
 sidebarTitle: "GET /v1/me"
-description: "Devuelve los permisos efectivos del Personal Access Token autenticado. Útil para validar que el token funciona y descubrir qué endpoints podés llamar."
+description: "Devuelve los scopes del Personal Access Token autenticado. Útil para validar que el token funciona y descubrir qué endpoints podés llamar."
 ---
 
-Devuelve los **permisos efectivos** del token autenticado: la intersección entre los scopes con los que se creó el token y los permisos que el usuario dueño tiene en este momento.
-
-Sirve principalmente para:
+Devuelve los scopes del token autenticado tal como están guardados en la base. Sirve principalmente para:
 
 - Validar al inicio de tu integración que el token está vivo y tiene los scopes que esperás.
 - Mostrar al usuario final (en una UI de configuración de tu app) qué acciones va a poder hacer.
-- Detectar si el admin de tu tenant te quitó un permiso (el scope desaparecerá del array).
+- Detectar si el token fue revocado (el endpoint devolverá `401`).
 
 ## Endpoint
 
@@ -63,16 +61,15 @@ permissions = resp.json()["permissions"]
 ```json
 {
   "permissions": [
-    "conversations.read",
-    "contacts.read",
-    "crm.read"
+    "messages:send",
+    "templates:read"
   ]
 }
 ```
 
 | Campo | Tipo | Descripción |
 |---|---|---|
-| `permissions` | `string[]` | Permisos efectivos del token. Es la intersección entre los scopes del token y los permisos actuales del usuario dueño. Puede estar vacío si el usuario perdió todos los permisos relevantes desde que el token se creó. |
+| `permissions` | `string[]` | Scopes del token. Equivale al array `scopes` que se eligió al crearlo. No varía entre requests salvo que generes un token nuevo. |
 
 ### 401 Unauthorized
 
@@ -97,7 +94,7 @@ Pasaste el rate limit. Ver [Rate limits](/dev/rate-limits).
 ```python
 import os, requests, sys
 
-REQUIRED = {"conversations.read", "contacts.read"}
+REQUIRED = {"messages:send", "templates:read"}
 
 resp = requests.get(
     "https://api.keebai.com/v1/me",
@@ -108,14 +105,14 @@ if resp.status_code == 401:
     sys.exit("Token inválido o revocado")
 resp.raise_for_status()
 
-effective = set(resp.json()["permissions"])
-missing = REQUIRED - effective
+scopes = set(resp.json()["permissions"])
+missing = REQUIRED - scopes
 if missing:
-    sys.exit(f"Faltan permisos: {sorted(missing)}")
+    sys.exit(f"Faltan scopes: {sorted(missing)}")
 
-print("Token OK con permisos:", sorted(effective))
+print("Token OK con scopes:", sorted(scopes))
 ```
 
 ### Health check de tu integración
 
-Llamar `GET /v1/me` cada 5 minutos como liveness probe interno: si recibís 401 reiteradamente, alertás a tu equipo de que el token fue revocado o expiró.
+Llamar `GET /v1/me` cada 5 minutos como liveness probe interno: si recibís `401` reiteradamente, alertás a tu equipo de que el token fue revocado o expiró.

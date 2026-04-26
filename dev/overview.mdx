@@ -1,10 +1,10 @@
 ---
 title: "API Pública"
 sidebarTitle: "Visión general"
-description: "Conecta tus sistemas con Keebai usando la API REST pública. Tokens, scopes y endpoints versionados bajo api.keebai.com."
+description: "Conecta tus sistemas con Keebai usando la API REST pública. Personal Access Tokens, scopes granulares y endpoints versionados bajo api.keebai.com/v1."
 ---
 
-La API pública de Keebai te permite integrar tu CRM, tu propio backend, automatizaciones (Zapier, n8n, Make) y cualquier herramienta interna con los datos de tu cuenta. Está pensada para desarrolladores y administradores con perfil técnico.
+La API pública de Keebai te permite integrar tu CRM, tu propio backend, automatizaciones (Zapier, n8n, Make) y cualquier herramienta interna con tus canales de WhatsApp en Keebai. Está pensada para desarrolladores y administradores con perfil técnico.
 
 ## Características
 
@@ -15,8 +15,8 @@ La API pública de Keebai te permite integrar tu CRM, tu propio backend, automat
   <Card title="Personal Access Tokens" icon="key">
     Cada usuario del tenant puede generar sus propios tokens, con scopes acotados y revocación inmediata.
   </Card>
-  <Card title="Menor privilegio" icon="shield">
-    Los scopes del token son siempre un subconjunto de los permisos del usuario. Si el token leakea, el daño queda contenido.
+  <Card title="Scopes granulares" icon="shield">
+    Distintos permisos para envío individual, envío masivo y lectura de templates. Asigná solo lo necesario por integración.
   </Card>
   <Card title="OpenAPI 3" icon="file-code">
     Especificación auto-generada en [api.keebai.com/v1/docs-json](https://api.keebai.com/v1/docs-json). Importable en Postman, Insomnia o cualquier generador de SDK.
@@ -31,11 +31,22 @@ https://api.keebai.com/v1
 
 Todas las rutas de la API pública viven bajo este prefijo. La interfaz de Swagger UI navegable está en [api.keebai.com/v1/docs](https://api.keebai.com/v1/docs).
 
+## Endpoints disponibles
+
+| Método | Ruta | Scope requerido | Descripción |
+|---|---|---|---|
+| `GET` | `/v1/me` | — | Información del token autenticado y sus scopes. |
+| `POST` | `/v1/messages/template` | `messages:send` | Envía un template aprobado a un destinatario. |
+| `POST` | `/v1/messages/text` | `messages:send` | Envía texto libre dentro de la ventana de 24h. |
+| `POST` | `/v1/messages/bulk` | `messages:bulk` | Envía un template a múltiples destinatarios (hasta 5000). |
+| `GET` | `/v1/messages/bulk/:broadcastId` | `messages:bulk` | Estado de un envío masivo. |
+| `GET` | `/v1/templates` | `templates:read` | Lista templates aprobados de la company. |
+
 ## Próximos pasos
 
 <CardGroup cols={2}>
   <Card title="Quickstart" icon="rocket" href="/dev/quickstart">
-    Genera tu primer token y haz una request en menos de 5 minutos.
+    Genera tu primer token y enviá un mensaje en menos de 5 minutos.
   </Card>
   <Card title="Generar API Keys" icon="key" href="/dev/api-keys">
     Cómo crear, listar y revocar tokens desde el portal de Keebai.
@@ -43,15 +54,18 @@ Todas las rutas de la API pública viven bajo este prefijo. La interfaz de Swagg
   <Card title="Autenticación" icon="lock" href="/dev/authentication">
     Cómo enviar el token en cada request y manejar errores de auth.
   </Card>
-  <Card title="Referencia" icon="book" href="/dev/endpoints/me">
-    Endpoints disponibles y su contrato detallado.
+  <Card title="Referencia de endpoints" icon="book" href="/dev/endpoints/messages-template">
+    Contrato detallado de cada endpoint, con ejemplos por lenguaje.
   </Card>
 </CardGroup>
 
-## Disponibilidad
+## Roadmap
 
-La API pública se está liberando endpoint a endpoint. Hoy está disponible:
+Próximas iteraciones planificadas, sin fecha comprometida:
 
-- `GET /v1/me` — información del token autenticado y permisos efectivos.
+- **Smart templates**: mapeo de datos no estructurados a variables de template usando LLM.
+- **Mensajes agendados**: agendamiento y cancelación de envíos a futuro.
+- **Tickets**: apertura y actualización de tickets desde la API.
+- **Webhooks**: notificaciones push para eventos de mensajes (delivered, read, failed).
 
-Próximamente: contacts, conversations, broadcast, CRM, webhooks. Si necesitás un endpoint específico antes que el resto, escribinos a [support@keebai.com](mailto:support@keebai.com).
+Si necesitás algo de esto antes que el resto, escribinos a [support@keebai.com](mailto:support@keebai.com).

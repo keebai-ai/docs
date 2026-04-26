@@ -1,0 +1,113 @@
+---
+title: "POST /v1/messages/text"
+sidebarTitle: "POST messages/text"
+description: "Envía texto libre a un destinatario que tiene la ventana de conversación de 24h abierta. Para fuera de esa ventana, usá un template."
+---
+
+Envía un mensaje de texto libre a un destinatario. WhatsApp solo permite texto libre dentro de la **ventana de 24 horas** desde el último mensaje recibido del usuario; si la ventana está cerrada, el mensaje será rechazado por Meta y el broadcast quedará en `FAILED`. Para casos fuera de ventana, usá [`POST /v1/messages/template`](/dev/endpoints/messages-template).
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/messages/text
+```
+
+## Scope requerido
+
+`messages:send`
+
+## Headers
+
+| Header | Requerido | Valor |
+|---|---|---|
+| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Sí | `application/json` |
+
+## Body
+
+| Campo | Tipo | Requerido | Descripción |
+|---|---|---|---|
+| `to` | `string` | Sí | Número del destinatario en formato E.164. |
+| `channel_id` | `string` | Sí | `ObjectId` del canal de WhatsApp emisor. |
+| `text` | `string` | Sí | Cuerpo del mensaje. Máximo 4096 caracteres. |
+| `meta_data` | `object` | No | Metadata libre que se persiste con el mensaje. |
+
+## Ejemplo de request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/messages/text \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "+5491155555555",
+    "channel_id": "65a1f2b3c4d5e6f7a8b9c0d1",
+    "text": "Hola Lucio, ¿pudiste revisar la propuesta?"
+  }'
+```
+
+```js JavaScript
+await fetch("https://api.keebai.com/v1/messages/text", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    to: "+5491155555555",
+    channel_id: "65a1f2b3c4d5e6f7a8b9c0d1",
+    text: "Hola Lucio, ¿pudiste revisar la propuesta?",
+  }),
+});
+```
+
+```python Python
+import os, requests
+
+requests.post(
+    "https://api.keebai.com/v1/messages/text",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={
+        "to": "+5491155555555",
+        "channel_id": "65a1f2b3c4d5e6f7a8b9c0d1",
+        "text": "Hola Lucio, ¿pudiste revisar la propuesta?",
+    },
+    timeout=10,
+)
+```
+
+</CodeGroup>
+
+## Respuesta
+
+### 202 Accepted
+
+```json
+{
+  "broadcast_id": "65f4b5c6d7e8f9a0b1c2d3e4",
+  "status": "PENDING",
+  "total_recipients": 1,
+  "scheduled_at": null
+}
+```
+
+Mismo shape que [`POST /v1/messages/template`](/dev/endpoints/messages-template#202-accepted).
+
+### 400 Bad Request
+
+Body inválido (texto vacío, mayor a 4096 caracteres, teléfono mal formado).
+
+### 401 Unauthorized
+
+Token ausente, inválido, revocado o expirado.
+
+### 403 Forbidden
+
+El token no tiene el scope `messages:send`.
+
+## Notas operativas
+
+- **Ventana de 24h**: Keebai no rechaza la request si la ventana está cerrada — el mensaje se intenta enviar y, si Meta lo rechaza, el broadcast termina en estado `FAILED`. Consultá el estado con [`GET /v1/messages/bulk/:broadcastId`](/dev/endpoints/messages-bulk-status).
+- **Sin emojis especiales**: WhatsApp soporta UTF-8 completo, incluyendo emojis. No hay sanitización adicional del lado de Keebai.
+- **Sin formato Markdown nativo**: WhatsApp interpreta `*texto*` como negrita, `_texto_` como itálica y `~texto~` como tachado. El backslash escapa estos caracteres.

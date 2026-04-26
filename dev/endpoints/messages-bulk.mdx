@@ -1,0 +1,154 @@
+---
+title: "POST /v1/messages/bulk"
+sidebarTitle: "POST messages/bulk"
+description: "Envía un template aprobado a múltiples destinatarios en una sola request. Hasta 5000 recipients por llamada. Devuelve un broadcast id para seguimiento."
+---
+
+Envía un mismo template a múltiples destinatarios, con variables potencialmente distintas para cada uno. Crea un broadcast en la base que podés trackear con [`GET /v1/messages/bulk/:broadcastId`](/dev/endpoints/messages-bulk-status).
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/messages/bulk
+```
+
+## Scope requerido
+
+`messages:bulk`
+
+<Warning>
+  El scope `messages:bulk` está separado de `messages:send` precisamente porque el envío masivo tiene mayor riesgo (costo Meta, reputación del número emisor, posibles abusos). Asignalo solo a tokens controlados por la herramienta de marketing o el job que necesita disparar campañas.
+</Warning>
+
+## Headers
+
+| Header | Requerido | Valor |
+|---|---|---|
+| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Sí | `application/json` |
+
+## Body
+
+| Campo | Tipo | Requerido | Descripción |
+|---|---|---|---|
+| `template_name` | `string` | Sí | Nombre del template aprobado. |
+| `language` | `string` | Sí | Código de idioma del template. |
+| `channel_id` | `string` | Sí | `ObjectId` del canal de WhatsApp emisor. |
+| `campaign_name` | `string` | No | Nombre legible para identificar la campaña en el portal. Si no lo das, se autogenera. |
+| `recipients` | `array` | Sí | Entre 1 y 5000 destinatarios. Cada item: `{ to, variables?, meta_data? }`. |
+
+### Estructura de cada `recipients[i]`
+
+| Campo | Tipo | Requerido | Descripción |
+|---|---|---|---|
+| `to` | `string` | Sí | Número en formato E.164. |
+| `variables` | `object<string, string>` | No | Variables del template para este destinatario en particular. |
+| `meta_data` | `object` | No | Metadata libre persistida con este envío individual. |
+
+## Ejemplo de request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/messages/bulk \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "template_name": "promo_marzo_2026",
+    "language": "es",
+    "channel_id": "65a1f2b3c4d5e6f7a8b9c0d1",
+    "campaign_name": "Promo marzo 2026 — clientes activos",
+    "recipients": [
+      { "to": "+5491155551111", "variables": { "nombre": "Lucio" } },
+      { "to": "+5491155552222", "variables": { "nombre": "Camila" } },
+      { "to": "+5491155553333", "variables": { "nombre": "Joaquín" } }
+    ]
+  }'
+```
+
+```js JavaScript
+const recipients = customers.map((c) => ({
+  to: c.phone,
+  variables: { nombre: c.first_name },
+}));
+
+await fetch("https://api.keebai.com/v1/messages/bulk", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    template_name: "promo_marzo_2026",
+    language: "es",
+    channel_id: process.env.KEEBAI_CHANNEL_ID,
+    campaign_name: "Promo marzo 2026",
+    recipients,
+  }),
+});
+```
+
+```python Python
+import os, requests
+
+recipients = [
+    {"to": c["phone"], "variables": {"nombre": c["first_name"]}}
+    for c in customers
+]
+
+resp = requests.post(
+    "https://api.keebai.com/v1/messages/bulk",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={
+        "template_name": "promo_marzo_2026",
+        "language": "es",
+        "channel_id": os.environ["KEEBAI_CHANNEL_ID"],
+        "campaign_name": "Promo marzo 2026",
+        "recipients": recipients,
+    },
+    timeout=30,
+)
+resp.raise_for_status()
+broadcast_id = resp.json()["broadcast_id"]
+```
+
+</CodeGroup>
+
+## Respuesta
+
+### 202 Accepted
+
+```json
+{
+  "broadcast_id": "65f4b5c6d7e8f9a0b1c2d3e4",
+  "status": "PENDING",
+  "total_recipients": 3,
+  "scheduled_at": null
+}
+```
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `broadcast_id` | `string` | Id del broadcast. Guárdalo para consultar el estado. |
+| `status` | `string` | Estado inicial: `PENDING`. Cambia a `IN_PROGRESS` cuando empieza a procesarse. |
+| `total_recipients` | `number` | Cantidad de destinatarios aceptados. |
+| `scheduled_at` | `string \| null` | Fecha de agendamiento si aplica. |
+
+### 400 Bad Request
+
+Body inválido: array vacío, más de 5000 destinatarios, formato de teléfono incorrecto en algún recipient.
+
+### 401 Unauthorized
+
+Token ausente, inválido, revocado o expirado.
+
+### 403 Forbidden
+
+El token no tiene el scope `messages:bulk`.
+
+## Buenas prácticas
+
+- **Particioná lotes muy grandes**. Si tu campaña tiene 50000 destinatarios, hacé 10 requests de 5000 en lugar de pelear con timeouts. Usá distintos `campaign_name` para diferenciarlos.
+- **Evitá duplicados antes de enviar**. La API no deduplica por número — si mandás el mismo destinatario dos veces, se envía dos veces y Meta cobra dos veces.
+- **Variables consistentes con el template**. Si el template espera `{{nombre}}` y `{{monto}}` y un recipient no incluye `monto`, el envío individual a ese recipient va a fallar. Validá el set de variables antes.
+- **Monitorá el estado** con [`GET /v1/messages/bulk/:broadcastId`](/dev/endpoints/messages-bulk-status) para detectar campañas con alto error rate.

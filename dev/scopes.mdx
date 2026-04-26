@@ -1,73 +1,14 @@
 ---
 title: "Scopes y permisos"
 sidebarTitle: "Scopes"
-description: "Cómo funcionan los scopes en los Personal Access Tokens de Keebai. Principio de menor privilegio y permisos efectivos."
+description: "Los scopes definen qué puede hacer cada Personal Access Token. Catálogo persistido en MongoDB y validado endpoint por endpoint."
 ---
 
-Cada token tiene un conjunto de **scopes**, que son los permisos que ese token puede ejercer. Los scopes se eligen al crear el token y no se pueden modificar después — si necesitás cambiar los scopes, revocá el token y creá uno nuevo.
+Cada Personal Access Token (PAT) tiene un conjunto de **scopes**: el listado de acciones que ese token puede ejercer contra la API pública. Los scopes se eligen al crear el token y no se modifican después — para cambiarlos hay que generar un token nuevo y revocar el viejo.
 
-## Cómo se calculan los permisos efectivos
+## Cómo se validan
 
-En cada request, el guard de la API pública calcula los **permisos efectivos** del token aplicando esta fórmula:
-
-```
-permisos_efectivos = scopes_del_token ∩ permisos_actuales_del_usuario
-```
-
-Es decir: la intersección entre los scopes que pediste al crear el token y los permisos que tu usuario tiene **en este momento**. Esto tiene tres consecuencias:
-
-1. **Solo podés crear tokens con scopes que ya tengas**. La UI te muestra únicamente los permisos asignados a tu rol.
-2. **Si un admin te quita un permiso, el token lo pierde automáticamente**. No hay que revocar el token: la próxima request ya no podrá usar ese scope.
-3. **Si te promueven (te dan más permisos), tus tokens existentes no los ganan automáticamente**. Solo los scopes que el token tenía al crearse cuentan. Para usar permisos nuevos hay que crear un token nuevo.
-
-## Scopes disponibles
-
-Los scopes son los mismos identificadores que los permisos del sistema. Algunos ejemplos:
-
-| Scope | Acción |
-|---|---|
-| `conversations.read` | Leer conversaciones y mensajes. |
-| `conversations.write` | Enviar mensajes, asignar conversaciones. |
-| `contacts.read` | Listar y consultar contactos. |
-| `contacts.write` | Crear, editar y borrar contactos. |
-| `crm.read` | Acceso de lectura al CRM (pipelines, tickets, tareas). |
-| `crm.write` | Modificar entidades del CRM. |
-| `broadcast.send` | Crear y disparar campañas de broadcast. |
-
-<Tip>
-  La lista completa de scopes que **vos** podés asignar aparece en el modal de creación de token, agrupada por categoría (Conversations, Contacts, CRM, etc.). Si un scope no aparece, es porque tu usuario no lo tiene.
-</Tip>
-
-## Principio de menor privilegio
-
-Asigná solo los scopes que el token realmente necesita. Algunos ejemplos prácticos:
-
-<CardGroup cols={2}>
-  <Card title="Integración de reportes (Looker, Metabase)">
-    Solo necesita lectura.
-
-    `conversations.read`, `contacts.read`, `crm.read`.
-  </Card>
-  <Card title="Bot de notificaciones (Slack)">
-    Solo necesita leer eventos.
-
-    `conversations.read`.
-  </Card>
-  <Card title="Sync con CRM externo (Salesforce)">
-    Lectura y escritura en CRM y contactos.
-
-    `crm.read`, `crm.write`, `contacts.read`, `contacts.write`.
-  </Card>
-  <Card title="Sender de campañas">
-    Solo necesita lanzar broadcasts.
-
-    `broadcast.send`.
-  </Card>
-</CardGroup>
-
-## Validación de scopes
-
-Si un endpoint requiere un scope que tu token no tiene, recibís:
+En cada request, el guard de autenticación carga el token y deja sus scopes en el contexto. Cada endpoint declara qué scope necesita con `@RequireScopes('messages:send')`. Si el scope falta, la respuesta es `403 Forbidden` con `code: INSUFFICIENT_SCOPE`.
 
 ```http
 HTTP/1.1 403 Forbidden
@@ -76,14 +17,73 @@ Content-Type: application/json
 
 ```json
 {
-  "message": "Insufficient scope",
-  "error": "Forbidden",
-  "statusCode": 403,
-  "required": ["conversations.write"]
+  "error": {
+    "code": "INSUFFICIENT_SCOPE",
+    "message": "Forbidden",
+    "details": {
+      "required": ["messages:bulk"],
+      "missing": ["messages:bulk"]
+    }
+  }
 }
 ```
 
 A diferencia de los errores de autenticación (que son intencionalmente genéricos), los errores de autorización indican qué scope falta — porque ya autenticaste correctamente, solo te falta permiso.
+
+## Catálogo de scopes
+
+El catálogo vive en la colección `api_scopes` de MongoDB. El portal lo consume vía `GET /api/v1/api-scopes` y arma dinámicamente los checkboxes del modal de creación, así que agregar un scope nuevo no requiere deploy del frontend.
+
+| Scope | Grupo | Acción |
+|---|---|---|
+| `messages:send` | messages | Envío de un mensaje individual (texto o template) a un destinatario. |
+| `messages:bulk` | messages | Envío masivo de un template a múltiples destinatarios y consulta del estado de la campaña. |
+| `templates:read` | templates | Lectura del catálogo de templates aprobados de la company. |
+
+<Tip>
+  La lista que aparece en el modal de **Crear API Key** se carga en vivo desde el backend. Si un scope no está, es porque está marcado como `is_active: false` en la base.
+</Tip>
+
+## Independencia de los permisos del rol
+
+Los scopes son **independientes** de los permisos del rol del usuario que crea el token. La validación de qué scopes podés asignar ocurre **al momento de crear** la key (el backend chequea que cada scope exista y esté activo en `api_scopes`), pero una vez emitido, el token funciona con los scopes que tiene grabados sin importar cambios posteriores en el rol del usuario.
+
+Esto significa:
+
+1. **Para crear un token necesitás el permiso `developer.manage_tokens`** en tu rol del portal. Sin ese permiso ni siquiera ves la pantalla de API Keys.
+2. **Una vez creado, los scopes del token son fijos**. Si después te quitan permisos en el portal, el token sigue funcionando con sus scopes originales. Para revocar el acceso, hay que revocar la key explícitamente.
+3. **Para usar scopes nuevos hay que crear un token nuevo**. No se pueden agregar scopes a una key existente.
+
+<Warning>
+  Como los scopes sobreviven a cambios en el rol, **revisá periódicamente la tabla de API Keys** y revocá los tokens de personas que ya no deberían tener acceso. La columna *Último uso* ayuda a detectar tokens olvidados.
+</Warning>
+
+## Principio de menor privilegio
+
+Asigná solo los scopes que el token realmente necesita. La separación de `messages:send` vs `messages:bulk` está pensada exactamente para esto: el bulk es más sensible (costo de Meta, reputación del número emisor, posibles abusos) y conviene aislarlo en una key controlada por la herramienta de marketing, no en la key del backend transaccional.
+
+<CardGroup cols={2}>
+  <Card title="Backend transaccional (notificaciones 1 a 1)">
+    Solo necesita disparar mensajes únicos.
+
+    `messages:send`.
+  </Card>
+  <Card title="Herramienta de marketing / CRM saliente">
+    Necesita lanzar campañas y consultar su estado.
+
+    `messages:bulk`, `templates:read`.
+  </Card>
+  <Card title="App de chequeo de plantillas">
+    Solo lectura del catálogo aprobado.
+
+    `templates:read`.
+  </Card>
+  <Card title="Integración full-stack (uso interno)">
+    Combo completo si está bajo control directo del equipo.
+
+    `messages:send`, `messages:bulk`, `templates:read`.
+  </Card>
+</CardGroup>
 
 ## Cambiar los scopes de un token
 
