@@ -1,0 +1,214 @@
+---
+title: "Catálogo de eventos"
+sidebarTitle: "Eventos"
+description: "Lista completa de eventos disponibles para suscripción. Cada evento tiene un shape de `data` específico."
+---
+
+Cada evento se identifica por un `type` con formato `<canal>.<dominio>.<acción>`. El campo `data` del envelope cambia según el `type`.
+
+## WhatsApp — mensajes
+
+### `whatsapp.message.received`
+
+Mensaje entrante de un usuario al canal WhatsApp.
+
+<CodeGroup>
+```json Texto
+{
+  "id": "evt_01HXYZ...",
+  "type": "whatsapp.message.received",
+  "occurred_at": "2026-04-27T12:34:56Z",
+  "company_id": "comp_xxx",
+  "channel_id": "ch_xxx",
+  "data": {
+    "phone_number_id": "1234567890",
+    "from": "+56912345678",
+    "to": "+56987654321",
+    "message_id": "wamid.HBgL...",
+    "type": "text",
+    "text": { "body": "Hola, quiero info" },
+    "timestamp": "1714214096"
+  }
+}
+```
+
+```json Media
+{
+  "id": "evt_01HXYZ...",
+  "type": "whatsapp.message.received",
+  "occurred_at": "2026-04-27T12:34:56Z",
+  "company_id": "comp_xxx",
+  "channel_id": "ch_xxx",
+  "data": {
+    "phone_number_id": "1234567890",
+    "from": "+56912345678",
+    "to": "+56987654321",
+    "message_id": "wamid.HBgL...",
+    "type": "image",
+    "timestamp": "1714214096"
+  }
+}
+```
+</CodeGroup>
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `phone_number_id` | string | ID del número emisor de Keebai (lado nuestro). |
+| `from` | string | Número del usuario que envía (E.164). |
+| `to` | string | Número de tu canal WhatsApp. |
+| `message_id` | string | `wamid.XXX` único de Meta. Idempotency key. |
+| `type` | enum | `text` \| `image` \| `audio` \| `video` \| `document` \| `sticker` \| `location` \| `contacts` \| `interactive`. |
+| `text` | object \| null | Si `type=text`, contenido `{ body }`. |
+| `timestamp` | string | Unix seconds Meta. |
+
+### `whatsapp.message.sent`
+
+Confirmación que el mensaje saliente fue aceptado por Meta.
+
+```json
+{
+  "type": "whatsapp.message.sent",
+  "data": {
+    "phone_number_id": "1234567890",
+    "message_id": "wamid.HBgL...",
+    "recipient_id": "+56912345678",
+    "status": "sent",
+    "timestamp": "1714214097"
+  }
+}
+```
+
+### `whatsapp.message.delivered`
+
+El mensaje saliente llegó al device del usuario (doble check gris en WhatsApp).
+
+```json
+{
+  "type": "whatsapp.message.delivered",
+  "data": {
+    "phone_number_id": "1234567890",
+    "message_id": "wamid.HBgL...",
+    "recipient_id": "+56912345678",
+    "status": "delivered",
+    "timestamp": "1714214098"
+  }
+}
+```
+
+### `whatsapp.message.read`
+
+El usuario abrió la conversación y vio el mensaje (doble check azul).
+
+```json
+{
+  "type": "whatsapp.message.read",
+  "data": {
+    "phone_number_id": "1234567890",
+    "message_id": "wamid.HBgL...",
+    "recipient_id": "+56912345678",
+    "status": "read",
+    "timestamp": "1714214099"
+  }
+}
+```
+
+### `whatsapp.message.failed`
+
+Meta rechazó el envío. Hay info de error en `data.error`.
+
+```json
+{
+  "type": "whatsapp.message.failed",
+  "data": {
+    "phone_number_id": "1234567890",
+    "message_id": "wamid.HBgL...",
+    "recipient_id": "+56912345678",
+    "status": "failed",
+    "timestamp": "1714214100",
+    "error": {
+      "code": 131026,
+      "title": "Receiver is incapable of receiving this message",
+      "details": "..."
+    }
+  }
+}
+```
+
+## WhatsApp — templates
+
+### `whatsapp.template.status_updated`
+
+Meta cambió el status de un template (aprobación, rechazo, pausa, eliminación).
+
+```json
+{
+  "type": "whatsapp.template.status_updated",
+  "data": {
+    "template_name": "promo_otoño_v3",
+    "template_language": "es_CL",
+    "status": "APPROVED",
+    "reason": null
+  }
+}
+```
+
+| Campo | Valores posibles |
+|---|---|
+| `status` | `PENDING` \| `IN_REVIEW` \| `APPROVED` \| `REJECTED` \| `PAUSED` \| `DISABLED` \| `IN_APPEAL` |
+| `reason` | string \| null. Razón de Meta cuando rechaza, pausa o deshabilita. |
+
+## WhatsApp — canales
+
+### `whatsapp.channel.connected`
+
+Un canal WhatsApp Business completó el embedded signup. Útil para activar onboarding en tu producto.
+
+```json
+{
+  "type": "whatsapp.channel.connected",
+  "data": {
+    "business_account_id": "1234567890",
+    "phone_number_id": "9876543210",
+    "phone_number": "+56987654321"
+  }
+}
+```
+
+### `whatsapp.channel.disconnected`
+
+El canal fue desconectado (manual desde el portal o revocado por Meta).
+
+```json
+{
+  "type": "whatsapp.channel.disconnected",
+  "data": {
+    "business_account_id": "1234567890",
+    "phone_number_id": "9876543210",
+    "phone_number": "+56987654321"
+  }
+}
+```
+
+## Eventos sintéticos (`_test: true`)
+
+Cuando llamás `keebai webhooks test <id> --event ...` o `POST /v1/webhooks/:id/test`, despachamos un evento sintético con la misma forma que el real, pero `data._test: true`. Útil para validar tu pipeline en staging sin tráfico real.
+
+```json
+{
+  "type": "whatsapp.message.received",
+  "data": {
+    "phone_number_id": "synthetic",
+    "from": "+1 555 0100",
+    "to": "+1 555 0200",
+    "message_id": "wamid.synthetic-...",
+    "type": "text",
+    "text": { "body": "Test event from Keebai" },
+    "timestamp": "...",
+    "_test": true
+  }
+}
+```
+
+<Tip>
+  En tu handler, deduplicá por `X-Keebai-Event-Id` o `body.id`. Reintentos por timeout / 5xx llegan con el mismo id pero distinto `X-Keebai-Delivery-Id`.
+</Tip>

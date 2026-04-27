@@ -1,7 +1,7 @@
 ---
 title: "API Pública"
 sidebarTitle: "Visión general"
-description: "Conecta tus sistemas con Keebai usando la API REST pública. Personal Access Tokens, scopes granulares y endpoints versionados bajo api.keebai.com/v1."
+description: "Conecta tus sistemas con Keebai usando la API REST pública. Personal Access Tokens, scopes granulares, webhooks salientes firmados y endpoints versionados bajo api.keebai.com/v1."
 ---
 
 La API pública de Keebai te permite integrar tu CRM, tu propio backend, automatizaciones (Zapier, n8n, Make) y cualquier herramienta interna con tus canales de WhatsApp en Keebai. Está pensada para desarrolladores y administradores con perfil técnico.
@@ -16,10 +16,16 @@ La API pública de Keebai te permite integrar tu CRM, tu propio backend, automat
     Cada usuario del tenant puede generar sus propios tokens, con scopes acotados y revocación inmediata.
   </Card>
   <Card title="Scopes granulares" icon="shield">
-    Distintos permisos para envío individual, envío masivo y lectura de templates. Asigná solo lo necesario por integración.
+    Permisos separados por mensajes, templates, canales y webhooks. Asigná solo lo necesario por integración.
+  </Card>
+  <Card title="Webhooks salientes firmados" icon="bell">
+    Recibí eventos en tu URL con firma HMAC-SHA256, retry exponencial y deduplicación por `event_id`.
   </Card>
   <Card title="OpenAPI 3" icon="file-code">
     Especificación auto-generada en [api.keebai.com/v1/docs-json](https://api.keebai.com/v1/docs-json). Importable en Postman, Insomnia o cualquier generador de SDK.
+  </Card>
+  <Card title="CLI oficial" icon="terminal">
+    `keebai` (npm: `@keebai/cli`) cubre login, conectar WhatsApp Business, gestionar webhooks y enviar mensajes desde tu terminal.
   </Card>
 </CardGroup>
 
@@ -33,14 +39,54 @@ Todas las rutas de la API pública viven bajo este prefijo. La interfaz de Swagg
 
 ## Endpoints disponibles
 
-| Método | Ruta | Scope requerido | Descripción |
+### Sesión
+
+| Método | Ruta | Scope | Descripción |
 |---|---|---|---|
 | `GET` | `/v1/me` | — | Información del token autenticado y sus scopes. |
+| `DELETE` | `/v1/me/token` | — | Revocar el token actual (server-side logout). |
+
+### Mensajes
+
+| Método | Ruta | Scope | Descripción |
+|---|---|---|---|
 | `POST` | `/v1/messages/template` | `messages:send` | Envía un template aprobado a un destinatario. |
 | `POST` | `/v1/messages/text` | `messages:send` | Envía texto libre dentro de la ventana de 24h. |
 | `POST` | `/v1/messages/bulk` | `messages:bulk` | Envía un template a múltiples destinatarios (hasta 5000). |
 | `GET` | `/v1/messages/bulk/:broadcastId` | `messages:bulk` | Estado de un envío masivo. |
+
+### Templates
+
+| Método | Ruta | Scope | Descripción |
+|---|---|---|---|
 | `GET` | `/v1/templates` | `templates:read` | Lista templates aprobados de la company. |
+| `POST` | `/v1/templates` | `templates:create` | Crear y enviar a Meta para aprobación. |
+| `PATCH` | `/v1/templates/:id` | `templates:update` | Editar componentes, categoría, idioma o status. |
+
+### Canales
+
+| Método | Ruta | Scope | Descripción |
+|---|---|---|---|
+| `GET` | `/v1/channels` | `channels:read` | [Listar canales](/dev/endpoints/channels-list) (filtrable por `type`). |
+| `GET` | `/v1/channels/:id` | `channels:read` | Detalle de un canal por id. |
+| `GET` | `/v1/whatsapp/numbers` | `channels:read` | [Vista directa](/dev/endpoints/whatsapp-numbers) de los `phone_number_id` activos. |
+| `POST` | `/v1/channels/whatsapp/connect` | `channels:connect` | [Iniciar conexión](/dev/endpoints/channels-whatsapp-connect) de WhatsApp Business. |
+| `GET` | `/v1/channels/whatsapp/connect/:sessionId` | `channels:connect` | Pollear estado de la sesión de conexión. |
+
+### Webhooks salientes
+
+| Método | Ruta | Scope | Descripción |
+|---|---|---|---|
+| `POST` | `/v1/webhooks` | `webhooks:manage` | Crear subscripción. Devuelve secret una vez. |
+| `GET` | `/v1/webhooks` | `webhooks:read` | Listar subscripciones. |
+| `GET` | `/v1/webhooks/:id` | `webhooks:read` | Obtener una subscripción. |
+| `PATCH` | `/v1/webhooks/:id` | `webhooks:manage` | Actualizar (URL, eventos, headers, is_active). |
+| `POST` | `/v1/webhooks/:id/rotate-secret` | `webhooks:manage` | Rotar secret. |
+| `DELETE` | `/v1/webhooks/:id` | `webhooks:manage` | Eliminar subscripción. |
+| `POST` | `/v1/webhooks/:id/test` | `webhooks:manage` | Disparar evento sintético. |
+| `GET` | `/v1/webhooks/:id/deliveries` | `webhooks:read` | Historial de entregas. |
+
+Detalle completo en [Webhooks → Visión general](/dev/webhooks/overview).
 
 ## Próximos pasos
 
@@ -54,6 +100,12 @@ Todas las rutas de la API pública viven bajo este prefijo. La interfaz de Swagg
   <Card title="Autenticación" icon="lock" href="/dev/authentication">
     Cómo enviar el token en cada request y manejar errores de auth.
   </Card>
+  <Card title="Webhooks salientes" icon="bell" href="/dev/webhooks/overview">
+    Recibí eventos firmados en tu endpoint cuando algo pasa en Keebai.
+  </Card>
+  <Card title="Conectar WhatsApp" icon="plug" href="/dev/endpoints/channels-whatsapp-connect">
+    Onboardea un nuevo canal WhatsApp Business sin pasar por el portal.
+  </Card>
   <Card title="Referencia de endpoints" icon="book" href="/dev/endpoints/messages-template">
     Contrato detallado de cada endpoint, con ejemplos por lenguaje.
   </Card>
@@ -66,6 +118,6 @@ Próximas iteraciones planificadas, sin fecha comprometida:
 - **Smart templates**: mapeo de datos no estructurados a variables de template usando LLM.
 - **Mensajes agendados**: agendamiento y cancelación de envíos a futuro.
 - **Tickets**: apertura y actualización de tickets desde la API.
-- **Webhooks**: notificaciones push para eventos de mensajes (delivered, read, failed).
+- **Eventos webhook adicionales**: `conversation.created`, `conversation.escalated_to_human`, `instagram.message.received`.
 
 Si necesitás algo de esto antes que el resto, escribinos a [support@keebai.com](mailto:support@keebai.com).

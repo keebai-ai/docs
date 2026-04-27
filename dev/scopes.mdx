@@ -41,6 +41,10 @@ El catálogo vive en la colección `api_scopes` de MongoDB. El portal lo consume
 | `templates:read` | templates | Lectura del catálogo de templates aprobados de la company. |
 | `templates:create` | templates | Crear templates de WhatsApp y enviarlos a Meta para aprobación. |
 | `templates:update` | templates | Editar un template existente (componentes, categoría, idioma, status). |
+| `channels:read` | channels | Listar canales (`/v1/channels`) y números WhatsApp (`/v1/whatsapp/numbers`). |
+| `channels:connect` | channels | Iniciar y pollear sesiones de [conexión de WhatsApp Business](/dev/endpoints/channels-whatsapp-connect) desde el CLI o un backend propio. |
+| `webhooks:read` | webhooks | Listar subscripciones de [webhooks salientes](/dev/webhooks/overview) y consultar deliveries. |
+| `webhooks:manage` | webhooks | Crear, actualizar, rotar secret, eliminar subscripciones y disparar eventos sintéticos. |
 
 <Tip>
   La lista que aparece en el modal de **Crear API Key** se carga en vivo desde el backend. Si un scope no está, es porque está marcado como `is_active: false` en la base.
@@ -89,6 +93,16 @@ Asigná solo los scopes que el token realmente necesita. La separación de `mess
     Combo completo si está bajo control directo del equipo.
 
     `messages:send`, `messages:bulk`, `templates:read`, `templates:create`, `templates:update`.
+  </Card>
+  <Card title="Provisioning desde CLI">
+    Onboarding automatizado: conecta canales, registra webhooks y verifica.
+
+    `channels:read`, `channels:connect`, `webhooks:read`, `webhooks:manage`.
+  </Card>
+  <Card title="Integración con webhooks salientes">
+    Tu backend recibe eventos en tiempo real y consulta diagnostic.
+
+    `webhooks:read`, `webhooks:manage`, `channels:read`.
   </Card>
 </CardGroup>
 

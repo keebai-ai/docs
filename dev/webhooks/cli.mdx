@@ -1,0 +1,186 @@
+---
+title: "Gestión vía CLI"
+sidebarTitle: "CLI quickstart"
+description: "Crear, listar, testear, rotar y eliminar subscripciones de webhooks usando el CLI de Keebai."
+---
+
+El CLI `keebai` es la forma más rápida de gestionar webhooks salientes desde tu terminal. Internamente usa los mismos endpoints `/v1/webhooks` que la [API](/dev/webhooks/manage), pero con UX optimizada para flujos interactivos.
+
+## Instalación
+
+<CodeGroup>
+```bash npm
+npm install -g @keebai/cli
+```
+
+```bash one-liner
+curl -fsSL https://keebai.ai/install.sh | bash
+```
+</CodeGroup>
+
+Después de instalar:
+
+```bash
+keebai --version
+keebai login           # autenticación via device flow contra el portal
+keebai whoami          # confirma user/company/scopes
+```
+
+## Quickstart: 5 minutos hasta tu primer evento
+
+<Steps>
+  <Step title="Login">
+    ```bash
+    keebai login
+    ```
+    Abre el browser, te pide aprobar el device en el portal, vuelve al CLI con un PAT guardado en `~/.keebai/credentials.json` (chmod 600).
+  </Step>
+  <Step title="Crear subscripción">
+    ```bash
+    keebai webhooks new \
+      --url https://hooks.example.com/keebai \
+      --event whatsapp.message.received \
+      --event whatsapp.channel.connected \
+      --name "Producción CRM"
+    ```
+
+    Output:
+
+    ```text
+    ✓ Webhook created.
+    Created webhook wh_01HXYZ...
+    name:   Producción CRM
+    url:    https://hooks.example.com/keebai
+    events: whatsapp.message.received, whatsapp.channel.connected
+    active: true
+
+    ⚠ SECRET (shown once — copy it now, you cannot retrieve it later):
+      whsec_8f2c5b3a9d4e7c1f...
+    ```
+
+    <Warning>
+      Copiá el `whsec_xxx` ahora. No se puede recuperar después. Si lo perdés, tenés que rotarlo (lo cual invalida el viejo).
+    </Warning>
+  </Step>
+  <Step title="Validar con un evento sintético">
+    ```bash
+    keebai webhooks test wh_01HXYZ... --event whatsapp.message.received
+    ```
+
+    Mandamos un envelope sintético (con `data._test: true`) a tu URL. Si tu endpoint verifica firma y devuelve 2xx, vas a ver:
+
+    ```bash
+    keebai webhooks deliveries wh_01HXYZ...
+    # status: success, status_code: 200, duration_ms: 142
+    ```
+  </Step>
+  <Step title="Validar con tráfico real">
+    Mandate un mensaje de WhatsApp al número de tu canal. Tu endpoint debería recibir un `whatsapp.message.received` con shape compatible con [Meta Cloud API](https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks).
+  </Step>
+</Steps>
+
+## Comandos disponibles
+
+### `keebai webhooks new`
+
+```bash
+keebai webhooks new \
+  --url <https://...> \
+  --event <event_type> [--event <event_type>...] \
+  --name <label> \
+  [--header "Name:Value"] [--header ...] \
+  [--inactive]
+```
+
+| Flag | Requerido | Descripción |
+|---|---|---|
+| `--url` | sí | HTTPS endpoint de tu lado. |
+| `--event` | sí, repetible | Mínimo uno. Ver [catálogo](/dev/webhooks/events). |
+| `--name` | sí | Label humano para identificar la subscripción en listados. |
+| `--header` | no, repetible | Headers extra (formato `Name:Value`). Útiles para tu propio routing/auth interno. |
+| `--inactive` | no | Crea la subscripción en estado `is_active: false`. Útil si querés activarla más tarde. |
+
+**Imprime el secret una sola vez. Guardalo de inmediato.**
+
+### `keebai webhooks list`
+
+```bash
+keebai webhooks list
+keebai webhooks list --output json | jq
+```
+
+### `keebai webhooks test <id>`
+
+Despacha un evento sintético (`data._test: true`) al endpoint configurado.
+
+```bash
+keebai webhooks test wh_01HXYZ... --event whatsapp.message.received
+```
+
+Útil para validar tu pipeline sin tráfico real. Llega con la misma firma HMAC que un evento real.
+
+### `keebai webhooks deliveries <id>`
+
+Historial de los últimos intentos de entrega.
+
+```bash
+keebai webhooks deliveries wh_01HXYZ... [--limit 50]
+```
+
+Output muestra para cada delivery: `event_id`, `event_type`, `status` (`pending` / `success` / `failed` / `dead`), `status_code`, `attempts`, `duration_ms`, `last_error`.
+
+### `keebai webhooks rotate <id>`
+
+Genera un secret nuevo. **El anterior queda inválido inmediatamente.** Te pide confirmación.
+
+```bash
+keebai webhooks rotate wh_01HXYZ...
+```
+
+Mostrá el secret nuevo igual que en `new`. Para rotación zero-downtime, ver [estrategia en security](/dev/webhooks/security#rotación-de-secret).
+
+### `keebai webhooks delete <id>`
+
+Elimina la subscripción. Eventos futuros no se envían. Pide confirmación.
+
+```bash
+keebai webhooks delete wh_01HXYZ...
+```
+
+## Flags globales
+
+| Flag | Descripción |
+|---|---|
+| `--api-url <url>` | Override del API base (default `https://api.keebai.com/v1`). Útil contra staging. |
+| `--output pretty\|json` | Formato. `json` para pipear a `jq`. |
+| `--verbose` | Logs de cada request HTTP. **Nunca imprime el secret completo, solo los primeros 12 chars.** |
+| `--no-browser` | En `keebai login`, no abre el browser; imprime la URL para copiar/pegar. Útil en SSH/CI. |
+| `--profile <name>` | Multi-perfil. Default `default`. Cada perfil guarda credenciales separadas en `~/.keebai/credentials.json`. |
+
+## CI/CD
+
+Para uso desde pipelines, override el token vía env y evitá el archivo de credenciales:
+
+```bash
+export KEEBAI_API_TOKEN=kbai_pk_xxx
+keebai webhooks list
+```
+
+`KEEBAI_API_TOKEN` tiene precedencia sobre `~/.keebai/credentials.json`. El PAT debe tener scopes `webhooks:read` y/o `webhooks:manage` según los comandos que vayas a ejecutar.
+
+## Ver también
+
+<CardGroup cols={2}>
+  <Card title="Verificación de firma" icon="shield" href="/dev/webhooks/security">
+    Cómo validar `X-Keebai-Signature` en tu endpoint.
+  </Card>
+  <Card title="Catálogo de eventos" icon="list" href="/dev/webhooks/events">
+    Lista completa de tipos y shapes de `data`.
+  </Card>
+  <Card title="Endpoints REST" icon="code" href="/dev/webhooks/manage">
+    Mismas operaciones vía API HTTP, sin CLI.
+  </Card>
+  <Card title="Connect WhatsApp via CLI" icon="plug" href="/dev/endpoints/channels-whatsapp-connect">
+    `keebai whatsapp connect` y la API equivalente.
+  </Card>
+</CardGroup>

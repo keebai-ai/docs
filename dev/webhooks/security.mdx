@@ -1,0 +1,244 @@
+---
+title: "Verificación de firma"
+sidebarTitle: "Seguridad"
+description: "Cómo validar que cada delivery viene realmente de Keebai usando HMAC-SHA256 sobre el header `X-Keebai-Signature`."
+---
+
+Cada `POST` a tu endpoint incluye el header `X-Keebai-Signature`. Si no lo verificás, cualquiera con la URL de tu endpoint puede mandar payloads falsos. **Verificá siempre.**
+
+## Anatomía de la firma
+
+```
+X-Keebai-Signature: t=1714214100,v1=8f2c5b3a9d4e7c1f...
+```
+
+| Token | Significado |
+|---|---|
+| `t=<unix>` | Unix seconds del momento de la firma. Sirve para protegerte contra replays. |
+| `v1=<hex>` | HMAC-SHA256 hexadecimal del string `${t}.${rawBody}`, calculado con tu secret. |
+
+El payload firmado es **la concatenación del timestamp y el body raw separados por punto**, no el body solo. Esto previene que alguien tome un body válido viejo y lo reenvie con un timestamp distinto.
+
+## Pasos de verificación
+
+<Steps>
+  <Step title="Capturá el body raw">
+    Antes de parsear JSON. Si tu framework parsea automáticamente, configuralo para guardar el raw también (en Express, usá `bodyParser.raw` para esta ruta o leé `req.rawBody`).
+  </Step>
+  <Step title="Parseá el header">
+    Extraé `t` y `v1` del header `X-Keebai-Signature`.
+  </Step>
+  <Step title="Reconstruí el payload firmado">
+    `signedPayload = ${t}.${rawBody}`.
+  </Step>
+  <Step title="Calculá HMAC-SHA256 con tu secret">
+    `expected = HMAC-SHA256(secret, signedPayload).toString('hex')`.
+  </Step>
+  <Step title="Comparación segura">
+    Compará `expected` con `v1` usando comparación tiempo-constante (`crypto.timingSafeEqual` en Node, `hmac.compare_digest` en Python). NO uses `===` directo: vulnerable a timing attacks.
+  </Step>
+  <Step title="Anti-replay (opcional pero recomendado)">
+    Rechazá si `now - t > 5 minutos`. Atacante podría capturar un delivery viejo y reenviarlo si tu endpoint es público.
+  </Step>
+</Steps>
+
+## Ejemplos
+
+<CodeGroup>
+```javascript Node.js (Express)
+import express from 'express';
+import crypto from 'node:crypto';
+
+const SECRET = process.env.KEEBAI_WEBHOOK_SECRET;
+const app = express();
+
+// Capturar body raw para esta ruta
+app.post(
+  '/keebai-events',
+  express.raw({ type: 'application/json' }),
+  (req, res) => {
+    const sigHeader = req.header('X-Keebai-Signature') || '';
+    const parts = Object.fromEntries(
+      sigHeader.split(',').map((p) => p.split('=')),
+    );
+    const t = parts.t;
+    const v1 = parts.v1;
+    if (!t || !v1) return res.sendStatus(401);
+
+    // Anti-replay: 5 minutos
+    const skewSeconds = Math.abs(Date.now() / 1000 - Number(t));
+    if (skewSeconds > 300) return res.sendStatus(401);
+
+    const rawBody = req.body.toString('utf8');
+    const expected = crypto
+      .createHmac('sha256', SECRET)
+      .update(`${t}.${rawBody}`)
+      .digest('hex');
+
+    const ok = crypto.timingSafeEqual(
+      Buffer.from(expected, 'hex'),
+      Buffer.from(v1, 'hex'),
+    );
+    if (!ok) return res.sendStatus(401);
+
+    const event = JSON.parse(rawBody);
+    // dedup por event.id antes de procesar
+    res.sendStatus(200);
+  },
+);
+```
+
+```python Python (Flask)
+import hmac
+import hashlib
+import time
+from flask import Flask, request, abort
+
+app = Flask(__name__)
+SECRET = b'whsec_xxx'  # bytes
+
+@app.post('/keebai-events')
+def handler():
+    sig_header = request.headers.get('X-Keebai-Signature', '')
+    parts = dict(p.split('=', 1) for p in sig_header.split(','))
+    t = parts.get('t')
+    v1 = parts.get('v1')
+    if not t or not v1:
+        abort(401)
+
+    if abs(time.time() - int(t)) > 300:
+        abort(401)
+
+    raw_body = request.get_data()
+    signed = f"{t}.".encode() + raw_body
+    expected = hmac.new(SECRET, signed, hashlib.sha256).hexdigest()
+
+    if not hmac.compare_digest(expected, v1):
+        abort(401)
+
+    event = request.get_json()
+    # dedup por event['id']
+    return '', 200
+```
+
+```php PHP
+<?php
+$secret = getenv('KEEBAI_WEBHOOK_SECRET');
+$rawBody = file_get_contents('php://input');
+$sigHeader = $_SERVER['HTTP_X_KEEBAI_SIGNATURE'] ?? '';
+
+$parts = [];
+foreach (explode(',', $sigHeader) as $p) {
+    [$k, $v] = explode('=', $p, 2);
+    $parts[$k] = $v;
+}
+$t = $parts['t'] ?? null;
+$v1 = $parts['v1'] ?? null;
+if (!$t || !$v1) {
+    http_response_code(401); exit;
+}
+
+if (abs(time() - (int) $t) > 300) {
+    http_response_code(401); exit;
+}
+
+$expected = hash_hmac('sha256', $t . '.' . $rawBody, $secret);
+if (!hash_equals($expected, $v1)) {
+    http_response_code(401); exit;
+}
+
+$event = json_decode($rawBody, true);
+// dedup por $event['id']
+http_response_code(200);
+```
+
+```go Go (net/http)
+package main
+
+import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
+	"io"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+)
+
+var secret = []byte("whsec_xxx")
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	body, _ := io.ReadAll(r.Body)
+	sigHeader := r.Header.Get("X-Keebai-Signature")
+	parts := map[string]string{}
+	for _, p := range strings.Split(sigHeader, ",") {
+		kv := strings.SplitN(p, "=", 2)
+		parts[kv[0]] = kv[1]
+	}
+	t, v1 := parts["t"], parts["v1"]
+	if t == "" || v1 == "" {
+		w.WriteHeader(401); return
+	}
+	ts, _ := strconv.ParseInt(t, 10, 64)
+	if abs(time.Now().Unix()-ts) > 300 {
+		w.WriteHeader(401); return
+	}
+	mac := hmac.New(sha256.New, secret)
+	mac.Write([]byte(t + "."))
+	mac.Write(body)
+	expected := hex.EncodeToString(mac.Sum(nil))
+	if !hmac.Equal([]byte(expected), []byte(v1)) {
+		w.WriteHeader(401); return
+	}
+	// dedup, procesar...
+	w.WriteHeader(200)
+}
+
+func abs(n int64) int64 { if n < 0 { return -n }; return n }
+```
+</CodeGroup>
+
+## Buenas prácticas
+
+<CardGroup cols={2}>
+  <Card title="Body raw, no parseado">
+    HMAC se calcula sobre los bytes exactos. Si tu framework parsea y reserializa el JSON, los espacios cambian y la firma deja de coincidir.
+  </Card>
+  <Card title="Comparación tiempo-constante">
+    `===` y `==` filtran información de longitud y permiten timing attacks. Siempre `timingSafeEqual` / `hmac.compare_digest` / `hash_equals`.
+  </Card>
+  <Card title="Verificá ANTES de cualquier side-effect">
+    No proceses el evento, no logueés con detalle, no hagas DB writes hasta que la firma sea válida. 401 inmediato si falla.
+  </Card>
+  <Card title="Dedup por `event.id`">
+    Reintentamos en 5xx / timeout / 408 / 429. Tu endpoint puede recibir el mismo `id` múltiples veces. Mantené una tabla de `event_id` procesados (TTL 7 días).
+  </Card>
+</CardGroup>
+
+## Rotación de secret
+
+`POST /v1/webhooks/:id/rotate-secret` (o `keebai webhooks rotate <id>`) genera un secret nuevo. **El anterior queda invalidado inmediatamente** — no hay grace period. Estrategia recomendada de rotación:
+
+<Steps>
+  <Step title="Configurá tu endpoint para aceptar 2 secrets a la vez">
+    Una variable `KEEBAI_WEBHOOK_SECRET` (vigente) y otra `KEEBAI_WEBHOOK_SECRET_NEXT` (preparada). El handler intenta verificar con la primera; si falla, prueba la segunda.
+  </Step>
+  <Step title="Rotá">
+    `keebai webhooks rotate <id>`. Pegá el secret nuevo en `KEEBAI_WEBHOOK_SECRET_NEXT` y desplegá.
+  </Step>
+  <Step title="Promoviendo">
+    Una vez confirmado que el nuevo funciona, movelo a `KEEBAI_WEBHOOK_SECRET` y borrá el viejo.
+  </Step>
+</Steps>
+
+Si tu setup es más simple y aceptás unos minutos de fallos durante la rotación, podés rotar y desplegar en una sola pasada.
+
+## Errores comunes
+
+| Síntoma | Causa probable |
+|---|---|
+| `401` en cada delivery | Secret incorrecto, o estás firmando solo el body sin el `${t}.` adelante. |
+| Funciona local, falla en staging/prod | El framework está reserializando el body. Capturá el raw. |
+| Falla intermitente | Estás comparando con `===`. Cambiá a `timingSafeEqual`. |
+| 401 después de rotar | No actualizaste el secret en tu env, o tu app aún tiene el viejo cacheado. |

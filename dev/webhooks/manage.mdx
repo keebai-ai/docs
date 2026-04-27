@@ -1,0 +1,226 @@
+---
+title: "Gestión vía API"
+sidebarTitle: "Endpoints REST"
+description: "CRUD de subscripciones de webhook directamente sobre /v1/webhooks. Mismas operaciones que el CLI, sin instalar nada."
+---
+
+Todos los endpoints aceptan / devuelven JSON, requieren un PAT en `Authorization: Bearer <token>`, y aceptan `Content-Type: application/json`. Base URL: `https://api.keebai.com/v1`.
+
+| Método | Ruta | Scope |
+|---|---|---|
+| `POST` | `/v1/webhooks` | `webhooks:manage` |
+| `GET` | `/v1/webhooks` | `webhooks:read` |
+| `GET` | `/v1/webhooks/:id` | `webhooks:read` |
+| `PATCH` | `/v1/webhooks/:id` | `webhooks:manage` |
+| `POST` | `/v1/webhooks/:id/rotate-secret` | `webhooks:manage` |
+| `DELETE` | `/v1/webhooks/:id` | `webhooks:manage` |
+| `POST` | `/v1/webhooks/:id/test` | `webhooks:manage` |
+| `GET` | `/v1/webhooks/:id/deliveries` | `webhooks:read` |
+
+## Crear subscripción
+
+`POST /v1/webhooks` — devuelve el secret raw **una sola vez**.
+
+```bash
+curl -X POST https://api.keebai.com/v1/webhooks \
+  -H "Authorization: Bearer kbai_pk_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Producción CRM",
+    "url": "https://hooks.example.com/keebai",
+    "events": ["whatsapp.message.received", "whatsapp.channel.connected"],
+    "headers": { "X-Tenant-Origin": "crm" },
+    "is_active": true
+  }'
+```
+
+**Body**
+
+| Campo | Tipo | Requerido | Validación |
+|---|---|---|---|
+| `name` | string | sí | 3–120 chars. |
+| `url` | string | sí | URL HTTPS válida, ≤2048 chars. `http://` rechazado. |
+| `events` | string[] | sí | ≥1 evento, único, debe pertenecer al [catálogo](/dev/webhooks/events). |
+| `headers` | object | no | Headers extra. Map `string → string`. |
+| `is_active` | boolean | no | Default `true`. |
+
+**Response 201**
+
+```json
+{
+  "id": "wh_01HXYZ...",
+  "name": "Producción CRM",
+  "url": "https://hooks.example.com/keebai",
+  "events": ["whatsapp.message.received", "whatsapp.channel.connected"],
+  "headers": { "X-Tenant-Origin": "crm" },
+  "is_active": true,
+  "secret_prefix": "whsec_8f2c5b3a",
+  "secret": "whsec_8f2c5b3a9d4e7c1f...",
+  "created_at": "2026-04-27T12:34:56.789Z",
+  "updated_at": "2026-04-27T12:34:56.789Z"
+}
+```
+
+<Warning>
+  `secret` viene **solo en este response**. Nunca más lo vas a ver. Guardalo en tu gestor de secretos. Si lo perdés, tenés que rotarlo (`POST /v1/webhooks/:id/rotate-secret`), lo cual invalida el viejo.
+</Warning>
+
+## Listar subscripciones
+
+`GET /v1/webhooks` — devuelve todas las subscripciones de tu company.
+
+```bash
+curl https://api.keebai.com/v1/webhooks \
+  -H "Authorization: Bearer kbai_pk_xxx"
+```
+
+**Response 200**
+
+```json
+{
+  "data": [
+    {
+      "id": "wh_01HXYZ...",
+      "name": "Producción CRM",
+      "url": "https://hooks.example.com/keebai",
+      "events": ["whatsapp.message.received"],
+      "is_active": true,
+      "secret_prefix": "whsec_8f2c5b3a",
+      "failure_count": 0,
+      "disabled_reason": null,
+      "last_delivery_at": "2026-04-27T13:00:00Z",
+      "created_at": "2026-04-27T12:34:56Z",
+      "updated_at": "2026-04-27T12:34:56Z"
+    }
+  ]
+}
+```
+
+`secret` **no** se incluye en list ni en get-by-id. Solo `secret_prefix` (los primeros 12 chars), útil para identificar visualmente cuál key estás usando.
+
+## Obtener una subscripción
+
+`GET /v1/webhooks/:id`
+
+```bash
+curl https://api.keebai.com/v1/webhooks/wh_01HXYZ \
+  -H "Authorization: Bearer kbai_pk_xxx"
+```
+
+Mismo shape que un item del listado.
+
+## Actualizar una subscripción
+
+`PATCH /v1/webhooks/:id` — todos los campos son opcionales.
+
+```bash
+curl -X PATCH https://api.keebai.com/v1/webhooks/wh_01HXYZ \
+  -H "Authorization: Bearer kbai_pk_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "events": ["whatsapp.message.received", "whatsapp.message.failed"],
+    "is_active": true
+  }'
+```
+
+Útil para:
+- Reactivar una subscripción que se auto-desactivó por exceso de fallos (`is_active: true`).
+- Agregar o quitar eventos sin recrear (preserva el secret).
+- Cambiar la URL (preserva el secret).
+
+## Rotar secret
+
+`POST /v1/webhooks/:id/rotate-secret`
+
+```bash
+curl -X POST https://api.keebai.com/v1/webhooks/wh_01HXYZ/rotate-secret \
+  -H "Authorization: Bearer kbai_pk_xxx"
+```
+
+**Response 200** — mismo shape que `create`, con un `secret` nuevo. **El anterior queda inválido inmediatamente.** Para rotación zero-downtime, ver [security](/dev/webhooks/security#rotación-de-secret).
+
+## Disparar evento sintético (test)
+
+`POST /v1/webhooks/:id/test` — manda un envelope sintético con `data._test: true` a tu URL.
+
+```bash
+curl -X POST https://api.keebai.com/v1/webhooks/wh_01HXYZ/test \
+  -H "Authorization: Bearer kbai_pk_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{ "event_type": "whatsapp.message.received" }'
+```
+
+**Response 202**
+
+```json
+{
+  "accepted": true,
+  "event_id": "evt_01HXYZ_TEST..."
+}
+```
+
+Útil en CI: encadená un `webhooks test` después de deployar tu endpoint para verificar que la verificación HMAC sigue funcionando.
+
+## Listar deliveries
+
+`GET /v1/webhooks/:id/deliveries?limit=50&cursor=<delivery_id>`
+
+```bash
+curl 'https://api.keebai.com/v1/webhooks/wh_01HXYZ/deliveries?limit=50' \
+  -H "Authorization: Bearer kbai_pk_xxx"
+```
+
+**Response 200**
+
+```json
+{
+  "data": [
+    {
+      "id": "dlv_01HXYZ...",
+      "event_id": "evt_01HXYZ...",
+      "event_type": "whatsapp.message.received",
+      "status": "success",
+      "status_code": 200,
+      "attempts": 1,
+      "duration_ms": 142,
+      "last_error": null,
+      "delivered_at": "2026-04-27T13:00:00.142Z",
+      "created_at": "2026-04-27T13:00:00.000Z"
+    }
+  ],
+  "next_cursor": "dlv_..."
+}
+```
+
+`status`:
+- `pending` — en cola, aún no se intentó.
+- `success` — 2xx response.
+- `failed` — fallo no-retryable (4xx que no sea 408/429), o se acabaron los retries pero aún en ventana.
+- `dead` — superó los 5 intentos, no se reintentará.
+
+## Eliminar subscripción
+
+`DELETE /v1/webhooks/:id`
+
+```bash
+curl -X DELETE https://api.keebai.com/v1/webhooks/wh_01HXYZ \
+  -H "Authorization: Bearer kbai_pk_xxx"
+```
+
+**Response 204** — sin body. Eventos futuros no se envían a esta URL.
+
+## Errores comunes
+
+| Status | Code | Causa |
+|---|---|---|
+| `401` | `UNAUTHENTICATED` | PAT inválido, expirado o revocado. |
+| `403` | `INSUFFICIENT_SCOPE` | El PAT no tiene `webhooks:read` o `webhooks:manage` según corresponda. |
+| `400` | `VALIDATION_ERROR` | Body inválido (URL no HTTPS, event_type fuera del catálogo, name muy corto, etc.). El campo `details` lista las violaciones. |
+| `404` | `WEBHOOK_NOT_FOUND` | Id no existe o pertenece a otra company. |
+| `429` | `RATE_LIMIT_EXCEEDED` | Throttling de la API pública. Reintentá tras `Retry-After`. |
+
+## Auto-desactivación
+
+Si una subscripción acumula **50 deliveries en estado `dead` consecutivos**, la marcamos `is_active: false` con `disabled_reason: 'excessive_failures'` y mandamos email al owner. Reactivá vía `PATCH /v1/webhooks/:id { "is_active": true }` cuando hayas arreglado el endpoint.
+
+Esto evita que tu endpoint en mantenimiento siga recibiendo noise por horas. El contador se resetea al recibir un delivery exitoso.

@@ -1,0 +1,65 @@
+---
+title: "Listar canales"
+sidebarTitle: "GET /channels"
+description: "Lista canales activos de la company filtrables por tipo."
+---
+
+Devuelve los canales conectados de la company asociada al PAT. Útil para descubrir qué canal usar al enviar mensajes o registrar webhooks.
+
+```http
+GET /v1/channels
+GET /v1/channels?type=whatsapp
+```
+
+**Scope requerido:** `channels:read`
+
+## Query params
+
+| Param | Tipo | Descripción |
+|---|---|---|
+| `type` | enum opcional | Filtra por tipo. Valores: `whatsapp`, `whatsapp_qr`, `instagram`, `messenger`, `tiktok`, `web`, `playground`. |
+
+## Request
+
+```bash
+curl 'https://api.keebai.com/v1/channels?type=whatsapp' \
+  -H "Authorization: Bearer kbai_pk_xxx"
+```
+
+## Response 200
+
+```json
+{
+  "data": [
+    {
+      "id": "ch_01HXYZ...",
+      "name": "Soporte Chile",
+      "type": "whatsapp",
+      "is_active": true,
+      "phone_number": "+56987654321",
+      "phone_number_id": "1234567890",
+      "business_account_id": "9876543210",
+      "created_at": "2026-04-15T10:00:00Z"
+    }
+  ]
+}
+```
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | string | Channel ID. Úsalo en `POST /v1/messages` (`channel_id`) y al filtrar deliveries de webhooks. |
+| `name` | string | Nombre display del canal. |
+| `type` | enum | Tipo de canal. |
+| `is_active` | boolean | `false` solo para canales pausados o con problemas de credenciales. |
+| `phone_number` / `phone_number_id` / `business_account_id` | string | Solo para `type: whatsapp`. |
+
+## Obtener un canal por id
+
+`GET /v1/channels/:id` — mismo shape que un item del listado, sin filtros.
+
+```bash
+curl https://api.keebai.com/v1/channels/ch_01HXYZ \
+  -H "Authorization: Bearer kbai_pk_xxx"
+```
+
+Si el id no existe o pertenece a otra company, devuelve `404 CHANNEL_NOT_FOUND`.

@@ -117,3 +117,31 @@ print("Token OK con scopes:", sorted(scopes))
 ### Health check de tu integración
 
 Llamar `GET /v1/me` cada 5 minutos como liveness probe interno: si recibís `401` reiteradamente, alertás a tu equipo de que el token fue revocado o expiró.
+
+## Revocar el token actual
+
+`DELETE /v1/me/token` — server-side logout: marca el PAT con el que viene autenticada esta request como revocado. Próximas requests con el mismo token devuelven `401`.
+
+```bash
+curl -X DELETE https://api.keebai.com/v1/me/token \
+  -H "Authorization: Bearer kbai_pk_xxx"
+```
+
+**Response 204** — sin body.
+
+Equivale a `keebai logout` desde el CLI: el archivo de credenciales local se borra y server-side el token queda inválido para siempre.
+
+<Tip>
+  No requiere scope. Cualquier PAT puede revocarse a sí mismo. Para revocar **otros** tokens (por ejemplo, desde un panel de admin), usá los endpoints internos del portal, no la API pública.
+</Tip>
+
+Casos de uso típicos:
+
+<CardGroup cols={2}>
+  <Card title="Logout en una integración multi-tenant">
+    Tu app permite a un usuario desvincular Keebai. Disparás `DELETE /v1/me/token` y borrás el token de tu storage.
+  </Card>
+  <Card title="Rotación con expiración garantizada">
+    Tras crear un token nuevo y rotar tu integración, llamás `DELETE /v1/me/token` con el viejo para asegurar que queda inválido (no esperás a que el usuario lo revoque manualmente).
+  </Card>
+</CardGroup>

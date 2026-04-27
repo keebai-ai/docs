@@ -151,6 +151,39 @@
               "dev/endpoints/templates-create",
               "dev/endpoints/templates-update"
             ]
+          },
+          {
+            "group": "Canales",
+            "pages": [
+              "dev/endpoints/channels-list",
+              "dev/endpoints/whatsapp-numbers",
+              "dev/endpoints/channels-whatsapp-connect"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Webhooks",
+        "icon": "bell",
+        "openapi": {
+          "source": "https://api.keebai.com/v1/docs-json",
+          "directory": "_openapi/webhooks"
+        },
+        "groups": [
+          {
+            "group": "Empezar",
+            "pages": [
+              "dev/webhooks/overview",
+              "dev/webhooks/cli"
+            ]
+          },
+          {
+            "group": "Referencia",
+            "pages": [
+              "dev/webhooks/events",
+              "dev/webhooks/security",
+              "dev/webhooks/manage"
+            ]
           }
         ]
       }
