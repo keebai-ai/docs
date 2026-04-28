@@ -1,7 +1,8 @@
 ---
-title: "Conectar WhatsApp Business"
-sidebarTitle: "POST /channels/whatsapp/connect"
+title: "POST /v1/channels/whatsapp/connect"
+sidebarTitle: "POST channels/whatsapp/connect"
 description: "Inicia el flow de conexión de un nuevo canal WhatsApp Business desde tu CLI o backend, sin pasar por el portal."
+openapi: "POST /v1/channels/whatsapp/connect"
 ---
 
 Conectar un canal de WhatsApp Business requiere que un humano complete el [Embedded Signup](https://developers.facebook.com/docs/whatsapp/embedded-signup) de Meta en un browser (Meta lo exige). Este endpoint inicia una **sesión de conexión**: te devolvés una URL del portal de Keebai que el humano abre, completa el signup, y vos pollees el estado hasta que `status: completed`.

@@ -1,7 +1,8 @@
 ---
-title: "Listar números de WhatsApp"
-sidebarTitle: "GET /whatsapp/numbers"
+title: "GET /v1/whatsapp/numbers"
+sidebarTitle: "GET whatsapp/numbers"
 description: "Vista directa de los phone_number_id activos de la company. Útil para integraciones que solo necesitan saber qué número usar al enviar."
+openapi: "GET /v1/whatsapp/numbers"
 ---
 
 Devuelve los números WhatsApp Business conectados a la company, en un shape liviano. Es una proyección de [GET /channels?type=whatsapp](/dev/endpoints/channels-list) optimizada para los flujos donde solo necesitás identificadores Meta.
