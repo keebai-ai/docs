@@ -45,6 +45,12 @@ El catálogo vive en la colección `api_scopes` de MongoDB. El portal lo consume
 | `channels:connect` | channels | Iniciar y pollear sesiones de [conexión de WhatsApp Business](/dev/endpoints/channels-whatsapp-connect) desde el CLI o un backend propio. |
 | `webhooks:read` | webhooks | Listar subscripciones de [webhooks salientes](/dev/webhooks/overview) y consultar deliveries. |
 | `webhooks:manage` | webhooks | Crear, actualizar, rotar secret, eliminar subscripciones y disparar eventos sintéticos. |
+| `knowledge:read` | knowledge | Lectura del [árbol de carpetas y documentos](/dev/endpoints/knowledge-tree) de la base de conocimientos. |
+| `knowledge:write` | knowledge | Crear [carpetas](/dev/endpoints/knowledge-folder-create) y [documentos](/dev/endpoints/knowledge-document-create) (markdown → BlockNote). |
+| `knowledge:delete` | knowledge | [Eliminar nodos](/dev/endpoints/knowledge-node-delete) (carpetas y documentos) de la base de conocimientos. |
+| `knowledge:query` | knowledge | Consultar la base de conocimientos con [búsqueda full-text, vectorial o híbrida](/dev/endpoints/knowledge-search). |
+| `knowledge:assign` | knowledge | [Asignar nodos](/dev/endpoints/knowledge-assign) de la base de conocimientos a los workers de un asistente. |
+| `assistants:read` | assistants | [Listar y buscar asistentes](/dev/endpoints/assistants-list) activos de la company. |
 
 <Tip>
   La lista que aparece en el modal de **Crear API Key** se carga en vivo desde el backend. Si un scope no está, es porque está marcado como `is_active: false` en la base.
@@ -103,6 +109,16 @@ Asigná solo los scopes que el token realmente necesita. La separación de `mess
     Tu backend recibe eventos en tiempo real y consulta diagnostic.
 
     `webhooks:read`, `webhooks:manage`, `channels:read`.
+  </Card>
+  <Card title="Sincronización de base de conocimientos">
+    Tu CMS o pipeline de docs publica documentos automáticamente y los asigna al asistente correspondiente.
+
+    `knowledge:read`, `knowledge:write`, `knowledge:delete`, `knowledge:assign`, `assistants:read`.
+  </Card>
+  <Card title="RAG / búsqueda externa">
+    Una app externa consulta la base de conocimientos como retrieval para su propio LLM.
+
+    `knowledge:read`, `knowledge:query`.
   </Card>
 </CardGroup>
 

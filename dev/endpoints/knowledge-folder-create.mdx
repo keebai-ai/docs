@@ -1,0 +1,111 @@
+---
+title: "POST /v1/knowledge/folders"
+sidebarTitle: "POST folder"
+description: "Crea una carpeta en la base de conocimientos, opcionalmente anidada bajo otra carpeta."
+openapi: "POST /v1/knowledge/folders"
+---
+
+Crea una carpeta vacía en la base de conocimientos. Las carpetas son contenedores: agrupan documentos y otras carpetas, pero no tienen contenido propio. Para crear documentos usá [`POST /v1/knowledge/documents`](/dev/endpoints/knowledge-document-create).
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/knowledge/folders
+```
+
+## Scope requerido
+
+`knowledge:write`
+
+## Headers
+
+| Header | Requerido | Valor |
+|---|---|---|
+| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Sí | `application/json` |
+
+## Body
+
+| Campo | Tipo | Requerido | Descripción |
+|---|---|---|---|
+| `title` | `string` | Sí | Nombre de la carpeta. Máx. 200 caracteres. |
+| `parent_id` | `string` | No | `ObjectId` de la carpeta padre. Omitir para crear en la raíz. |
+
+## Ejemplo de request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/knowledge/folders \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Soporte",
+    "parent_id": "65f3a1b2c3d4e5f6a7b8c9d0"
+  }'
+```
+
+```js JavaScript
+const resp = await fetch("https://api.keebai.com/v1/knowledge/folders", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    title: "Soporte",
+    parent_id: "65f3a1b2c3d4e5f6a7b8c9d0",
+  }),
+});
+const folder = await resp.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/knowledge/folders",
+    headers={
+        "Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}",
+        "Content-Type": "application/json",
+    },
+    json={"title": "Soporte", "parent_id": "65f3a1b2c3d4e5f6a7b8c9d0"},
+    timeout=10,
+)
+resp.raise_for_status()
+folder = resp.json()
+```
+
+</CodeGroup>
+
+## Respuesta
+
+### 201 Created
+
+```json
+{
+  "id": "65f3a1b2c3d4e5f6a7b8c9d2",
+  "title": "Soporte",
+  "node_type": "folder",
+  "parent_id": "65f3a1b2c3d4e5f6a7b8c9d0",
+  "position": 3,
+  "path_cache": "/Catálogo/Soporte",
+  "created_at": "2026-04-27T15:30:00.000Z",
+  "updated_at": "2026-04-27T15:30:00.000Z"
+}
+```
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | `string` | `ObjectId` del nodo recién creado. |
+| `title` | `string` | Título guardado. |
+| `node_type` | `string` | Siempre `folder`. |
+| `parent_id` | `string \| null` | Padre si fue informado, `null` si está en la raíz. |
+| `position` | `number` | Posición asignada (último de su nivel). |
+| `path_cache` | `string` | Ruta absoluta calculada al crear. |
+
+### 400 / 401 / 403 / 404 / 429
+
+- `400 BAD_REQUEST`: `title` vacío o supera 200, `parent_id` con formato inválido, o `parent_id` apunta a un documento (no a una carpeta).
+- `403 FORBIDDEN` con `code: INSUFFICIENT_SCOPE`: el PAT no tiene `knowledge:write`.
+- `404 NOT_FOUND`: el `parent_id` no existe o no pertenece a tu company.

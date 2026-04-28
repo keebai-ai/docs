@@ -1,0 +1,102 @@
+---
+title: "GET /v1/knowledge/tree"
+sidebarTitle: "GET tree"
+description: "Devuelve el árbol completo de carpetas y documentos de la base de conocimientos de tu company."
+openapi: "GET /v1/knowledge/tree"
+---
+
+Devuelve la jerarquía completa de carpetas y documentos activos de la base de conocimientos. La respuesta es un árbol anidado por `parent_id`, ordenado por `position`. Los nodos no incluyen el contenido (`content_json` / `content_text`) para mantener la respuesta liviana — para crear documentos usá [`POST /v1/knowledge/documents`](/dev/endpoints/knowledge-document-create) y para buscar dentro de su contenido usá [`POST /v1/knowledge/search`](/dev/endpoints/knowledge-search).
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/knowledge/tree
+```
+
+## Scope requerido
+
+`knowledge:read`
+
+## Headers
+
+| Header | Requerido | Valor |
+|---|---|---|
+| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
+
+## Ejemplo de request
+
+<CodeGroup>
+
+```bash curl
+curl https://api.keebai.com/v1/knowledge/tree \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+```js JavaScript
+const resp = await fetch("https://api.keebai.com/v1/knowledge/tree", {
+  headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` },
+});
+const { items } = await resp.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.get(
+    "https://api.keebai.com/v1/knowledge/tree",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    timeout=10,
+)
+resp.raise_for_status()
+tree = resp.json()["items"]
+```
+
+</CodeGroup>
+
+## Respuesta
+
+### 200 OK
+
+```json
+{
+  "items": [
+    {
+      "id": "65f3a1b2c3d4e5f6a7b8c9d0",
+      "title": "Soporte",
+      "node_type": "folder",
+      "parent_id": null,
+      "position": 0,
+      "path_cache": "/Soporte",
+      "created_at": "2026-04-20T15:30:00.000Z",
+      "updated_at": "2026-04-20T15:30:00.000Z",
+      "children": [
+        {
+          "id": "65f3a1b2c3d4e5f6a7b8c9d1",
+          "title": "Política de devolución",
+          "node_type": "document",
+          "parent_id": "65f3a1b2c3d4e5f6a7b8c9d0",
+          "position": 0,
+          "path_cache": "/Soporte/Política de devolución",
+          "created_at": "2026-04-20T15:35:00.000Z",
+          "updated_at": "2026-04-20T15:35:00.000Z",
+          "children": []
+        }
+      ]
+    }
+  ]
+}
+```
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `items[].id` | `string` | `ObjectId` del nodo. |
+| `items[].title` | `string` | Título tal como se muestra en el portal. |
+| `items[].node_type` | `string` | `folder` o `document`. |
+| `items[].parent_id` | `string \| null` | `ObjectId` de la carpeta padre. `null` si está en la raíz. |
+| `items[].position` | `number` | Orden dentro del padre (menor primero). |
+| `items[].path_cache` | `string` | Ruta concatenada (ej. `/Soporte/Política de devolución`). |
+| `items[].children` | `array` | Hijos directos del nodo, con la misma estructura. |
+
+### 401 / 403 / 429
+
+Errores estándar de auth, scope y rate limit.

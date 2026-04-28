@@ -163,6 +163,33 @@
         ]
       },
       {
+        "tab": "Conocimiento",
+        "icon": "book-bookmark",
+        "openapi": {
+          "source": "https://api.keebai.com/v1/docs-json",
+          "directory": "_openapi/knowledge"
+        },
+        "groups": [
+          {
+            "group": "Base de conocimientos",
+            "pages": [
+              "dev/endpoints/knowledge-tree",
+              "dev/endpoints/knowledge-folder-create",
+              "dev/endpoints/knowledge-document-create",
+              "dev/endpoints/knowledge-node-delete",
+              "dev/endpoints/knowledge-search",
+              "dev/endpoints/knowledge-assign"
+            ]
+          },
+          {
+            "group": "Asistentes",
+            "pages": [
+              "dev/endpoints/assistants-list"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "Webhooks",
         "icon": "bell",
         "openapi": {

@@ -1,0 +1,121 @@
+---
+title: "POST /v1/knowledge/documents"
+sidebarTitle: "POST document"
+description: "Crea un documento desde Markdown. El contenido se convierte a BlockNote y se reindexa para búsqueda."
+openapi: "POST /v1/knowledge/documents"
+---
+
+Crea un documento en la base de conocimientos a partir de Markdown. La API convierte el Markdown a BlockNote (el formato editorial usado por el portal) y dispara un reindexado del vector store y del índice full-text para que el documento quede disponible inmediatamente en [`POST /v1/knowledge/search`](/dev/endpoints/knowledge-search).
+
+El reindexado se encola de forma asíncrona en el servicio de procesamiento; el endpoint devuelve apenas el documento queda persistido. La búsqueda puede tardar unos segundos en ver el contenido nuevo (depende de la cola).
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/knowledge/documents
+```
+
+## Scope requerido
+
+`knowledge:write`
+
+## Headers
+
+| Header | Requerido | Valor |
+|---|---|---|
+| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Sí | `application/json` |
+
+## Body
+
+| Campo | Tipo | Requerido | Descripción |
+|---|---|---|---|
+| `title` | `string` | Sí | Título del documento. Máx. 200 caracteres. |
+| `parent_id` | `string` | No | `ObjectId` de la carpeta padre. Omitir para crear en la raíz. |
+| `markdown` | `string` | Sí | Contenido en Markdown. Soporta encabezados (`# ##  ###`), listas (con viñetas, numeradas y de tareas) y tablas. |
+
+## Ejemplo de request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/knowledge/documents \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Política de devolución",
+    "parent_id": "65f3a1b2c3d4e5f6a7b8c9d0",
+    "markdown": "# Política de devolución\n\nLas devoluciones se aceptan dentro de los **10 días** posteriores a la compra.\n\n## Pasos\n\n1. Contactar a soporte.\n2. Adjuntar la boleta.\n3. Enviar el producto."
+  }'
+```
+
+```js JavaScript
+const resp = await fetch("https://api.keebai.com/v1/knowledge/documents", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    title: "Política de devolución",
+    parent_id: "65f3a1b2c3d4e5f6a7b8c9d0",
+    markdown: "# Política de devolución\n\nLas devoluciones se aceptan dentro de los **10 días** posteriores a la compra.",
+  }),
+});
+const document = await resp.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/knowledge/documents",
+    headers={
+        "Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}",
+        "Content-Type": "application/json",
+    },
+    json={
+        "title": "Política de devolución",
+        "parent_id": "65f3a1b2c3d4e5f6a7b8c9d0",
+        "markdown": "# Política de devolución\n\nLas devoluciones se aceptan dentro de los **10 días** posteriores a la compra.",
+    },
+    timeout=15,
+)
+resp.raise_for_status()
+document = resp.json()
+```
+
+</CodeGroup>
+
+## Respuesta
+
+### 201 Created
+
+```json
+{
+  "id": "65f3a1b2c3d4e5f6a7b8c9d3",
+  "title": "Política de devolución",
+  "node_type": "document",
+  "parent_id": "65f3a1b2c3d4e5f6a7b8c9d0",
+  "position": 0,
+  "path_cache": "/Soporte/Política de devolución",
+  "created_at": "2026-04-27T15:35:00.000Z",
+  "updated_at": "2026-04-27T15:35:00.000Z"
+}
+```
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | `string` | `ObjectId` del documento creado. |
+| `node_type` | `string` | Siempre `document`. |
+| `path_cache` | `string` | Ruta absoluta calculada al crear. |
+
+### 400 / 401 / 403 / 404 / 429
+
+- `400 BAD_REQUEST`: `title` o `markdown` vacíos, `parent_id` apunta a un documento.
+- `403 FORBIDDEN` con `code: INSUFFICIENT_SCOPE`: el PAT no tiene `knowledge:write`.
+- `404 NOT_FOUND`: `parent_id` inexistente o de otra company.
+
+<Tip>
+  Para asegurar que el documento esté disponible para los asistentes, asignalo con [`POST /v1/knowledge/assignments`](/dev/endpoints/knowledge-assign). El contenido siempre es buscable por scope `knowledge:query` aunque no esté asignado a ningún asistente.
+</Tip>

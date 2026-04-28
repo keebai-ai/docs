@@ -1,0 +1,139 @@
+---
+title: "POST /v1/knowledge/search"
+sidebarTitle: "POST search"
+description: "Busca en la base de conocimientos por full-text, vector o híbrido."
+openapi: "POST /v1/knowledge/search"
+---
+
+Ejecuta una consulta sobre los chunks indexados de la base de conocimientos. Soporta tres modos de búsqueda — elegí el que mejor se adapte al tipo de query del usuario:
+
+| Modo | Cuándo usarlo | Cómo funciona internamente |
+|---|---|---|
+| `full` | Términos exactos, palabras clave, números, IDs. | Índice text de MongoDB sobre `page_content` con stemming en español. |
+| `vector` | Preguntas en lenguaje natural, sinónimos, parafraseo. | MongoDB Atlas Vector Search con embeddings `text-embedding-3-small`. |
+| `hybrid` | Default razonable cuando no sabés qué tipo de query viene. | Lanza ambos en paralelo, normaliza scores y combina con peso 0.6 vector / 0.4 full-text. |
+
+Los resultados se agrupan por `node_id` (un mismo documento aparece una sola vez aunque varios chunks matcheen) y se ordenan por score descendente.
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/knowledge/search
+```
+
+## Scope requerido
+
+`knowledge:query`
+
+## Headers
+
+| Header | Requerido | Valor |
+|---|---|---|
+| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Sí | `application/json` |
+
+## Body
+
+| Campo | Tipo | Requerido | Descripción |
+|---|---|---|---|
+| `query` | `string` | Sí | Texto de búsqueda. |
+| `mode` | `string` | Sí | `full`, `vector` o `hybrid`. |
+| `top_k` | `number` | No | Cantidad máxima de resultados, entre 1 y 25. Default `5`. |
+| `node_ids` | `string[]` | No | Limita la búsqueda a estos `node_id` (carpetas o documentos). Útil para acotar a un dominio dentro del árbol. Máx. 100 ids. |
+
+## Ejemplo de request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/knowledge/search \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "¿cómo cancelar mi suscripción?",
+    "mode": "hybrid",
+    "top_k": 3
+  }'
+```
+
+```js JavaScript
+const resp = await fetch("https://api.keebai.com/v1/knowledge/search", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    query: "¿cómo cancelar mi suscripción?",
+    mode: "hybrid",
+    top_k: 3,
+  }),
+});
+const { results } = await resp.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/knowledge/search",
+    headers={
+        "Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}",
+        "Content-Type": "application/json",
+    },
+    json={
+        "query": "¿cómo cancelar mi suscripción?",
+        "mode": "hybrid",
+        "top_k": 3,
+    },
+    timeout=15,
+)
+resp.raise_for_status()
+results = resp.json()["results"]
+```
+
+</CodeGroup>
+
+## Respuesta
+
+### 200 OK
+
+```json
+{
+  "mode": "hybrid",
+  "results": [
+    {
+      "node_id": "65f3a1b2c3d4e5f6a7b8c9d3",
+      "title": "Política de devolución",
+      "snippet": "Las devoluciones se aceptan dentro de los 10 días posteriores a la compra...",
+      "score": 0.873,
+      "source": "vector"
+    },
+    {
+      "node_id": "65f3a1b2c3d4e5f6a7b8c9d4",
+      "title": "Cancelación de suscripciones",
+      "snippet": "Para cancelar tu suscripción, ingresá a Mi cuenta > Suscripciones...",
+      "score": 0.612,
+      "source": "full"
+    }
+  ]
+}
+```
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `mode` | `string` | Modo aplicado (igual al del request). |
+| `results[].node_id` | `string` | `ObjectId` del documento en la base de conocimientos. Útil para hacer cross-reference con [`GET /v1/knowledge/tree`](/dev/endpoints/knowledge-tree). |
+| `results[].title` | `string` | Título del documento (sin contenido completo). |
+| `results[].snippet` | `string` | Fragmento del chunk con mejor score, truncado a ~320 caracteres. |
+| `results[].score` | `number` | Score normalizado. La escala depende del modo: en `vector` y `hybrid` está en [0,1]; en `full` es el `textScore` crudo de Mongo. Solo es comparable entre items del mismo response. |
+| `results[].source` | `string` | `vector` o `full`, según qué motor produjo el match con mejor score (en `hybrid` indica cuál ganó tras la combinación). |
+
+### 400 / 401 / 403 / 429
+
+- `400 BAD_REQUEST`: `query` vacío, `mode` no soportado, o `node_ids` con formato inválido.
+- `403 FORBIDDEN` con `code: INSUFFICIENT_SCOPE`: el PAT no tiene `knowledge:query`.
+
+<Tip>
+  Si vas a alimentar un LLM externo con los resultados (RAG), preferí `hybrid` con `top_k=5` como punto de partida. Es el setup que mejor balancea recall (vector) con precisión sobre términos exactos (full-text).
+</Tip>

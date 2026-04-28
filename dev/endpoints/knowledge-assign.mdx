@@ -1,0 +1,109 @@
+---
+title: "POST /v1/knowledge/assignments"
+sidebarTitle: "POST assign"
+description: "Asigna nodos de la base de conocimientos a todos los workers de un asistente."
+openapi: "POST /v1/knowledge/assignments"
+---
+
+Asocia uno o más nodos de la base de conocimientos a un asistente. La asignación se propaga a **todos los workers** del asistente (excepto los `supervisor`), agregando los `node_id` indicados a su lista de conocimientos accesibles. La operación es idempotente: si un nodo ya estaba asignado, no se duplica.
+
+Para listar los asistentes disponibles usá [`GET /v1/assistants`](/dev/endpoints/assistants-list). Para obtener los `node_id` validados de tus carpetas y documentos usá [`GET /v1/knowledge/tree`](/dev/endpoints/knowledge-tree).
+
+Tras la asignación se encola un reindexado para refrescar los embeddings cacheados de los workers.
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/knowledge/assignments
+```
+
+## Scope requerido
+
+`knowledge:assign`
+
+## Headers
+
+| Header | Requerido | Valor |
+|---|---|---|
+| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Sí | `application/json` |
+
+## Body
+
+| Campo | Tipo | Requerido | Descripción |
+|---|---|---|---|
+| `assistant_id` | `string` | Sí | `ObjectId` del asistente destino. |
+| `node_ids` | `string[]` | Sí | `ObjectId` de los nodos a asignar. Mínimo 1, máximo 200. |
+
+## Ejemplo de request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/knowledge/assignments \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "assistant_id": "65f3a1b2c3d4e5f6a7b8c9aa",
+    "node_ids": [
+      "65f3a1b2c3d4e5f6a7b8c9d3",
+      "65f3a1b2c3d4e5f6a7b8c9d4"
+    ]
+  }'
+```
+
+```js JavaScript
+const resp = await fetch("https://api.keebai.com/v1/knowledge/assignments", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    assistant_id: "65f3a1b2c3d4e5f6a7b8c9aa",
+    node_ids: ["65f3a1b2c3d4e5f6a7b8c9d3", "65f3a1b2c3d4e5f6a7b8c9d4"],
+  }),
+});
+const { workers_updated } = await resp.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/knowledge/assignments",
+    headers={
+        "Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}",
+        "Content-Type": "application/json",
+    },
+    json={
+        "assistant_id": "65f3a1b2c3d4e5f6a7b8c9aa",
+        "node_ids": ["65f3a1b2c3d4e5f6a7b8c9d3", "65f3a1b2c3d4e5f6a7b8c9d4"],
+    },
+    timeout=15,
+)
+resp.raise_for_status()
+print(resp.json()["workers_updated"])
+```
+
+</CodeGroup>
+
+## Respuesta
+
+### 200 OK
+
+```json
+{
+  "workers_updated": 3
+}
+```
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `workers_updated` | `number` | Cantidad de workers del asistente que recibieron la asignación. `0` significa que el asistente no tiene workers no-supervisor. |
+
+### 400 / 401 / 403 / 404 / 429
+
+- `400 BAD_REQUEST`: `assistant_id` o `node_ids` con formato inválido, o `node_ids` vacío.
+- `403 FORBIDDEN` con `code: INSUFFICIENT_SCOPE`: el PAT no tiene `knowledge:assign`.
+- `404 NOT_FOUND`: el `assistant_id` no existe, o uno o más `node_ids` no pertenecen a tu company.
