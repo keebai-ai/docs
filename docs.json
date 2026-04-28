@@ -157,7 +157,8 @@
             "pages": [
               "dev/endpoints/channels-list",
               "dev/endpoints/whatsapp-numbers",
-              "dev/endpoints/channels-whatsapp-connect"
+              "dev/endpoints/channels-whatsapp-connect",
+              "dev/endpoints/channels-whatsapp-connect-qr"
             ]
           }
         ]

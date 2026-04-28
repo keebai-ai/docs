@@ -1,0 +1,169 @@
+---
+title: "POST /v1/channels/whatsapp/connect (modo QR)"
+sidebarTitle: "WhatsApp connect (QR)"
+description: "Pairing de un canal WhatsApp por QR multi-dispositivo, escaneable desde la terminal o un browser propio."
+---
+
+El modo `qr` de `POST /v1/channels/whatsapp/connect` empareja un canal sin Embedded Signup: el cliente recibe un QR, lo escanea con WhatsApp móvil (Configuración → Dispositivos vinculados → Vincular un dispositivo) y al terminar el pairing recibe el `channel_id` del canal recién creado. No hay paso por browser, no hay WABA oficial, no hay Cloud API. La integración usa WhatsApp multi-device por debajo.
+
+Es lo que hace `keebai whatsapp connect --qr` del CLI.
+
+## Flow general
+
+<Steps>
+  <Step title="Tu backend pide iniciar la sesión">
+    `POST /v1/channels/whatsapp/connect` con `mode: "qr"`. Devuelve `session_id` + `stream_url` (path SSE, relativo).
+  </Step>
+  <Step title="Te suscribís al stream SSE">
+    `GET {stream_url}` con `Accept: text/event-stream` y `Authorization: Bearer <PAT>`. Recibís eventos en tiempo real: `qr`, `connecting`, `connected`, `failed`, `disconnected`.
+  </Step>
+  <Step title="Mostrás el QR al usuario">
+    Cada evento `qr` trae un payload string. Lo renderizás como QR (en terminal con `qrcode-terminal`, en web con `qrcode`, etc.). Si el código expira antes de que lo escaneen, llega un `qr` nuevo automáticamente.
+  </Step>
+  <Step title="Recibís el canal creado">
+    Al escanearse correctamente, el stream cierra con un evento `connected` cuyo `data` incluye `channel_id`, `phone_number` y `push_name`.
+  </Step>
+</Steps>
+
+## Iniciar sesión QR
+
+`POST /v1/channels/whatsapp/connect`
+
+**Scope requerido:** `channels:connect`
+
+### Request
+
+```bash
+curl -X POST https://api.keebai.com/v1/channels/whatsapp/connect \
+  -H "Authorization: Bearer kbai_pk_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mode": "qr",
+    "name": "WhatsApp Soporte"
+  }'
+```
+
+| Campo | Tipo | Requerido | Descripción |
+|---|---|---|---|
+| `mode` | `"qr"` | sí | Selecciona el flujo QR. |
+| `name` | string | no | Etiqueta del canal. Default `"WhatsApp QR"`. |
+
+`pipeline_id` y `coexistence_enabled` no aplican al modo QR. Si los enviás, la API responde `400 QR_MODE_CANNOT_USE_COEXISTENCE_OR_PIPELINE`.
+
+### Response 201
+
+```json
+{
+  "session_id": "cs_01HXYZ...",
+  "provider": "whatsapp_qr",
+  "mode": "qr",
+  "stream_url": "/v1/channels/whatsapp/connect/cs_01HXYZ.../qr-stream",
+  "expires_in": 300,
+  "poll_interval": 5
+}
+```
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `session_id` | string | Id de la sesión QR. Usalo en el path de `stream_url`. |
+| `stream_url` | string | Path relativo del stream SSE (sumarle el host de la API). |
+| `expires_in` | number | Segundos hasta que el pairing expira si no se completa el escaneo (5 minutos). El stream emite QRs nuevos mientras dure la ventana. |
+
+## Stream SSE de eventos
+
+`GET /v1/channels/whatsapp/connect/:session_id/qr-stream`
+
+**Scope requerido:** `channels:connect`
+
+**Headers:** `Accept: text/event-stream`, `Authorization: Bearer kbai_pk_xxx`.
+
+### Eventos
+
+| Evento | Cuándo | `data` |
+|---|---|---|
+| `qr` | Hay un código QR listo para escanear. Se reemiten cuando el código expira y se renueva. | string (payload del QR) o `{ "data": "<qr-string>", "expires_at": "<iso>" }` |
+| `connecting` | El móvil escaneó el QR; WhatsApp está estableciendo la sesión. | objeto vacío o estado |
+| `connected` | Pairing completado, canal creado. | `{ "channel_id": "ch_…", "phone_number": "+56…", "push_name": "Lucio" }` |
+| `failed` | Error de pairing (timeout, código inválido, límite de dispositivos vinculados, etc.). | `{ "reason": "<descripción>" }` |
+| `disconnected` | El dispositivo se desvinculó durante el pairing. | `{ "reason": "<descripción>" }` |
+
+Cuando llega `connected`, `failed` o `disconnected`, el stream se cierra. El cliente debe cerrar la conexión también.
+
+### Ejemplo curl
+
+```bash
+curl -N \
+  -H "Authorization: Bearer kbai_pk_xxx" \
+  -H "Accept: text/event-stream" \
+  https://api.keebai.com/v1/channels/whatsapp/connect/cs_01HXYZ.../qr-stream
+```
+
+```text
+event: qr
+data: 2@AbcDe…/long-string
+
+event: qr
+data: 2@FghIj…/refresh
+
+event: connecting
+data: {}
+
+event: connected
+data: {"channel_id":"ch_01HXYZ...","phone_number":"+56987654321","push_name":"Lucio"}
+```
+
+### Renderizar el QR
+
+En terminal con `qrcode-terminal` (Node):
+
+```ts
+import qrcode from "qrcode-terminal";
+qrcode.generate(payload, { small: true });
+```
+
+En web, con [`qrcode`](https://www.npmjs.com/package/qrcode):
+
+```ts
+import QRCode from "qrcode";
+QRCode.toCanvas(canvasEl, payload);
+```
+
+## Equivalente CLI
+
+```bash
+keebai whatsapp connect --qr [--name "WhatsApp Soporte"]
+```
+
+El CLI crea la sesión, abre el stream, dibuja el QR en la terminal, lo refresca automáticamente y al escanearse imprime `Channel ch_xxx connected (phone +56…, as Lucio)`.
+
+## Troubleshooting
+
+<CardGroup cols={2}>
+  <Card title="QR expirado">
+    El pairing emite QRs nuevos automáticamente cada ~20 segundos. No reinicies la sesión: simplemente esperá el siguiente evento `qr`.
+  </Card>
+  <Card title="Límite de 4 dispositivos vinculados">
+    WhatsApp permite hasta 4 dispositivos por cuenta. Si la sesión termina con `failed` mencionando `device limit`, liberá un slot en el móvil (Configuración → Dispositivos vinculados) y volvé a invocar `POST /v1/channels/whatsapp/connect`.
+  </Card>
+  <Card title="Sesión expirada (5 min)">
+    Si nadie escaneó, el stream cierra y el `session_id` deja de servir. Pedí una sesión nueva.
+  </Card>
+  <Card title="No usar Cloud API contra este canal">
+    Los canales QR no soportan templates ni envíos masivos (Meta no expone Cloud API en multi-device). `POST /v1/messages/template` y `POST /v1/messages/bulk` devuelven `400 QR_NOT_SUPPORTED_FOR_TEMPLATE_OR_BULK`. `POST /v1/messages/text` sí funciona normalmente.
+  </Card>
+</CardGroup>
+
+## Enviar mensajes
+
+Una vez conectado, los canales QR se listan en `GET /v1/whatsapp/numbers` con `connection_type: "qr"` y se usan con el mismo endpoint que los Cloud API:
+
+```bash
+curl -X POST https://api.keebai.com/v1/messages/text \
+  -H "Authorization: Bearer kbai_pk_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "channel_id": "ch_01HXYZ...",
+    "to": "+5491155555555",
+    "text": "Hola desde el canal QR"
+  }'
+```

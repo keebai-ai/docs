@@ -183,4 +183,32 @@ keebai webhooks list
   <Card title="Connect WhatsApp via CLI" icon="plug" href="/dev/endpoints/channels-whatsapp-connect">
     `keebai whatsapp connect` y la API equivalente.
   </Card>
+  <Card title="Connect WhatsApp por QR" icon="qrcode" href="/dev/endpoints/channels-whatsapp-connect-qr">
+    `keebai whatsapp connect --qr` — pairing por QR escaneado desde la terminal.
+  </Card>
 </CardGroup>
+
+## Conectar WhatsApp desde el CLI
+
+Hay dos modos de pairing:
+
+```bash
+# Embedded Signup (Cloud API, abre browser):
+keebai whatsapp connect [--coexistence] [--pipeline-id pip_…]
+
+# QR multi-device (escaneás el QR en la terminal):
+keebai whatsapp connect --qr [--name "WhatsApp Soporte"]
+```
+
+El modo `--qr` dibuja el código en tu terminal, lo refresca automáticamente y al escanearse imprime el `channel_id` del canal nuevo. Detalles del flujo SSE en [POST /v1/channels/whatsapp/connect (modo QR)](/dev/endpoints/channels-whatsapp-connect-qr).
+
+Una vez conectado el canal (sea Cloud API o QR), enviá mensajes con el mismo comando:
+
+```bash
+keebai whatsapp messages send \
+  --from <channel_id-o-numero> \
+  --to +5491155555555 \
+  --text "Hola desde el canal QR"
+```
+
+Internamente el CLI llama `POST /v1/messages/text`, que detecta el tipo de canal (Cloud API vs QR) y hace el routing correspondiente. Templates y bulk no están soportados contra canales QR.

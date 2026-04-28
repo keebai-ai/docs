@@ -5,9 +5,10 @@ description: "Inicia el flow de conexión de un nuevo canal WhatsApp Business de
 openapi: "POST /v1/channels/whatsapp/connect"
 ---
 
-Conectar un canal de WhatsApp Business requiere que un humano complete el [Embedded Signup](https://developers.facebook.com/docs/whatsapp/embedded-signup) de Meta en un browser (Meta lo exige). Este endpoint inicia una **sesión de conexión**: te devolvés una URL del portal de Keebai que el humano abre, completa el signup, y vos pollees el estado hasta que `status: completed`.
+Hay **dos modos** para conectar un canal de WhatsApp:
 
-Es lo que internamente hace `keebai whatsapp connect` del CLI.
+- `mode: "embedded_signup"` (default) — flujo oficial de Meta para WhatsApp Business Cloud API. Requiere que un humano complete el [Embedded Signup](https://developers.facebook.com/docs/whatsapp/embedded-signup) en un browser. Es lo que hace `keebai whatsapp connect`.
+- `mode: "qr"` — pairing por QR multi-dispositivo (sin browser, sin WABA oficial). El endpoint inicia una sesión y devuelve un `stream_url` SSE; el cliente recibe el QR, lo escanea con WhatsApp móvil y, al terminar, recibe el evento `connected` con el `channel_id`. Es lo que hace `keebai whatsapp connect --qr`. Documentado en detalle en [POST /v1/channels/whatsapp/connect (modo QR)](/dev/endpoints/channels-whatsapp-connect-qr).
 
 ## Flow general
 
@@ -46,8 +47,10 @@ curl -X POST https://api.keebai.com/v1/channels/whatsapp/connect \
 
 | Campo | Tipo | Requerido | Descripción |
 |---|---|---|---|
-| `pipeline_id` | string | no | Id del pipeline (embudo) al que asociar el canal nuevo. Si lo omitís, el portal usa el pipeline default de la company. |
-| `coexistence_enabled` | boolean | no | `true` si el número ya está registrado en la WhatsApp Business App tradicional y querés convivencia con Cloud API. Default `false`. |
+| `mode` | `"embedded_signup" \| "qr"` | no | Default `embedded_signup`. Cuando es `qr`, el resto de campos cambian — ver [modo QR](/dev/endpoints/channels-whatsapp-connect-qr). |
+| `pipeline_id` | string | no | (sólo `embedded_signup`) Id del pipeline al que asociar el canal nuevo. Si lo omitís, el portal usa el pipeline default. |
+| `coexistence_enabled` | boolean | no | (sólo `embedded_signup`) `true` si el número ya está registrado en la WhatsApp Business App tradicional y querés convivencia con Cloud API. Default `false`. |
+| `name` | string | no | (sólo `qr`) Etiqueta del canal QR. Default `"WhatsApp QR"`. |
 
 ### Response 201
 
