@@ -1,0 +1,64 @@
+---
+title: "POST /v1/scheduling/appointments/:id/confirm"
+sidebarTitle: "POST appointments/:id/confirm"
+description: "Confirma una cita pasándola de pending a confirmed. Devuelve 409 si la cita no está en pending."
+openapi: "POST /v1/scheduling/appointments/{id}/confirm"
+---
+
+Pasa la cita de `pending` a `confirmed`. La llamada lee primero la cita actual y rechaza con `409` si el estado no es `pending` (no se puede confirmar una cita ya confirmada, completada o cancelada).
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/scheduling/appointments/:id/confirm
+```
+
+## Scope requerido
+
+`scheduling:appointments:confirm`
+
+## Path params
+
+| Param | Tipo | Descripción |
+|---|---|---|
+| `id` | `string` | Id de la cita. |
+
+## Headers
+
+| Header | Requerido | Valor |
+|---|---|---|
+| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
+
+No requiere body.
+
+## Ejemplo de request
+
+```bash
+curl -X POST https://api.keebai.com/v1/scheduling/appointments/9d5b1f4e-7c2a-4a4d-9d3e-9f1b1f8c7a3a/confirm \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+## Respuesta
+
+### 200 OK
+
+Devuelve la cita con `status: "confirmed"`. Estructura idéntica al body de [`GET /appointments/:id`](/dev/endpoints/scheduling-appointment-get).
+
+### 409 Conflict
+
+```json
+{
+  "error": {
+    "code": "INVALID_APPOINTMENT_STATE",
+    "message": "Sólo se puede confirmar una cita en estado 'pending' (estado actual: 'confirmed')."
+  }
+}
+```
+
+### 404 Not Found
+
+La cita no existe o pertenece a otra company.
+
+### 401 Unauthorized · 403 Forbidden
+
+Mismas semánticas que el resto de la API pública.

@@ -1,0 +1,86 @@
+---
+title: "GET /v1/scheduling/services"
+sidebarTitle: "GET services"
+description: "Lista los servicios disponibles del tenant. Soporta filtro por sucursal, búsqueda full-text y filtro por estado."
+openapi: "GET /v1/scheduling/services"
+---
+
+Devuelve los servicios configurados en el tenant resuelto desde el PAT. La búsqueda usa el índice de texto del servicio (`name`, `description`) en español. Los servicios incluyen duración, restricciones horarias y profesionales/recursos permitidos para agendar.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/scheduling/services
+```
+
+## Scope requerido
+
+`scheduling:services:read`
+
+## Query params
+
+| Param | Tipo | Default | Descripción |
+|---|---|---|---|
+| `branchId` | `string` | — | Filtrar servicios disponibles en una sucursal específica. |
+| `search` | `string` | — | Búsqueda full-text sobre nombre y descripción. |
+| `status` | `string` | — | Filtrar por estado del servicio (`active`, `inactive`). |
+| `skip` | `number` | `0` | Offset de paginación. |
+| `limit` | `number` | `50` | Tamaño de página (máximo 200). |
+
+## Ejemplo de request
+
+<CodeGroup>
+
+```bash curl
+curl -G https://api.keebai.com/v1/scheduling/services \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  --data-urlencode "branchId=65a1f2b3c4d5e6f7a8b9c0d1" \
+  --data-urlencode "search=consulta general"
+```
+
+```js JavaScript
+const url = new URL("https://api.keebai.com/v1/scheduling/services");
+url.searchParams.set("branchId", branchId);
+const { items } = await (
+  await fetch(url, {
+    headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` },
+  })
+).json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.get(
+    "https://api.keebai.com/v1/scheduling/services",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    params={"branchId": branch_id, "search": "consulta general"},
+    timeout=10,
+)
+resp.raise_for_status()
+services = resp.json()
+```
+
+</CodeGroup>
+
+## Respuesta
+
+### 200 OK
+
+Lista de servicios. Cada item incluye al menos:
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `_id` | `string` | Id del servicio. Se usa como `service_id` en disponibilidad y al crear citas. |
+| `name` | `string` | Nombre visible del servicio. |
+| `description` | `string` | Descripción libre. |
+| `duration_minutes` | `number` | Duración por defecto en minutos. Define el tamaño del slot. |
+| `bufferBefore` / `bufferAfter` | `number` | Minutos de buffer alrededor del slot. |
+| `time_rules` | `object` | `{ earliest_start, latest_end }` — restringe la franja horaria en la que se puede agendar. |
+| `allowedProfessionals` | `string[]` | Ids de profesionales habilitados para prestar el servicio. |
+| `price` / `currency` | — | Tarifa de referencia. |
+| `status` | `string` | `active` o `inactive`. |
+
+### 401 Unauthorized · 403 Forbidden
+
+Mismas semánticas que el resto de la API pública.

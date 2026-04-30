@@ -51,6 +51,14 @@ El catálogo vive en la colección `api_scopes` de MongoDB. El portal lo consume
 | `knowledge:query` | knowledge | Consultar la base de conocimientos con [búsqueda full-text, vectorial o híbrida](/dev/endpoints/knowledge-search). |
 | `knowledge:assign` | knowledge | [Asignar nodos](/dev/endpoints/knowledge-assign) de la base de conocimientos a los workers de un asistente. |
 | `assistants:read` | assistants | [Listar y buscar asistentes](/dev/endpoints/assistants-list) activos de la company. |
+| `scheduling:branches:read` | scheduling | [Listar sucursales activas](/dev/endpoints/scheduling-branches-list) y [obtener detalle](/dev/endpoints/scheduling-branch-get). |
+| `scheduling:services:read` | scheduling | [Listar servicios](/dev/endpoints/scheduling-services-list) y [detalle](/dev/endpoints/scheduling-service-get) (duración, restricciones, profesionales permitidos). |
+| `scheduling:professionals:read` | scheduling | [Listar profesionales](/dev/endpoints/scheduling-professionals-list) y [detalle](/dev/endpoints/scheduling-professional-get) por sucursal o servicio. |
+| `scheduling:availability:read` | scheduling | Consultar disponibilidad [por fecha](/dev/endpoints/scheduling-availability), [por rango](/dev/endpoints/scheduling-availability-range) y [próximos slots cercanos](/dev/endpoints/scheduling-availability-next). |
+| `scheduling:appointments:read` | scheduling | [Obtener una cita](/dev/endpoints/scheduling-appointment-get) por id dentro del tenant. |
+| `scheduling:appointments:create` | scheduling | [Crear citas](/dev/endpoints/scheduling-appointment-create) con datos del cliente embebidos. |
+| `scheduling:appointments:confirm` | scheduling | [Confirmar citas](/dev/endpoints/scheduling-appointment-confirm) (`pending` → `confirmed`). |
+| `scheduling:appointments:cancel` | scheduling | [Suspender (cancelar) citas](/dev/endpoints/scheduling-appointment-cancel) con razón opcional. |
 
 <Tip>
   La lista que aparece en el modal de **Crear API Key** se carga en vivo desde el backend. Si un scope no está, es porque está marcado como `is_active: false` en la base.
@@ -119,6 +127,16 @@ Asigná solo los scopes que el token realmente necesita. La separación de `mess
     Una app externa consulta la base de conocimientos como retrieval para su propio LLM.
 
     `knowledge:read`, `knowledge:query`.
+  </Card>
+  <Card title="Agendamiento — sólo lectura (catálogo y disponibilidad)">
+    Tu sitio web público o app cliente muestra sucursales, servicios, profesionales y horas disponibles, sin tomar reservas.
+
+    `scheduling:branches:read`, `scheduling:services:read`, `scheduling:professionals:read`, `scheduling:availability:read`.
+  </Card>
+  <Card title="Agendamiento — flujo completo de reserva">
+    Tu integración crea, confirma y suspende citas de extremo a extremo.
+
+    `scheduling:branches:read`, `scheduling:services:read`, `scheduling:professionals:read`, `scheduling:availability:read`, `scheduling:appointments:read`, `scheduling:appointments:create`, `scheduling:appointments:confirm`, `scheduling:appointments:cancel`.
   </Card>
 </CardGroup>
 

@@ -1,0 +1,113 @@
+---
+title: "GET /v1/scheduling/availability"
+sidebarTitle: "GET availability"
+description: "Disponibilidad para una fecha específica. Devuelve los slots libres por profesional para un servicio dado."
+openapi: "GET /v1/scheduling/availability"
+---
+
+Calcula los slots libres para un servicio en una fecha puntual. El motor considera horarios de los profesionales, citas ya agendadas, buffers del servicio (`bufferBefore`, `bufferAfter`) y restricciones horarias (`time_rules.earliest_start`, `time_rules.latest_end`). Si no se especifica `branchId`, se usa la primera sucursal del tenant.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/scheduling/availability
+```
+
+## Scope requerido
+
+`scheduling:availability:read`
+
+## Query params
+
+| Param | Tipo | Requerido | Descripción |
+|---|---|---|---|
+| `serviceId` | `string` | Sí | Servicio a agendar. Define duración y restricciones del slot. |
+| `date` | `string` | Sí | Fecha en formato `YYYY-MM-DD`. Si es anterior a hoy en el tz de la sucursal, devuelve `results: []`. |
+| `branchId` | `string` | No | Sucursal. Si se omite, se usa la primera del tenant. |
+| `professionalId` | `string` | No | Restringir el cálculo a un profesional específico. |
+
+## Ejemplo de request
+
+<CodeGroup>
+
+```bash curl
+curl -G https://api.keebai.com/v1/scheduling/availability \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  --data-urlencode "serviceId=65b1c2d3e4f5a6b7c8d9e0f1" \
+  --data-urlencode "branchId=65a1f2b3c4d5e6f7a8b9c0d1" \
+  --data-urlencode "date=2026-05-02"
+```
+
+```js JavaScript
+const url = new URL("https://api.keebai.com/v1/scheduling/availability");
+url.searchParams.set("serviceId", serviceId);
+url.searchParams.set("branchId", branchId);
+url.searchParams.set("date", "2026-05-02");
+
+const { results } = await (
+  await fetch(url, {
+    headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` },
+  })
+).json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.get(
+    "https://api.keebai.com/v1/scheduling/availability",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    params={
+        "serviceId": service_id,
+        "branchId": branch_id,
+        "date": "2026-05-02",
+    },
+    timeout=10,
+)
+resp.raise_for_status()
+results = resp.json()["results"]
+```
+
+</CodeGroup>
+
+## Respuesta
+
+### 200 OK
+
+```json
+{
+  "results": [
+    {
+      "id": "66c1d2e3f4a5b6c7d8e9f0a1",
+      "name": "María",
+      "last_name": "Soto",
+      "timeSlots": [
+        { "time": "09:00" },
+        { "time": "09:30" },
+        { "time": "10:00" }
+      ]
+    }
+  ]
+}
+```
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `results[].id` | `string` | Id del profesional. |
+| `results[].timeSlots[].time` | `string` | Hora de inicio del slot (`HH:mm`) en el tz de la sucursal. |
+
+### 400 Bad Request
+
+`date` con formato inválido, `serviceId` ausente, sucursal del tenant inexistente.
+
+### 401 Unauthorized · 403 Forbidden
+
+Mismas semánticas que el resto de la API pública.
+
+## Patrones comunes
+
+### UI de selección "fecha → profesional → hora"
+
+1. El usuario elige una fecha.
+2. Tu app llama a `GET /availability?date=<fecha>&serviceId=...&branchId=...`.
+3. La respuesta agrupa los slots por profesional, listo para pintar como columnas o filas.

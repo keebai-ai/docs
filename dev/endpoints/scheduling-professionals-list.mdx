@@ -1,0 +1,76 @@
+---
+title: "GET /v1/scheduling/professionals"
+sidebarTitle: "GET professionals"
+description: "Lista los profesionales del tenant. Filtros por sucursal, servicio prestado, estado y búsqueda full-text por nombre/cargo."
+openapi: "GET /v1/scheduling/professionals"
+---
+
+Devuelve los profesionales del tenant. La búsqueda usa el índice de texto del profesional sobre `name`, `last_name`, `email` y `cargo`, por lo que cubre tanto búsquedas por nombre como por especialidad.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/scheduling/professionals
+```
+
+## Scope requerido
+
+`scheduling:professionals:read`
+
+## Query params
+
+| Param | Tipo | Default | Descripción |
+|---|---|---|---|
+| `branchId` | `string` | — | Filtrar profesionales asignados a una sucursal. |
+| `serviceId` | `string` | — | Filtrar profesionales habilitados para prestar un servicio. |
+| `search` | `string` | — | Búsqueda full-text sobre nombre, apellido, email y cargo. |
+| `status` | `string` | — | `active`, `inactive` o `on_leave`. |
+| `skip` | `number` | `0` | Offset de paginación. |
+| `limit` | `number` | `50` | Tamaño de página (máximo 200). |
+
+## Ejemplo de request
+
+<CodeGroup>
+
+```bash curl
+curl -G https://api.keebai.com/v1/scheduling/professionals \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  --data-urlencode "branchId=65a1f2b3c4d5e6f7a8b9c0d1" \
+  --data-urlencode "serviceId=65b1c2d3e4f5a6b7c8d9e0f1" \
+  --data-urlencode "status=active"
+```
+
+```js JavaScript
+const url = new URL("https://api.keebai.com/v1/scheduling/professionals");
+url.searchParams.set("branchId", branchId);
+url.searchParams.set("serviceId", serviceId);
+url.searchParams.set("status", "active");
+const { items } = await (
+  await fetch(url, {
+    headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` },
+  })
+).json();
+```
+
+</CodeGroup>
+
+## Respuesta
+
+### 200 OK
+
+Cada item incluye al menos:
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `_id` | `string` | Id del profesional. Se usa como `professional_id` en disponibilidad y al crear citas. |
+| `name` / `last_name` | `string` | Nombre completo. |
+| `cargo` | `string` | Rol o cargo. Útil para mostrar en la UI. |
+| `specialties` | `string[]` | Especialidades declaradas. |
+| `email` / `phone` | `string` | Datos de contacto del profesional. |
+| `branches` | `string[]` | Sucursales en las que atiende. |
+| `services` | `string[]` | Servicios que puede prestar. |
+| `status` | `string` | `active`, `inactive` u `on_leave`. |
+
+### 401 Unauthorized · 403 Forbidden
+
+Mismas semánticas que el resto de la API pública.

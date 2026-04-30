@@ -1,0 +1,90 @@
+---
+title: "GET /v1/scheduling/availability/next"
+sidebarTitle: "GET availability/next"
+description: "Próximas horas disponibles más cercanas. Recorre desde una fecha base hasta encontrar N slots libres."
+openapi: "GET /v1/scheduling/availability/next"
+---
+
+Devuelve los próximos slots libres a partir de `fromDate` (default: hoy en el tz de la sucursal), recorriendo hasta `maxDays` días y deteniéndose cuando completa `limit` slots por profesional. Pensado para flujos tipo "primera hora disponible".
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/scheduling/availability/next
+```
+
+## Scope requerido
+
+`scheduling:availability:read`
+
+## Query params
+
+| Param | Tipo | Requerido | Default | Descripción |
+|---|---|---|---|---|
+| `serviceId` | `string` | Sí | — | Servicio a agendar. |
+| `branchId` | `string` | No | primera del tenant | Sucursal. |
+| `professionalId` | `string` | No | — | Restringir a un profesional. |
+| `fromDate` | `string` | No | hoy | Fecha desde la que comenzar a buscar (`YYYY-MM-DD`). |
+| `maxDays` | `number` | No | `14` | Días máximos a recorrer hacia adelante. Rango `1..60`. |
+| `limit` | `number` | No | `5` | Cantidad máxima de slots a devolver por profesional. Rango `1..20`. |
+
+## Ejemplo de request
+
+<CodeGroup>
+
+```bash curl
+curl -G https://api.keebai.com/v1/scheduling/availability/next \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  --data-urlencode "serviceId=65b1c2d3e4f5a6b7c8d9e0f1" \
+  --data-urlencode "branchId=65a1f2b3c4d5e6f7a8b9c0d1" \
+  --data-urlencode "maxDays=14" \
+  --data-urlencode "limit=5"
+```
+
+```js JavaScript
+const url = new URL("https://api.keebai.com/v1/scheduling/availability/next");
+url.searchParams.set("serviceId", serviceId);
+url.searchParams.set("branchId", branchId);
+url.searchParams.set("maxDays", "14");
+url.searchParams.set("limit", "5");
+
+const { results } = await (
+  await fetch(url, {
+    headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` },
+  })
+).json();
+```
+
+</CodeGroup>
+
+## Respuesta
+
+### 200 OK
+
+```json
+{
+  "results": [
+    {
+      "professional": {
+        "id": "66c1d2e3f4a5b6c7d8e9f0a1",
+        "name": "María",
+        "last_name": "Soto"
+      },
+      "slots": [
+        { "date": "2026-05-02", "time": "09:00" },
+        { "date": "2026-05-02", "time": "09:30" },
+        { "date": "2026-05-03", "time": "10:00" }
+      ]
+    }
+  ]
+}
+```
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `results[].professional` | `object` | Profesional con id y nombre. |
+| `results[].slots[]` | `array` | Slots libres ordenados de más cercano a más lejano. |
+
+### 401 Unauthorized · 403 Forbidden
+
+Mismas semánticas que el resto de la API pública.

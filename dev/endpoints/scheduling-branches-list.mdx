@@ -1,0 +1,112 @@
+---
+title: "GET /v1/scheduling/branches"
+sidebarTitle: "GET branches"
+description: "Lista las sucursales activas del tenant. Soporta búsqueda full-text por nombre o display_name (índice de texto en español)."
+openapi: "GET /v1/scheduling/branches"
+---
+
+Devuelve las sucursales con `status: active` del tenant resuelto desde el PAT. La búsqueda usa el índice de texto `branch_text_search` (idioma `spanish`), por lo que tolera plurales y acentos.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/scheduling/branches
+```
+
+## Scope requerido
+
+`scheduling:branches:read`
+
+## Headers
+
+| Header | Requerido | Valor |
+|---|---|---|
+| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
+
+## Query params
+
+| Param | Tipo | Default | Descripción |
+|---|---|---|---|
+| `search` | `string` | — | Búsqueda full-text sobre `name` y `display_name`. |
+| `skip` | `number` | `0` | Offset de paginación. Mínimo `0`. |
+| `limit` | `number` | `50` | Tamaño de página. Rango `1..200`. |
+
+## Ejemplo de request
+
+<CodeGroup>
+
+```bash curl
+curl -G https://api.keebai.com/v1/scheduling/branches \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  --data-urlencode "search=clinica norte" \
+  --data-urlencode "limit=20"
+```
+
+```js JavaScript
+const url = new URL("https://api.keebai.com/v1/scheduling/branches");
+url.searchParams.set("search", "clinica norte");
+url.searchParams.set("limit", "20");
+
+const response = await fetch(url, {
+  headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` },
+});
+const { items } = await response.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.get(
+    "https://api.keebai.com/v1/scheduling/branches",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    params={"search": "clinica norte", "limit": 20},
+    timeout=10,
+)
+resp.raise_for_status()
+print(resp.json()["items"])
+```
+
+</CodeGroup>
+
+## Respuesta
+
+### 200 OK
+
+```json
+{
+  "total": 3,
+  "skip": 0,
+  "limit": 20,
+  "items": [
+    {
+      "id": "65a1f2b3c4d5e6f7a8b9c0d1",
+      "name": "Clínica Norte",
+      "display_name": "Norte",
+      "description": "Sede principal en Vitacura",
+      "address": {
+        "street": "Av. Apoquindo 1234",
+        "city": "Santiago",
+        "region": "RM",
+        "country": "CL"
+      },
+      "contact": { "phone": "+56229999999", "email": "norte@clinica.cl" },
+      "timezone": "America/Santiago",
+      "status": "active"
+    }
+  ]
+}
+```
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `total` | `number` | Total de sucursales que matchean los filtros (sin paginar). |
+| `items[].id` | `string` | `ObjectId` de la sucursal. Se usa como `branch_id` en disponibilidad y citas. |
+| `items[].timezone` | `string` | Zona horaria de la sucursal. Toda la disponibilidad y las citas se calculan respecto a este tz. |
+
+### 401 Unauthorized
+
+Token ausente, inválido, revocado o expirado.
+
+### 403 Forbidden
+
+El token no tiene el scope `scheduling:branches:read`.

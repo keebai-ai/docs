@@ -1,0 +1,59 @@
+---
+title: "GET /v1/scheduling/services/:id"
+sidebarTitle: "GET services/:id"
+description: "Obtiene el detalle completo de un servicio: duración, buffers, restricciones horarias y profesionales permitidos."
+openapi: "GET /v1/scheduling/services/{id}"
+---
+
+Devuelve el detalle del servicio indicado siempre que pertenezca al tenant del PAT. Incluye los campos necesarios para construir un selector de servicio en una UI pública (duración, descripción, precios) y los datos que el motor de disponibilidad usa internamente (`time_rules`, `allowedProfessionals`).
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/scheduling/services/:id
+```
+
+## Scope requerido
+
+`scheduling:services:read`
+
+## Path params
+
+| Param | Tipo | Descripción |
+|---|---|---|
+| `id` | `string` | Id del servicio. |
+
+## Ejemplo de request
+
+```bash
+curl https://api.keebai.com/v1/scheduling/services/65b1c2d3e4f5a6b7c8d9e0f1 \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+## Respuesta
+
+### 200 OK
+
+```json
+{
+  "_id": "65b1c2d3e4f5a6b7c8d9e0f1",
+  "name": "Consulta general",
+  "description": "Atención de medicina general 30 minutos.",
+  "duration_minutes": 30,
+  "bufferBefore": 0,
+  "bufferAfter": 5,
+  "time_rules": { "earliest_start": "09:00", "latest_end": "19:00" },
+  "allowedProfessionals": ["66c1...", "66c2..."],
+  "price": 25000,
+  "currency": "CLP",
+  "status": "active"
+}
+```
+
+### 404 Not Found
+
+El servicio no existe o pertenece a otra company.
+
+### 401 Unauthorized · 403 Forbidden
+
+Mismas semánticas que el resto de la API pública.

@@ -1,0 +1,165 @@
+---
+title: "POST /v1/scheduling/appointments"
+sidebarTitle: "POST appointments"
+description: "Crea una cita en estado pending con datos del cliente embebidos. Keebai genera el id (UUID)."
+openapi: "POST /v1/scheduling/appointments"
+---
+
+Crea una cita nueva. La cita queda en estado `pending` y debe ser confirmada explícitamente con [`POST /appointments/:id/confirm`](/dev/endpoints/scheduling-appointment-confirm). El `_id` lo genera Keebai (UUID v4) y se devuelve en la respuesta.
+
+El cliente (`customer`) va embebido en el body — no se requiere crear un Customer previamente. Si el servicio define `duration_minutes`, podés omitir `end_time` y Keebai lo calcula a partir de `start_time + duration`.
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/scheduling/appointments
+```
+
+## Scope requerido
+
+`scheduling:appointments:create`
+
+## Headers
+
+| Header | Requerido | Valor |
+|---|---|---|
+| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Sí | `application/json` |
+
+## Body
+
+| Campo | Tipo | Requerido | Descripción |
+|---|---|---|---|
+| `branch_id` | `string` | Sí | Sucursal donde se agenda. |
+| `service_id` | `string` | Sí | Servicio a prestar. |
+| `professional_id` | `string` | No | Profesional asignado. Si se omite, scheduling resuelve uno disponible. |
+| `date` | `string` | Sí | Fecha (`YYYY-MM-DD`). |
+| `start_time` | `string` | Sí | Hora de inicio (`HH:mm`) en el tz de la sucursal. |
+| `end_time` | `string` | No | Hora de fin (`HH:mm`). Si se omite, se calcula desde la duración del servicio. |
+| `customer.name` | `string` | Sí | Nombre del cliente. |
+| `customer.last_name` | `string` | No | Apellido. |
+| `customer.email` | `string` | No | Email válido. |
+| `customer.phone` | `string` | No | Teléfono. |
+| `notes` | `string` | No | Notas internas (máximo 1000 caracteres). |
+| `price` | `number` | No | Tarifa específica de esta cita. Override del precio del servicio. |
+| `currency` | `string` | No | Moneda en formato ISO 4217 (`CLP`, `USD`, etc.). |
+
+## Ejemplo de request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/scheduling/appointments \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "branch_id": "65a1f2b3c4d5e6f7a8b9c0d1",
+    "service_id": "65b1c2d3e4f5a6b7c8d9e0f1",
+    "professional_id": "66c1d2e3f4a5b6c7d8e9f0a1",
+    "date": "2026-05-02",
+    "start_time": "10:00",
+    "customer": {
+      "name": "Juan",
+      "last_name": "Pérez",
+      "phone": "+56912345678",
+      "email": "juan@example.com"
+    },
+    "notes": "Primera consulta"
+  }'
+```
+
+```js JavaScript
+const response = await fetch(
+  "https://api.keebai.com/v1/scheduling/appointments",
+  {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      branch_id: branchId,
+      service_id: serviceId,
+      professional_id: professionalId,
+      date: "2026-05-02",
+      start_time: "10:00",
+      customer: { name: "Juan", phone: "+56912345678" },
+    }),
+  },
+);
+const appointment = await response.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/scheduling/appointments",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={
+        "branch_id": branch_id,
+        "service_id": service_id,
+        "professional_id": professional_id,
+        "date": "2026-05-02",
+        "start_time": "10:00",
+        "customer": {"name": "Juan", "phone": "+56912345678"},
+    },
+    timeout=10,
+)
+resp.raise_for_status()
+appointment = resp.json()
+```
+
+</CodeGroup>
+
+## Respuesta
+
+### 201 Created
+
+Devuelve la cita recién creada con su `_id` y `status: "pending"`. Estructura idéntica al body de [`GET /appointments/:id`](/dev/endpoints/scheduling-appointment-get).
+
+### 400 Bad Request
+
+Body inválido (formatos de fecha/hora incorrectos, campos faltantes, email mal formado).
+
+### 409 Conflict
+
+El slot solicitado ya está ocupado o entra en conflicto con otra cita / regla del servicio. El body incluye el motivo:
+
+```json
+{
+  "error": {
+    "code": "SLOT_NOT_AVAILABLE",
+    "message": "El profesional no tiene disponibilidad para el horario solicitado."
+  }
+}
+```
+
+### 401 Unauthorized · 403 Forbidden
+
+Mismas semánticas que el resto de la API pública.
+
+## Patrones comunes
+
+### Reserva 1 sola vez con confirmación inmediata
+
+Si tu integración valida la cita en el mismo paso, encadená el `create` con `confirm`:
+
+```python
+appointment = requests.post(
+    "https://api.keebai.com/v1/scheduling/appointments",
+    headers=auth_headers,
+    json=payload,
+    timeout=10,
+).json()
+
+requests.post(
+    f"https://api.keebai.com/v1/scheduling/appointments/{appointment['_id']}/confirm",
+    headers=auth_headers,
+    timeout=10,
+).raise_for_status()
+```
+
+### Reserva con confirmación diferida (cliente debe confirmar)
+
+Dejar la cita en `pending` permite implementar flujos de "confirma tu cita en las próximas 2 horas" (típico cuando hay pago externo o validación humana).

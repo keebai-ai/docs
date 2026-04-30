@@ -1,0 +1,116 @@
+---
+title: "GET /v1/scheduling/availability/range"
+sidebarTitle: "GET availability/range"
+description: "Disponibilidad agrupada día a día entre dos fechas. Útil para alimentar un calendario semanal o quincenal."
+openapi: "GET /v1/scheduling/availability/range"
+---
+
+Devuelve los slots libres para cada día entre `from` y `to` (ambos inclusive). Internamente expande el rango y consulta cada fecha en paralelo. El rango está limitado a **14 días** para acotar el costo por request.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/scheduling/availability/range
+```
+
+## Scope requerido
+
+`scheduling:availability:read`
+
+## Query params
+
+| Param | Tipo | Requerido | Descripción |
+|---|---|---|---|
+| `serviceId` | `string` | Sí | Servicio a agendar. |
+| `from` | `string` | Sí | Fecha inicial (`YYYY-MM-DD`). |
+| `to` | `string` | Sí | Fecha final (`YYYY-MM-DD`). Debe ser `>= from` y abarcar como máximo 14 días. |
+| `branchId` | `string` | No | Sucursal. Si se omite, se usa la primera del tenant. |
+| `professionalId` | `string` | No | Restringir el cálculo a un profesional. |
+
+## Ejemplo de request
+
+<CodeGroup>
+
+```bash curl
+curl -G https://api.keebai.com/v1/scheduling/availability/range \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  --data-urlencode "serviceId=65b1c2d3e4f5a6b7c8d9e0f1" \
+  --data-urlencode "branchId=65a1f2b3c4d5e6f7a8b9c0d1" \
+  --data-urlencode "from=2026-05-02" \
+  --data-urlencode "to=2026-05-08"
+```
+
+```python Python
+import os, requests
+
+resp = requests.get(
+    "https://api.keebai.com/v1/scheduling/availability/range",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    params={
+        "serviceId": service_id,
+        "branchId": branch_id,
+        "from": "2026-05-02",
+        "to": "2026-05-08",
+    },
+    timeout=15,
+)
+resp.raise_for_status()
+days = resp.json()["days"]
+```
+
+</CodeGroup>
+
+## Respuesta
+
+### 200 OK
+
+```json
+{
+  "from": "2026-05-02",
+  "to": "2026-05-08",
+  "days": [
+    {
+      "date": "2026-05-02",
+      "results": [
+        {
+          "id": "66c1...",
+          "name": "María",
+          "last_name": "Soto",
+          "timeSlots": [{ "time": "09:00" }, { "time": "09:30" }]
+        }
+      ]
+    },
+    {
+      "date": "2026-05-03",
+      "results": []
+    }
+  ]
+}
+```
+
+Cada elemento de `days` tiene la misma forma que el body de [`GET /availability`](/dev/endpoints/scheduling-availability).
+
+Si una de las fechas falla individualmente (timeout o error de upstream para ese día puntual), se devuelve `results: []` para esa fecha y el resto del rango sigue resolviendo. El error se loggea del lado de Keebai.
+
+### 409 Conflict
+
+```json
+{
+  "error": {
+    "code": "INVALID_DATE_RANGE",
+    "message": "El rango no puede exceder 14 días"
+  }
+}
+```
+
+Se devuelve también si `to < from` o si las fechas no son válidas.
+
+### 401 Unauthorized · 403 Forbidden
+
+Mismas semánticas que el resto de la API pública.
+
+## Patrones comunes
+
+### Calendario semanal con disponibilidad
+
+Llamá una vez por semana visible y cacheá el resultado por (servicio, sucursal, profesional, semana). Cuando se cree o cancele una cita, invalidá la entrada de cache correspondiente.

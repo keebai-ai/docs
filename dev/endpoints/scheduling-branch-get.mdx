@@ -1,0 +1,82 @@
+---
+title: "GET /v1/scheduling/branches/:id"
+sidebarTitle: "GET branches/:id"
+description: "Obtiene el detalle de una sucursal por id. Devuelve 404 si no pertenece al tenant resuelto desde el PAT."
+openapi: "GET /v1/scheduling/branches/{id}"
+---
+
+Devuelve la sucursal indicada siempre que pertenezca al tenant del PAT. La consulta filtra por `company` además de `_id`, así que un id válido de otro tenant responde `404`.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/scheduling/branches/:id
+```
+
+## Scope requerido
+
+`scheduling:branches:read`
+
+## Path params
+
+| Param | Tipo | Descripción |
+|---|---|---|
+| `id` | `string` | `ObjectId` de la sucursal. |
+
+## Ejemplo de request
+
+<CodeGroup>
+
+```bash curl
+curl https://api.keebai.com/v1/scheduling/branches/65a1f2b3c4d5e6f7a8b9c0d1 \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+```js JavaScript
+const response = await fetch(
+  `https://api.keebai.com/v1/scheduling/branches/${branchId}`,
+  { headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` } },
+);
+const branch = await response.json();
+```
+
+</CodeGroup>
+
+## Respuesta
+
+### 200 OK
+
+```json
+{
+  "id": "65a1f2b3c4d5e6f7a8b9c0d1",
+  "name": "Clínica Norte",
+  "display_name": "Norte",
+  "description": "Sede principal en Vitacura",
+  "address": {
+    "street": "Av. Apoquindo 1234",
+    "city": "Santiago",
+    "region": "RM",
+    "country": "CL"
+  },
+  "contact": { "phone": "+56229999999", "email": "norte@clinica.cl" },
+  "timezone": "America/Santiago",
+  "status": "active"
+}
+```
+
+### 404 Not Found
+
+```json
+{
+  "error": {
+    "code": "BRANCH_NOT_FOUND",
+    "message": "Branch <id> no encontrado"
+  }
+}
+```
+
+Se devuelve 404 también cuando el id existe en otra company.
+
+### 401 Unauthorized · 403 Forbidden
+
+Mismas semánticas que el resto de la API pública.

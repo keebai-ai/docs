@@ -214,6 +214,44 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "Agendamiento",
+        "icon": "calendar-check",
+        "openapi": {
+          "source": "https://api.keebai.com/v1/docs-json",
+          "directory": "_openapi/scheduling"
+        },
+        "groups": [
+          {
+            "group": "Recursos",
+            "pages": [
+              "dev/endpoints/scheduling-branches-list",
+              "dev/endpoints/scheduling-branch-get",
+              "dev/endpoints/scheduling-services-list",
+              "dev/endpoints/scheduling-service-get",
+              "dev/endpoints/scheduling-professionals-list",
+              "dev/endpoints/scheduling-professional-get"
+            ]
+          },
+          {
+            "group": "Disponibilidad",
+            "pages": [
+              "dev/endpoints/scheduling-availability",
+              "dev/endpoints/scheduling-availability-range",
+              "dev/endpoints/scheduling-availability-next"
+            ]
+          },
+          {
+            "group": "Citas",
+            "pages": [
+              "dev/endpoints/scheduling-appointment-get",
+              "dev/endpoints/scheduling-appointment-create",
+              "dev/endpoints/scheduling-appointment-confirm",
+              "dev/endpoints/scheduling-appointment-cancel"
+            ]
+          }
+        ]
       }
     ],
     "global": {

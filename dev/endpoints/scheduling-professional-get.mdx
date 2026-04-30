@@ -1,0 +1,59 @@
+---
+title: "GET /v1/scheduling/professionals/:id"
+sidebarTitle: "GET professionals/:id"
+description: "Obtiene el detalle completo de un profesional: sucursales asignadas, servicios habilitados, especialidades y estado."
+openapi: "GET /v1/scheduling/professionals/{id}"
+---
+
+Devuelve el detalle del profesional indicado siempre que pertenezca al tenant del PAT.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/scheduling/professionals/:id
+```
+
+## Scope requerido
+
+`scheduling:professionals:read`
+
+## Path params
+
+| Param | Tipo | Descripción |
+|---|---|---|
+| `id` | `string` | Id del profesional. |
+
+## Ejemplo de request
+
+```bash
+curl https://api.keebai.com/v1/scheduling/professionals/66c1d2e3f4a5b6c7d8e9f0a1 \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+## Respuesta
+
+### 200 OK
+
+```json
+{
+  "_id": "66c1d2e3f4a5b6c7d8e9f0a1",
+  "name": "María",
+  "last_name": "Soto",
+  "cargo": "Médica general",
+  "specialties": ["medicina general", "pediatría"],
+  "email": "maria.soto@clinica.cl",
+  "phone": "+56999999999",
+  "avatar": "https://cdn.keebai.com/avatars/...",
+  "branches": ["65a1f2b3c4d5e6f7a8b9c0d1"],
+  "services": ["65b1c2d3e4f5a6b7c8d9e0f1"],
+  "status": "active"
+}
+```
+
+### 404 Not Found
+
+El profesional no existe o pertenece a otra company.
+
+### 401 Unauthorized · 403 Forbidden
+
+Mismas semánticas que el resto de la API pública.

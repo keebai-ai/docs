@@ -1,0 +1,77 @@
+---
+title: "GET /v1/scheduling/appointments/:id"
+sidebarTitle: "GET appointments/:id"
+description: "Obtiene el detalle de una cita por id. Devuelve 404 si pertenece a otra company."
+openapi: "GET /v1/scheduling/appointments/{id}"
+---
+
+Devuelve la cita indicada siempre que pertenezca al tenant del PAT.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/scheduling/appointments/:id
+```
+
+## Scope requerido
+
+`scheduling:appointments:read`
+
+## Path params
+
+| Param | Tipo | Descripción |
+|---|---|---|
+| `id` | `string` | Id de la cita (UUID generado al crearla). |
+
+## Ejemplo de request
+
+```bash
+curl https://api.keebai.com/v1/scheduling/appointments/9d5b1f4e-7c2a-4a4d-9d3e-9f1b1f8c7a3a \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+## Respuesta
+
+### 200 OK
+
+```json
+{
+  "_id": "9d5b1f4e-7c2a-4a4d-9d3e-9f1b1f8c7a3a",
+  "company": "65a0...",
+  "branch": { "id": "65a1f2b3c4d5e6f7a8b9c0d1", "name": "Norte" },
+  "service": { "id": "65b1...", "name": "Consulta general" },
+  "professional": { "id": "66c1...", "name": "María", "last_name": "Soto" },
+  "customer": {
+    "name": "Juan",
+    "last_name": "Pérez",
+    "email": "juan@example.com",
+    "phone": "+56912345678"
+  },
+  "dates": {
+    "start": "2026-05-02T13:00:00.000Z",
+    "end": "2026-05-02T13:30:00.000Z",
+    "timezone": "America/Santiago"
+  },
+  "status": "confirmed",
+  "payment_status": "pending",
+  "notes": "Primera consulta",
+  "price": 25000,
+  "currency": "CLP",
+  "created_at": "2026-04-29T12:00:00.000Z",
+  "updated_at": "2026-04-29T12:01:00.000Z"
+}
+```
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `status` | `string` | `pending`, `confirmed`, `completed`, `cancelled`, `blocked`, `waitlist`. |
+| `payment_status` | `string` | `pending`, `paid`, `partial`, `refunded`, `cancelled`. |
+| `dates.timezone` | `string` | Tz de la sucursal en la que se agendó la cita. |
+
+### 404 Not Found
+
+La cita no existe o pertenece a otra company.
+
+### 401 Unauthorized · 403 Forbidden
+
+Mismas semánticas que el resto de la API pública.

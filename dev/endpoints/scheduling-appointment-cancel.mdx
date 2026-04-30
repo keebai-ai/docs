@@ -1,0 +1,89 @@
+---
+title: "POST /v1/scheduling/appointments/:id/cancel"
+sidebarTitle: "POST appointments/:id/cancel"
+description: "Suspende (cancela) una cita con razón opcional. Marca status como cancelled y graba cancelled_at."
+openapi: "POST /v1/scheduling/appointments/{id}/cancel"
+---
+
+Marca la cita como cancelada. Persiste `cancelled_at: <ahora>` y `cancellation_reason` si se envía. Liberar el slot del calendario es automático: a partir de este momento el horario vuelve a aparecer como disponible.
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/scheduling/appointments/:id/cancel
+```
+
+## Scope requerido
+
+`scheduling:appointments:cancel`
+
+## Path params
+
+| Param | Tipo | Descripción |
+|---|---|---|
+| `id` | `string` | Id de la cita. |
+
+## Headers
+
+| Header | Requerido | Valor |
+|---|---|---|
+| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Sí (si envía body) | `application/json` |
+
+## Body
+
+| Campo | Tipo | Requerido | Descripción |
+|---|---|---|---|
+| `reason` | `string` | No | Motivo de cancelación (máx. 500 caracteres). Se persiste en `cancellation_reason`. |
+
+## Ejemplo de request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/scheduling/appointments/9d5b1f4e-7c2a-4a4d-9d3e-9f1b1f8c7a3a/cancel \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{ "reason": "Cliente no puede asistir" }'
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    f"https://api.keebai.com/v1/scheduling/appointments/{appointment_id}/cancel",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={"reason": "Cliente no puede asistir"},
+    timeout=10,
+)
+resp.raise_for_status()
+```
+
+</CodeGroup>
+
+## Respuesta
+
+### 200 OK
+
+Devuelve la cita con `status: "cancelled"`, `cancelled_at` y `cancellation_reason` poblados.
+
+### 404 Not Found
+
+La cita no existe o pertenece a otra company.
+
+### 409 Conflict
+
+```json
+{
+  "error": {
+    "code": "INVALID_APPOINTMENT_STATE",
+    "message": "La cita ya está cancelada"
+  }
+}
+```
+
+Otros estados (por ejemplo `completed`) también devuelven 409 si no admiten cancelación.
+
+### 401 Unauthorized · 403 Forbidden
+
+Mismas semánticas que el resto de la API pública.
