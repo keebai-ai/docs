@@ -1,0 +1,187 @@
+---
+title: "CLI"
+sidebarTitle: "CLI"
+description: "@keebai/cli — herramienta oficial de línea de comandos para autenticarte, conectar canales WhatsApp Business, gestionar Personal Access Tokens (PAT) y enviar mensajes desde la terminal."
+---
+
+CLI oficial de Keebai. Es lo más rápido para conseguir tu primer PAT (`kbai_pk_...`), conectar un canal de WhatsApp Business y mandar un mensaje de prueba sin tocar el portal ni escribir código.
+
+```bash
+npm install -g @keebai/cli
+keebai login
+keebai whatsapp connect
+keebai whatsapp messages send --from <channel> --to +5491155555555 --text "hola"
+```
+
+## Por qué usarlo
+
+<CardGroup cols={2}>
+  <Card title="Auth en un comando" icon="key">
+    `keebai login` corre el flow OAuth Device Authorization (RFC 8628), abre el navegador y guarda tu PAT en `~/.keebai/credentials.json` con permisos `0600`.
+  </Card>
+  <Card title="Conectar WhatsApp sin portal" icon="plug">
+    `keebai whatsapp connect` lanza Meta Embedded Signup, o `--qr` para pairing vía QR multi-device. Sin pasar por la UI.
+  </Card>
+  <Card title="Enviar mensajes desde tu shell" icon="terminal">
+    Texto libre, templates con variables, metadata custom — todo desde `keebai whatsapp messages send`.
+  </Card>
+  <Card title="Mismo token para todo" icon="link">
+    El PAT que emite la CLI funciona en el SDK, en `curl` y en cualquier cliente HTTP contra `api.keebai.com/v1`.
+  </Card>
+</CardGroup>
+
+## Instalación
+
+```bash
+npm install -g @keebai/cli
+```
+
+Requiere Node.js **20+**. Tras la instalación, el binario `keebai` queda en tu `PATH`.
+
+Sin instalación global:
+
+```bash
+npx @keebai/cli@latest login
+```
+
+## Autenticación
+
+`keebai login` corre el flow [OAuth 2.0 Device Authorization Grant (RFC 8628)](https://datatracker.ietf.org/doc/html/rfc8628):
+
+1. La CLI pide un `device_code` y `user_code` a la public API.
+2. Tu navegador abre en `https://developers.keebai.com/cli?code=ABCD-1234`.
+3. Te logueás en el portal de developers (si no lo estás) y confirmás el request.
+4. La CLI termina el polling y guarda el PAT (`kbai_pk_...`) en `~/.keebai/credentials.json` con modo `0600`.
+
+```bash
+keebai login                            # interactivo — abre el navegador
+keebai login --no-browser               # headless — imprime la URL para abrir manual
+keebai login --scope "messages:write webhooks:read"
+```
+
+Para CI / contextos no interactivos, podés saltearte `login` e inyectar un PAT de larga duración vía variable de entorno. Tiene prioridad sobre los credentials guardados en disco:
+
+```bash
+export KEEBAI_API_TOKEN=kbai_pk_xxxxxxxxxxxx
+keebai whoami
+```
+
+## Comandos
+
+### Auth
+
+| Comando | Descripción |
+|---|---|
+| `keebai login` | Device flow; guarda el PAT local en `~/.keebai/credentials.json`. |
+| `keebai whoami` | Muestra el usuario, company y scopes del token activo. |
+| `keebai logout` | Revoca el PAT server-side y borra credenciales locales. `--local-only` skipea el revoke. |
+
+### WhatsApp
+
+| Comando | Descripción |
+|---|---|
+| `keebai whatsapp connect` | Conecta un canal WhatsApp Business vía Meta Embedded Signup (browser). |
+| `keebai whatsapp connect --qr` | Pairea un canal vía QR en terminal (multi-device). Sin navegador. |
+| `keebai whatsapp numbers list` | Lista los números WhatsApp conectados a tu company. |
+| `keebai whatsapp messages send` | Envía texto libre o un template aprobado. |
+
+#### Conectar un canal (Embedded Signup)
+
+```bash
+keebai whatsapp connect
+keebai whatsapp connect --coexistence            # el número ya corre la app WhatsApp Business
+keebai whatsapp connect --pipeline-id <id>       # asociar a un pipeline existente
+```
+
+#### Conectar un canal (QR multi-device)
+
+```bash
+keebai whatsapp connect --qr
+keebai whatsapp connect --qr --name "Linea de ventas"
+```
+
+#### Enviar mensajes
+
+`--from` acepta un `channel_id` (24-hex), un `phone_number_id`, o el número en E.164.
+
+Texto libre (solo dentro de la ventana de 24h):
+
+```bash
+keebai whatsapp messages send \
+  --from +5491155555555 \
+  --to +5491166666666 \
+  --text "hola, ya te respondemos"
+```
+
+Template aprobado:
+
+```bash
+keebai whatsapp messages send \
+  --from <channel_id> \
+  --to +5491166666666 \
+  --template welcome_v2 \
+  --language es \
+  --var nombre=Lucio --var monto=1500
+```
+
+Metadata libre para automatizaciones downstream:
+
+```bash
+keebai whatsapp messages send \
+  --from <channel_id> --to +5491166666666 --text "ping" \
+  --meta '{"source":"crm","ticket":"T-123"}'
+```
+
+## Usar tu token directamente
+
+Tras `keebai login`, el PAT vive en `~/.keebai/credentials.json` en el campo `access_token`. Usalo como Bearer contra `https://api.keebai.com/v1/...`:
+
+```bash
+TOKEN=$(jq -r .access_token ~/.keebai/credentials.json)
+
+curl https://api.keebai.com/v1/me \
+  -H "Authorization: Bearer $TOKEN"
+
+curl https://api.keebai.com/v1/webhooks \
+  -H "Authorization: Bearer $TOKEN"
+
+curl https://api.keebai.com/v1/messages/template \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"phone_number_id":"...","to":"+5491155555555","template_name":"welcome","language":"es"}'
+```
+
+## Opciones globales
+
+| Flag | Descripción |
+|---|---|
+| `--output <pretty\|json>` | Formato de output. Default: `pretty`. Usá `json` para parsing programático. |
+| `--no-browser` | No abre el navegador automáticamente en login o connect. |
+| `--verbose` | Logs verbosos a stderr para diagnóstico. |
+
+## Variables de entorno
+
+| Variable | Para qué |
+|---|---|
+| `KEEBAI_API_TOKEN` | Inyectá un PAT para uso no interactivo (CI). Tiene prioridad sobre `~/.keebai/credentials.json`. |
+
+## Endpoints que toca la CLI
+
+La CLI habla exclusivamente contra `https://api.keebai.com/v1/...`. Los browser flows (aprobación de login, connect de canal) suceden en `https://developers.keebai.com/cli` y `https://connect.keebai.com/connect/whatsapp` respectivamente.
+
+## Recursos
+
+<CardGroup cols={2}>
+  <Card title="npm: @keebai/cli" icon="npm" href="https://www.npmjs.com/package/@keebai/cli">
+    Última versión, changelog, install stats.
+  </Card>
+  <Card title="SDK TypeScript" icon="code" href="/dev/sdks/typescript">
+    Mismo PAT funciona en el SDK para integraciones de código.
+  </Card>
+  <Card title="Agent Skills" icon="robot" href="/dev/sdks/agent-skills">
+    Skill `integrate-keebai-whatsapp` para agentes IA que usan este SDK.
+  </Card>
+  <Card title="API Keys" icon="key" href="/dev/api-keys">
+    Cómo crear, listar y revocar tokens desde el portal (alternativa a `keebai login`).
+  </Card>
+</CardGroup>

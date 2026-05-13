@@ -31,66 +31,6 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Docs",
-        "icon": "book-open",
-        "groups": [
-          {
-            "group": "Inicio",
-            "pages": [
-              "index",
-              "get-started",
-              "dashboard/overview",
-              "embudo/overview"
-            ]
-          },
-          {
-            "group": "Chat",
-            "pages": [
-              "chat/overview"
-            ]
-          },
-          {
-            "group": "IA & Asistentes",
-            "pages": [
-              "ia-asistentes/mis-asistentes",
-              "ia-asistentes/mis-conocimientos",
-              "ia-asistentes/integraciones",
-              "ia-asistentes/mis-funciones"
-            ]
-          },
-          {
-            "group": "Canales",
-            "pages": [
-              "canales/mis-canales",
-              "canales/webchat",
-              "canales/difusion-masiva",
-              "canales/templates",
-              "canales/flows"
-            ]
-          },
-          {
-            "group": "CRM",
-            "pages": [
-              "crm/pipelines",
-              "crm/tickets",
-              "crm/clientes",
-              "crm/fusionar-contactos",
-              "crm/tareas",
-              "crm/campos",
-              "crm/tags",
-              "crm/configurar-ticket",
-              "crm/lead-ads"
-            ]
-          },
-          {
-            "group": "Configuraciones",
-            "pages": [
-              "configuraciones/overview"
-            ]
-          }
-        ]
-      },
-      {
         "tab": "Autenticación",
         "icon": "shield-check",
         "openapi": {
@@ -101,6 +41,7 @@
           {
             "group": "Empezar",
             "pages": [
+              "index",
               "dev/overview",
               "dev/quickstart"
             ]
@@ -123,6 +64,14 @@
             "group": "Operación",
             "pages": [
               "dev/rate-limits"
+            ]
+          },
+          {
+            "group": "SDKs y herramientas",
+            "pages": [
+              "dev/sdks/typescript",
+              "dev/sdks/cli",
+              "dev/sdks/agent-skills"
             ]
           }
         ]

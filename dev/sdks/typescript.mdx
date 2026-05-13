@@ -1,0 +1,318 @@
+---
+title: "SDK TypeScript"
+sidebarTitle: "TypeScript SDK"
+description: "@keebai/sdk — cliente TypeScript oficial de Keebai para WhatsApp. Un solo cliente tipado, dos modos: directo a Meta Cloud API o a través de la plataforma Keebai con un PAT."
+---
+
+El SDK oficial de Keebai para Node.js / TypeScript / runtimes modernos. Te ahorra escribir tu propia capa HTTP contra Meta Graph API o contra `api.keebai.com/v1`.
+
+```ts
+import { WhatsAppClient } from "@keebai/sdk";
+
+const wa = new WhatsAppClient({
+  apiKey: process.env.KEEBAI_API_KEY!,        // kbai_pk_<hex64>
+  phoneNumberId: process.env.KEEBAI_PHONE_NUMBER_ID!,
+});
+
+await wa.messages.sendText({
+  to: "+5491155555555",
+  body: "Hola desde Keebai",
+});
+```
+
+Eso es todo.
+
+## Por qué usarlo
+
+<CardGroup cols={2}>
+  <Card title="Un cliente, dos modos" icon="arrows-split-up-and-left">
+    Pasás `apiKey` y va contra Keebai con persistencia, dashboards, broadcasts y webhooks normalizados. Pasás `accessToken` y va directo a Meta Graph API. Misma superficie de métodos en ambos.
+  </Card>
+  <Card title="Cobertura completa de WhatsApp" icon="message">
+    Texto, media (imagen, video, audio, documento, sticker), location, contact cards, reactions, mark-read, interactive (buttons, list, CTA URL, catalog), templates y broadcasts.
+  </Card>
+  <Card title="TypeScript estricto" icon="code">
+    Tipado completo: inputs, responses, errores. Autocompletado en VS Code, Cursor o cualquier IDE LSP-aware. Build dual ESM + CJS + `.d.ts`.
+  </Card>
+  <Card title="Retries y timeouts" icon="rotate-right">
+    Backoff exponencial automático en 429, 5xx y errores de red. Timeout configurable. Normaliza errores de Keebai y Meta a la misma clase.
+  </Card>
+</CardGroup>
+
+## Instalación
+
+```bash
+npm install @keebai/sdk
+# o
+pnpm add @keebai/sdk
+# o
+yarn add @keebai/sdk
+```
+
+Requiere Node.js 20+ (usa `fetch`, `FormData` y `Blob` globales). Funciona también en runtimes edge (Vercel Edge, Cloudflare Workers, Deno, Bun) y en navegadores modernos.
+
+## Configuración
+
+Setear credenciales por variables de entorno:
+
+```bash
+export KEEBAI_API_KEY=kbai_pk_<hex64>        # desde app.keebai.com → System Settings → API Keys
+export KEEBAI_PHONE_NUMBER_ID=<numeric>       # phone_number_id del canal WhatsApp Cloud API
+export KEEBAI_BASE_URL=https://api.keebai.com/v1   # opcional; default
+```
+
+Instanciar el cliente:
+
+```ts
+import { WhatsAppClient } from "@keebai/sdk";
+
+const wa = new WhatsAppClient({
+  apiKey: process.env.KEEBAI_API_KEY!,
+  phoneNumberId: process.env.KEEBAI_PHONE_NUMBER_ID!,
+});
+```
+
+## Los dos modos
+
+| Modo | Credencial | Backend | Cuándo |
+|---|---|---|---|
+| `keebai` *(default)* | `apiKey: kbai_pk_...` | `https://api.keebai.com/v1` | Estás sobre la plataforma Keebai. Persistencia, multi-tenant, broadcasts, webhooks, dashboards. |
+| `meta` | `accessToken: EAA...` | `https://graph.facebook.com/v21.0` | Tenés tu propia WhatsApp Business Account y querés ir directo a Meta. |
+
+El cliente infiere el modo según la credencial. Mismos nombres de método, mismos tipos de retorno, mismo modelo de errores — solo cambia el transporte.
+
+```ts
+// Meta directo
+const wa = new WhatsAppClient({
+  accessToken: process.env.META_ACCESS_TOKEN!,
+  phoneNumberId: process.env.META_PHONE_NUMBER_ID!,
+});
+```
+
+Detalle de trade-offs en [Modo Meta directo](#modo-meta-directo).
+
+## Superficie de la API
+
+### `client.messages.*`
+
+| Método | Para qué |
+|---|---|
+| `sendText` | Texto libre dentro de la ventana de 24h. |
+| `sendImage` | JPG/PNG por URL o `media_id`. Opcional caption. |
+| `sendVideo` | MP4 con caption opcional. |
+| `sendAudio` | Audio. `voice: true` para PTT (Opus en OGG). |
+| `sendDocument` | PDF/DOCX/etc. con filename y caption. |
+| `sendSticker` | WebP estático o animado. |
+| `sendLocation` | Pin geográfico con name y address opcionales. |
+| `sendContacts` | Una o más vCards. |
+| `sendReaction` | Emoji sobre un mensaje previo. |
+| `markRead` | Marcar como leído, con typing indicator opcional. |
+| `sendInteractiveButtons` | Hasta 3 reply buttons. |
+| `sendInteractiveList` | Lista scrollable con secciones. |
+| `sendInteractiveCtaUrl` | Botón único con URL externa. |
+| `sendInteractiveCatalogMessage` | Mensaje de catálogo (Commerce). |
+| `sendTemplate` | Template aprobado con variables nombradas. |
+| `sendBulk` | Difusión masiva (Keebai mode). |
+| `getBulkStatus` | Estado de una difusión previa (Keebai mode). |
+| `sendRaw` | Escape hatch — body crudo de Graph API. |
+
+### `client.media.*`
+
+| Método | Para qué |
+|---|---|
+| `upload` | Subir un archivo. Devuelve `media_id` reusable. |
+| `get` | Metadata (mime, size, sha256, URL firmada). |
+| `delete` | Borrar un media subido. |
+| `download` | Bajar el binario (`as: 'blob' \| 'arraybuffer'`). |
+
+### `client.templates.*` *(Keebai mode)*
+
+| Método | Para qué |
+|---|---|
+| `list` | Listar templates aprobados. |
+| `create` | Crear y enviar a Meta para aprobación. |
+| `update` | Editar componentes o categoría. |
+
+## Ejemplos
+
+### Enviar imagen con caption
+
+```ts
+await wa.messages.sendImage({
+  to: "+5491155555555",
+  image: {
+    link: "https://cdn.example.com/banner.png",
+    caption: "Nueva colección",
+  },
+});
+```
+
+### Template con variables nombradas
+
+```ts
+await wa.messages.sendTemplate({
+  to: "+5491155555555",
+  templateName: "order_confirmation",
+  language: "es",
+  variables: {
+    nombre: "Lucio",
+    pedido: "ORD-1234",
+    monto: "$15.000",
+  },
+});
+```
+
+### Interactive buttons
+
+```ts
+await wa.messages.sendInteractiveButtons({
+  to: "+5491155555555",
+  bodyText: "¿Confirmás tu pedido?",
+  buttons: [
+    { id: "confirm", title: "Confirmar" },
+    { id: "cancel", title: "Cancelar" },
+  ],
+});
+```
+
+### Subir media una vez, enviar N veces
+
+```ts
+import { readFile } from "node:fs/promises";
+
+const buffer = await readFile("logo.png");
+const file = new Blob([buffer], { type: "image/png" });
+
+const { id: mediaId } = await wa.media.upload({
+  file,
+  fileName: "logo.png",
+  type: "image/png",
+});
+
+for (const phone of recipients) {
+  await wa.messages.sendImage({
+    to: phone,
+    image: { id: mediaId, caption: "Logo Keebai" },
+  });
+}
+```
+
+### Marcar como leído + typing
+
+```ts
+await wa.messages.markRead({
+  messageId: "wamid.HBgL...",
+  typingIndicator: "text",
+});
+```
+
+### Difusión masiva
+
+```ts
+const { broadcastId } = await wa.messages.sendBulk({
+  templateName: "march_promo",
+  language: "es",
+  campaignName: "March 2026",
+  recipients: [
+    { to: "+5491155555555", variables: { nombre: "Lucio" } },
+    { to: "+5491166666666", variables: { nombre: "Ana" } },
+  ],
+});
+
+const status = await wa.messages.getBulkStatus(broadcastId);
+console.log(`${status.sent}/${status.total} enviados`);
+```
+
+## Manejo de errores
+
+```ts
+import {
+  WhatsAppApiError,
+  WhatsAppValidationError,
+  WhatsAppTimeoutError,
+} from "@keebai/sdk";
+
+try {
+  await wa.messages.sendText({ to: "+5491155555555", body: "hola" });
+} catch (err) {
+  if (err instanceof WhatsAppApiError) {
+    console.log(err.status, err.code, err.message);
+  }
+}
+```
+
+Códigos comunes:
+
+| Código | Status | Causa |
+|---|---|---|
+| `UNAUTHORIZED` | 401 | Token revocado o no válido. |
+| `FORBIDDEN` | 403 | El token no tiene el scope requerido. |
+| `CHANNEL_NOT_FOUND` | 404 | `phoneNumberId` desconocido en tu company. |
+| `invalid_phone` | 422 | `to` no está en formato E.164. |
+| `MEDIA_REFERENCE_REQUIRED` | 400 | Media sin `link` ni `media_id`. |
+| `THROTTLED` | 429 | Pasaste el rate limit (el SDK reintenta solo). |
+
+Los 429 + 5xx + errores de red se reintentan automáticamente con backoff exponencial. Configurable:
+
+```ts
+new WhatsAppClient({
+  apiKey: "kbai_pk_...",
+  phoneNumberId: "100000000000001",
+  timeoutMs: 30_000,
+  retries: 2,                              // default
+});
+```
+
+## Modo Meta directo
+
+Cuando preferís ir directo a Meta sin la plataforma:
+
+```ts
+const wa = new WhatsAppClient({
+  accessToken: process.env.META_ACCESS_TOKEN!,
+  phoneNumberId: process.env.META_PHONE_NUMBER_ID!,
+});
+```
+
+| Concern | Modo `keebai` | Modo `meta` |
+|---|---|---|
+| Auth | PAT (`kbai_pk_...`) desde app.keebai.com | Access token (`EAA...`) desde developers.facebook.com |
+| Persistencia | Sí — conversaciones, mensajes, contactos | No — Meta no guarda historial |
+| Webhooks normalizados | Sí — envelope `{ event, data, timestamp }` con firma HMAC | No — Meta envelope crudo |
+| Broadcasts (`sendBulk`) | Sí | No disponible |
+| Templates CRUD | Sí | No en este SDK; usar Business Management API |
+| Dashboard | Sí | No |
+| Multi-tenant | Un PAT, múltiples canales | Un token por WABA |
+| Send messages | Cobertura completa | Cobertura completa |
+
+## Helpers
+
+```ts
+import { buildTemplateSendPayload, normalizePhone } from "@keebai/sdk";
+
+const template = buildTemplateSendPayload({
+  name: "welcome",
+  language: "es",
+  body: [{ type: "text", text: "Lucio", parameterName: "nombre" }],
+  buttons: [{ subType: "quick_reply", index: 0, payload: "GO" }],
+});
+
+const phone = normalizePhone("(54) 9 11-5555-5555"); // "+5491155555555"
+```
+
+## Recursos
+
+<CardGroup cols={2}>
+  <Card title="Repo en GitHub" icon="github" href="https://github.com/keebai-ai/keebai-sdk">
+    Source code, issues y PRs. MIT.
+  </Card>
+  <Card title="npm: @keebai/sdk" icon="npm" href="https://www.npmjs.com/package/@keebai/sdk">
+    Última versión, changelog, install stats.
+  </Card>
+  <Card title="Agent Skills" icon="robot" href="/dev/sdks/agent-skills">
+    Skill `integrate-keebai-whatsapp` para agentes IA basada en este SDK.
+  </Card>
+  <Card title="API REST" icon="book" href="/dev/overview">
+    Si preferís consumir la API directo sin SDK.
+  </Card>
+</CardGroup>
