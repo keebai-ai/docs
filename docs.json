@@ -65,9 +65,15 @@
             "pages": [
               "dev/rate-limits"
             ]
-          },
+          }
+        ]
+      },
+      {
+        "tab": "SDKs y herramientas",
+        "icon": "code",
+        "groups": [
           {
-            "group": "SDKs y herramientas",
+            "group": "Librerías oficiales",
             "pages": [
               "dev/sdks/typescript",
               "dev/sdks/cli",
