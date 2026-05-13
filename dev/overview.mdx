@@ -1,37 +1,37 @@
 ---
-title: "API Pública"
-sidebarTitle: "Visión general"
-description: "Conecta tus sistemas con Keebai usando la API REST pública. Personal Access Tokens, scopes granulares, webhooks salientes firmados y endpoints versionados bajo api.keebai.com/v1."
+title: "Public API overview"
+sidebarTitle: "Overview"
+description: "The Keebai public API — REST + JSON, versioned at /v1, authenticated with Personal Access Tokens, with signed outbound webhooks and an OpenAPI 3 spec."
 ---
 
-La API pública de Keebai te permite integrar tu CRM, tu propio backend, automatizaciones (Zapier, n8n, Make) y cualquier herramienta interna con tus canales de WhatsApp en Keebai. Está pensada para desarrolladores y administradores con perfil técnico.
+The Keebai public API lets you wire your CRM, your own backend, automations (Zapier, n8n, Make) or any internal tool into your WhatsApp channels and assistants. It's designed for developers and admins who need direct, scriptable access — not the dashboard.
 
-## Características
+## What you get
 
 <CardGroup cols={2}>
   <Card title="REST + JSON" icon="code">
-    Todos los endpoints aceptan y devuelven JSON. Versionados bajo `/v1/`, sin breaking changes silenciosos.
+    Every endpoint accepts and returns JSON. Versioned under `/v1/`, no silent breaking changes.
   </Card>
   <Card title="Personal Access Tokens" icon="key">
-    Cada usuario del tenant puede generar sus propios tokens, con scopes acotados y revocación inmediata.
+    Each user in your tenant can mint their own tokens with scoped permissions and instant revocation.
   </Card>
-  <Card title="Scopes granulares" icon="shield">
-    Permisos separados por mensajes, templates, canales y webhooks. Asigná solo lo necesario por integración.
+  <Card title="Granular scopes" icon="shield">
+    Permissions split by messages, templates, channels, and webhooks. Grant only what each integration needs.
   </Card>
-  <Card title="Webhooks salientes firmados" icon="bell">
-    Recibí eventos en tu URL con firma HMAC-SHA256, retry exponencial y deduplicación por `event_id`.
+  <Card title="Signed webhooks" icon="bell">
+    Events delivered to your URL with HMAC-SHA256, exponential retries, and `event_id` deduplication.
   </Card>
   <Card title="OpenAPI 3" icon="file-code">
-    Especificación auto-generada en [api.keebai.com/v1/docs-json](https://api.keebai.com/v1/docs-json). Importable en Postman, Insomnia o cualquier generador de SDK.
+    Auto-generated spec at [api.keebai.com/v1/docs-json](https://api.keebai.com/v1/docs-json). Importable into Postman, Insomnia, or any SDK generator.
   </Card>
-  <Card title="CLI oficial" icon="terminal">
-    `keebai` (npm: `@keebai/cli`) cubre login, conectar WhatsApp Business, gestionar webhooks y enviar mensajes desde tu terminal.
+  <Card title="Official CLI" icon="terminal">
+    `keebai` (npm: `@keebai/cli`) covers login, channel connect, token management, and messaging — all from your shell.
   </Card>
-  <Card title="SDK TypeScript" icon="code" href="/dev/sdks/typescript">
-    `@keebai/sdk` — cliente tipado con cobertura completa: texto, media, interactive, templates, broadcasts y errores normalizados.
+  <Card title="TypeScript SDK" icon="code" href="/dev/sdks/typescript">
+    `@keebai/sdk` — typed client with full WhatsApp coverage: text, media, interactive, templates, broadcasts.
   </Card>
   <Card title="Agent Skills" icon="robot" href="/dev/sdks/agent-skills">
-    Skills para Claude Code, Cursor, Codex y otros agentes IA. Tu agente manda WhatsApp sin que le expliques el SDK.
+    Skills for Claude Code, Cursor, Codex, and other AI agents. Your agent sends WhatsApp without you teaching it the SDK.
   </Card>
 </CardGroup>
 
@@ -41,95 +41,95 @@ La API pública de Keebai te permite integrar tu CRM, tu propio backend, automat
 https://api.keebai.com/v1
 ```
 
-Todas las rutas de la API pública viven bajo este prefijo. La interfaz de Swagger UI navegable está en [api.keebai.com/v1/docs](https://api.keebai.com/v1/docs).
+All public-API routes live under this prefix. The browsable Swagger UI is at [api.keebai.com/v1/docs](https://api.keebai.com/v1/docs).
 
-## Endpoints disponibles
+## Endpoints
 
-### Sesión
+### Session
 
-| Método | Ruta | Scope | Descripción |
+| Method | Path | Scope | Description |
 |---|---|---|---|
-| `GET` | `/v1/me` | — | Información del token autenticado y sus scopes. |
-| `DELETE` | `/v1/me/token` | — | Revocar el token actual (server-side logout). |
+| `GET` | `/v1/me` | — | Info about the active token and its scopes. |
+| `DELETE` | `/v1/me/token` | — | Revoke the current token (server-side logout). |
 
-### Mensajes
+### Messages
 
-| Método | Ruta | Scope | Descripción |
+| Method | Path | Scope | Description |
 |---|---|---|---|
-| `POST` | `/v1/messages/template` | `messages:send` | Envía un template aprobado a un destinatario. |
-| `POST` | `/v1/messages/text` | `messages:send` | Envía texto libre dentro de la ventana de 24h. |
-| `POST` | `/v1/messages/bulk` | `messages:bulk` | Envía un template a múltiples destinatarios (hasta 5000). |
-| `GET` | `/v1/messages/bulk/:broadcastId` | `messages:bulk` | Estado de un envío masivo. |
+| `POST` | `/v1/messages/template` | `messages:send` | Send an approved template to a recipient. |
+| `POST` | `/v1/messages/text` | `messages:send` | Send free text inside the 24h conversation window. |
+| `POST` | `/v1/messages/bulk` | `messages:bulk` | Send a template to many recipients (up to 5,000). |
+| `GET` | `/v1/messages/bulk/:broadcastId` | `messages:bulk` | Status of a bulk send. |
 
 ### Templates
 
-| Método | Ruta | Scope | Descripción |
+| Method | Path | Scope | Description |
 |---|---|---|---|
-| `GET` | `/v1/templates` | `templates:read` | Lista templates aprobados de la company. |
-| `POST` | `/v1/templates` | `templates:create` | Crear y enviar a Meta para aprobación. |
-| `PATCH` | `/v1/templates/:id` | `templates:update` | Editar componentes, categoría, idioma o status. |
+| `GET` | `/v1/templates` | `templates:read` | List approved templates for your company. |
+| `POST` | `/v1/templates` | `templates:create` | Create and submit a template to Meta for approval. |
+| `PATCH` | `/v1/templates/:id` | `templates:update` | Update components, category, language, or status. |
 
-### Canales
+### Channels
 
-| Método | Ruta | Scope | Descripción |
+| Method | Path | Scope | Description |
 |---|---|---|---|
-| `GET` | `/v1/channels` | `channels:read` | [Listar canales](/dev/endpoints/channels-list) (filtrable por `type`). |
-| `GET` | `/v1/channels/:id` | `channels:read` | Detalle de un canal por id. |
-| `GET` | `/v1/whatsapp/numbers` | `channels:read` | [Vista directa](/dev/endpoints/whatsapp-numbers) de los `phone_number_id` activos. |
-| `POST` | `/v1/channels/whatsapp/connect` | `channels:connect` | [Iniciar conexión](/dev/endpoints/channels-whatsapp-connect) de WhatsApp Business. |
-| `GET` | `/v1/channels/whatsapp/connect/:sessionId` | `channels:connect` | Pollear estado de la sesión de conexión. |
+| `GET` | `/v1/channels` | `channels:read` | [List channels](/dev/endpoints/channels-list), filterable by `type`. |
+| `GET` | `/v1/channels/:id` | `channels:read` | Get a single channel. |
+| `GET` | `/v1/whatsapp/numbers` | `channels:read` | [Direct view](/dev/endpoints/whatsapp-numbers) of active `phone_number_id` values. |
+| `POST` | `/v1/channels/whatsapp/connect` | `channels:connect` | [Start a WhatsApp connection](/dev/endpoints/channels-whatsapp-connect). |
+| `GET` | `/v1/channels/whatsapp/connect/:sessionId` | `channels:connect` | Poll the connect session status. |
 
-### Webhooks salientes
+### Outbound webhooks
 
-| Método | Ruta | Scope | Descripción |
+| Method | Path | Scope | Description |
 |---|---|---|---|
-| `POST` | `/v1/webhooks` | `webhooks:manage` | Crear subscripción. Devuelve secret una vez. |
-| `GET` | `/v1/webhooks` | `webhooks:read` | Listar subscripciones. |
-| `GET` | `/v1/webhooks/:id` | `webhooks:read` | Obtener una subscripción. |
-| `PATCH` | `/v1/webhooks/:id` | `webhooks:manage` | Actualizar (URL, eventos, headers, is_active). |
-| `POST` | `/v1/webhooks/:id/rotate-secret` | `webhooks:manage` | Rotar secret. |
-| `DELETE` | `/v1/webhooks/:id` | `webhooks:manage` | Eliminar subscripción. |
-| `POST` | `/v1/webhooks/:id/test` | `webhooks:manage` | Disparar evento sintético. |
-| `GET` | `/v1/webhooks/:id/deliveries` | `webhooks:read` | Historial de entregas. |
+| `POST` | `/v1/webhooks` | `webhooks:manage` | Create a subscription. Returns the secret once. |
+| `GET` | `/v1/webhooks` | `webhooks:read` | List subscriptions. |
+| `GET` | `/v1/webhooks/:id` | `webhooks:read` | Get a single subscription. |
+| `PATCH` | `/v1/webhooks/:id` | `webhooks:manage` | Update URL, events, headers, or `is_active`. |
+| `POST` | `/v1/webhooks/:id/rotate-secret` | `webhooks:manage` | Rotate the signing secret. |
+| `DELETE` | `/v1/webhooks/:id` | `webhooks:manage` | Delete a subscription. |
+| `POST` | `/v1/webhooks/:id/test` | `webhooks:manage` | Fire a synthetic test event. |
+| `GET` | `/v1/webhooks/:id/deliveries` | `webhooks:read` | Delivery history. |
 
-Detalle completo en [Webhooks → Visión general](/dev/webhooks/overview).
+Full details in [Webhooks → Overview](/dev/webhooks/overview).
 
-## Próximos pasos
+## Next steps
 
 <CardGroup cols={2}>
   <Card title="Quickstart" icon="rocket" href="/dev/quickstart">
-    Genera tu primer token y enviá un mensaje en menos de 5 minutos.
+    From zero to first message in five minutes.
   </Card>
-  <Card title="SDK TypeScript" icon="code" href="/dev/sdks/typescript">
-    `@keebai/sdk` — cliente tipado oficial para Node.js, edge runtimes y navegador.
+  <Card title="TypeScript SDK" icon="code" href="/dev/sdks/typescript">
+    Typed client for Node, edge runtimes, and browsers.
+  </Card>
+  <Card title="CLI" icon="terminal" href="/dev/sdks/cli">
+    Login, connect WhatsApp, and send messages from your terminal.
   </Card>
   <Card title="Agent Skills" icon="robot" href="/dev/sdks/agent-skills">
-    Skills para Claude Code y agentes IA compatibles — `npx skills add keebai-ai/agent-skills`.
+    Skills for Claude Code, Cursor, Codex, and other AI agents.
   </Card>
-  <Card title="Generar API Keys" icon="key" href="/dev/api-keys">
-    Cómo crear, listar y revocar tokens desde el portal de Keebai.
+  <Card title="API keys" icon="key" href="/dev/api-keys">
+    How to create, list, and revoke tokens.
   </Card>
-  <Card title="Autenticación" icon="lock" href="/dev/authentication">
-    Cómo enviar el token en cada request y manejar errores de auth.
+  <Card title="Authentication" icon="lock" href="/dev/authentication">
+    How to send the token on every request and handle auth errors.
   </Card>
-  <Card title="Webhooks salientes" icon="bell" href="/dev/webhooks/overview">
-    Recibí eventos firmados en tu endpoint cuando algo pasa en Keebai.
+  <Card title="Outbound webhooks" icon="bell" href="/dev/webhooks/overview">
+    Receive signed events at your endpoint.
   </Card>
-  <Card title="Conectar WhatsApp" icon="plug" href="/dev/endpoints/channels-whatsapp-connect">
-    Onboardea un nuevo canal WhatsApp Business sin pasar por el portal.
-  </Card>
-  <Card title="Referencia de endpoints" icon="book" href="/dev/endpoints/messages-template">
-    Contrato detallado de cada endpoint, con ejemplos por lenguaje.
+  <Card title="Connect WhatsApp" icon="plug" href="/dev/endpoints/channels-whatsapp-connect">
+    Onboard a new WhatsApp Business channel without the portal.
   </Card>
 </CardGroup>
 
 ## Roadmap
 
-Próximas iteraciones planificadas, sin fecha comprometida:
+Planned, no firm dates:
 
-- **Smart templates**: mapeo de datos no estructurados a variables de template usando LLM.
-- **Mensajes agendados**: agendamiento y cancelación de envíos a futuro.
-- **Tickets**: apertura y actualización de tickets desde la API.
-- **Eventos webhook adicionales**: `conversation.created`, `conversation.escalated_to_human`, `instagram.message.received`.
+- **Smart templates** — map unstructured data into template variables with an LLM.
+- **Scheduled messages** — schedule and cancel future sends.
+- **Tickets** — open and update tickets from the API.
+- **More webhook events** — `conversation.created`, `conversation.escalated_to_human`, `instagram.message.received`.
 
-Si necesitás algo de esto antes que el resto, escribinos a [support@keebai.com](mailto:support@keebai.com).
+Need one of these sooner? Write us at [support@keebai.com](mailto:support@keebai.com).

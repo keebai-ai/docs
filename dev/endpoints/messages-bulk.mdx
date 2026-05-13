@@ -1,11 +1,11 @@
 ---
 title: "POST /v1/messages/bulk"
 sidebarTitle: "POST messages/bulk"
-description: "Envía un template aprobado a múltiples destinatarios en una sola request. Hasta 5000 recipients por llamada. Devuelve un broadcast id para seguimiento."
+description: "Send an approved template to multiple recipients in a single request. Up to 5000 recipients per call. Returns a broadcast id for tracking."
 openapi: "POST /v1/messages/bulk"
 ---
 
-Envía un mismo template a múltiples destinatarios, con variables potencialmente distintas para cada uno. Crea un broadcast en la base que podés trackear con [`GET /v1/messages/bulk/:broadcastId`](/dev/endpoints/messages-bulk-status).
+Send the same template to multiple recipients, with potentially different variables per recipient. Creates a broadcast in the database that you can track via [`GET /v1/messages/bulk/:broadcastId`](/dev/endpoints/messages-bulk-status).
 
 ## Endpoint
 
@@ -13,40 +13,40 @@ Envía un mismo template a múltiples destinatarios, con variables potencialment
 POST https://api.keebai.com/v1/messages/bulk
 ```
 
-## Scope requerido
+## Required scope
 
 `messages:bulk`
 
 <Warning>
-  El scope `messages:bulk` está separado de `messages:send` precisamente porque el envío masivo tiene mayor riesgo (costo Meta, reputación del número emisor, posibles abusos). Asignalo solo a tokens controlados por la herramienta de marketing o el job que necesita disparar campañas.
+  The `messages:bulk` scope is separate from `messages:send` precisely because bulk sending carries higher risk (Meta cost, sender number reputation, potential abuse). Grant it only to tokens controlled by the marketing tool or the job that needs to trigger campaigns.
 </Warning>
 
 ## Headers
 
-| Header | Requerido | Valor |
+| Header | Required | Value |
 |---|---|---|
-| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
-| `Content-Type` | Sí | `application/json` |
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
 
 ## Body
 
-| Campo | Tipo | Requerido | Descripción |
+| Field | Type | Required | Description |
 |---|---|---|---|
-| `template_name` | `string` | Sí | Nombre del template aprobado. |
-| `language` | `string` | Sí | Código de idioma del template. |
-| `channel_id` | `string` | Sí | `ObjectId` del canal de WhatsApp emisor. |
-| `campaign_name` | `string` | No | Nombre legible para identificar la campaña en el portal. Si no lo das, se autogenera. |
-| `recipients` | `array` | Sí | Entre 1 y 5000 destinatarios. Cada item: `{ to, variables?, meta_data? }`. |
+| `template_name` | `string` | Yes | Name of the approved template. |
+| `language` | `string` | Yes | Template language code. |
+| `channel_id` | `string` | Yes | `ObjectId` of the sending WhatsApp channel. |
+| `campaign_name` | `string` | No | Human-readable name to identify the campaign in the portal. Auto-generated if omitted. |
+| `recipients` | `array` | Yes | Between 1 and 5000 recipients. Each item: `{ to, variables?, meta_data? }`. |
 
-### Estructura de cada `recipients[i]`
+### Structure of each `recipients[i]`
 
-| Campo | Tipo | Requerido | Descripción |
+| Field | Type | Required | Description |
 |---|---|---|---|
-| `to` | `string` | Sí | Número en formato E.164. |
-| `variables` | `object<string, string>` | No | Variables del template para este destinatario en particular. |
-| `meta_data` | `object` | No | Metadata libre persistida con este envío individual. |
+| `to` | `string` | Yes | Phone number in E.164 format. |
+| `variables` | `object<string, string>` | No | Template variables for this specific recipient. |
+| `meta_data` | `object` | No | Free-form metadata persisted with this individual send. |
 
-## Ejemplo de request
+## Example request
 
 <CodeGroup>
 
@@ -115,7 +115,7 @@ broadcast_id = resp.json()["broadcast_id"]
 
 </CodeGroup>
 
-## Respuesta
+## Response
 
 ### 202 Accepted
 
@@ -128,28 +128,28 @@ broadcast_id = resp.json()["broadcast_id"]
 }
 ```
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
-| `broadcast_id` | `string` | Id del broadcast. Guárdalo para consultar el estado. |
-| `status` | `string` | Estado inicial: `PENDING`. Cambia a `IN_PROGRESS` cuando empieza a procesarse. |
-| `total_recipients` | `number` | Cantidad de destinatarios aceptados. |
-| `scheduled_at` | `string \| null` | Fecha de agendamiento si aplica. |
+| `broadcast_id` | `string` | Broadcast id. Store it to check status later. |
+| `status` | `string` | Initial status: `PENDING`. Switches to `IN_PROGRESS` once processing starts. |
+| `total_recipients` | `number` | Number of accepted recipients. |
+| `scheduled_at` | `string \| null` | Schedule date if applicable. |
 
 ### 400 Bad Request
 
-Body inválido: array vacío, más de 5000 destinatarios, formato de teléfono incorrecto en algún recipient.
+Invalid body: empty array, more than 5000 recipients, malformed phone number on any recipient.
 
 ### 401 Unauthorized
 
-Token ausente, inválido, revocado o expirado.
+Missing, invalid, revoked, or expired token.
 
 ### 403 Forbidden
 
-El token no tiene el scope `messages:bulk`.
+The token does not have the `messages:bulk` scope.
 
-## Buenas prácticas
+## Best practices
 
-- **Particioná lotes muy grandes**. Si tu campaña tiene 50000 destinatarios, hacé 10 requests de 5000 en lugar de pelear con timeouts. Usá distintos `campaign_name` para diferenciarlos.
-- **Evitá duplicados antes de enviar**. La API no deduplica por número — si mandás el mismo destinatario dos veces, se envía dos veces y Meta cobra dos veces.
-- **Variables consistentes con el template**. Si el template espera `{{nombre}}` y `{{monto}}` y un recipient no incluye `monto`, el envío individual a ese recipient va a fallar. Validá el set de variables antes.
-- **Monitorá el estado** con [`GET /v1/messages/bulk/:broadcastId`](/dev/endpoints/messages-bulk-status) para detectar campañas con alto error rate.
+- **Split very large batches**. If your campaign has 50000 recipients, send 10 requests of 5000 each instead of fighting with timeouts. Use different `campaign_name` values to keep them distinct.
+- **Deduplicate before sending**. The API does not deduplicate by phone number — if you send the same recipient twice, the message goes out twice and Meta charges twice.
+- **Keep variables consistent with the template**. If the template expects `{{nombre}}` and `{{monto}}` and a recipient is missing `monto`, that individual send will fail. Validate the variable set up front.
+- **Monitor status** via [`GET /v1/messages/bulk/:broadcastId`](/dev/endpoints/messages-bulk-status) to detect campaigns with a high error rate.

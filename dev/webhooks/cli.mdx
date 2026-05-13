@@ -1,12 +1,12 @@
 ---
-title: "Gestión vía CLI"
+title: "Manage via CLI"
 sidebarTitle: "CLI quickstart"
-description: "Crear, listar, testear, rotar y eliminar subscripciones de webhooks usando el CLI de Keebai."
+description: "Create, list, test, rotate, and delete webhook subscriptions using the Keebai CLI."
 ---
 
-El CLI `keebai` es la forma más rápida de gestionar webhooks salientes desde tu terminal. Internamente usa los mismos endpoints `/v1/webhooks` que la [API](/dev/webhooks/manage), pero con UX optimizada para flujos interactivos.
+The `keebai` CLI is the fastest way to manage outbound webhooks from your terminal. Under the hood it uses the same `/v1/webhooks` endpoints as the [API](/dev/webhooks/manage), with UX tuned for interactive workflows.
 
-## Instalación
+## Installation
 
 <CodeGroup>
 ```bash npm
@@ -18,30 +18,30 @@ curl -fsSL https://keebai.ai/install.sh | bash
 ```
 </CodeGroup>
 
-Después de instalar:
+After installing:
 
 ```bash
 keebai --version
-keebai login           # autenticación via device flow contra el portal
-keebai whoami          # confirma user/company/scopes
+keebai login           # device-flow authentication against the portal
+keebai whoami          # confirms user/company/scopes
 ```
 
-## Quickstart: 5 minutos hasta tu primer evento
+## Quickstart: 5 minutes to your first event
 
 <Steps>
-  <Step title="Login">
+  <Step title="Log in">
     ```bash
     keebai login
     ```
-    Abre el browser, te pide aprobar el device en el portal, vuelve al CLI con un PAT guardado en `~/.keebai/credentials.json` (chmod 600).
+    Opens the browser, prompts you to approve the device in the portal, and returns to the CLI with a PAT stored in `~/.keebai/credentials.json` (chmod 600).
   </Step>
-  <Step title="Crear subscripción">
+  <Step title="Create a subscription">
     ```bash
     keebai webhooks new \
       --url https://hooks.example.com/keebai \
       --event whatsapp.message.received \
       --event whatsapp.channel.connected \
-      --name "Producción CRM"
+      --name "Production CRM"
     ```
 
     Output:
@@ -49,7 +49,7 @@ keebai whoami          # confirma user/company/scopes
     ```text
     ✓ Webhook created.
     Created webhook wh_01HXYZ...
-    name:   Producción CRM
+    name:   Production CRM
     url:    https://hooks.example.com/keebai
     events: whatsapp.message.received, whatsapp.channel.connected
     active: true
@@ -59,27 +59,27 @@ keebai whoami          # confirma user/company/scopes
     ```
 
     <Warning>
-      Copiá el `whsec_xxx` ahora. No se puede recuperar después. Si lo perdés, tenés que rotarlo (lo cual invalida el viejo).
+      Copy the `whsec_xxx` now. It can't be retrieved later. If you lose it, you have to rotate it (which invalidates the old one).
     </Warning>
   </Step>
-  <Step title="Validar con un evento sintético">
+  <Step title="Validate with a synthetic event">
     ```bash
     keebai webhooks test wh_01HXYZ... --event whatsapp.message.received
     ```
 
-    Mandamos un envelope sintético (con `data._test: true`) a tu URL. Si tu endpoint verifica firma y devuelve 2xx, vas a ver:
+    We send a synthetic envelope (with `data._test: true`) to your URL. If your endpoint verifies the signature and returns 2xx, you'll see:
 
     ```bash
     keebai webhooks deliveries wh_01HXYZ...
     # status: success, status_code: 200, duration_ms: 142
     ```
   </Step>
-  <Step title="Validar con tráfico real">
-    Mandate un mensaje de WhatsApp al número de tu canal. Tu endpoint debería recibir un `whatsapp.message.received` con shape compatible con [Meta Cloud API](https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks).
+  <Step title="Validate with real traffic">
+    Send a WhatsApp message to your channel's number. Your endpoint should receive a `whatsapp.message.received` with a shape compatible with the [Meta Cloud API](https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks).
   </Step>
 </Steps>
 
-## Comandos disponibles
+## Available commands
 
 ### `keebai webhooks new`
 
@@ -92,15 +92,15 @@ keebai webhooks new \
   [--inactive]
 ```
 
-| Flag | Requerido | Descripción |
+| Flag | Required | Description |
 |---|---|---|
-| `--url` | sí | HTTPS endpoint de tu lado. |
-| `--event` | sí, repetible | Mínimo uno. Ver [catálogo](/dev/webhooks/events). |
-| `--name` | sí | Label humano para identificar la subscripción en listados. |
-| `--header` | no, repetible | Headers extra (formato `Name:Value`). Útiles para tu propio routing/auth interno. |
-| `--inactive` | no | Crea la subscripción en estado `is_active: false`. Útil si querés activarla más tarde. |
+| `--url` | yes | HTTPS endpoint on your side. |
+| `--event` | yes, repeatable | At least one. See the [catalog](/dev/webhooks/events). |
+| `--name` | yes | Human-readable label to identify the subscription in listings. |
+| `--header` | no, repeatable | Extra headers (`Name:Value` format). Useful for your own routing/auth. |
+| `--inactive` | no | Creates the subscription with `is_active: false`. Handy if you want to enable it later. |
 
-**Imprime el secret una sola vez. Guardalo de inmediato.**
+**Prints the secret only once. Save it immediately.**
 
 ### `keebai webhooks list`
 
@@ -111,104 +111,104 @@ keebai webhooks list --output json | jq
 
 ### `keebai webhooks test <id>`
 
-Despacha un evento sintético (`data._test: true`) al endpoint configurado.
+Dispatches a synthetic event (`data._test: true`) to the configured endpoint.
 
 ```bash
 keebai webhooks test wh_01HXYZ... --event whatsapp.message.received
 ```
 
-Útil para validar tu pipeline sin tráfico real. Llega con la misma firma HMAC que un evento real.
+Useful for validating your pipeline without real traffic. It arrives with the same HMAC signature as a real event.
 
 ### `keebai webhooks deliveries <id>`
 
-Historial de los últimos intentos de entrega.
+History of recent delivery attempts.
 
 ```bash
 keebai webhooks deliveries wh_01HXYZ... [--limit 50]
 ```
 
-Output muestra para cada delivery: `event_id`, `event_type`, `status` (`pending` / `success` / `failed` / `dead`), `status_code`, `attempts`, `duration_ms`, `last_error`.
+For each delivery, output shows: `event_id`, `event_type`, `status` (`pending` / `success` / `failed` / `dead`), `status_code`, `attempts`, `duration_ms`, `last_error`.
 
 ### `keebai webhooks rotate <id>`
 
-Genera un secret nuevo. **El anterior queda inválido inmediatamente.** Te pide confirmación.
+Generates a new secret. **The old one is invalidated immediately.** Asks for confirmation.
 
 ```bash
 keebai webhooks rotate wh_01HXYZ...
 ```
 
-Mostrá el secret nuevo igual que en `new`. Para rotación zero-downtime, ver [estrategia en security](/dev/webhooks/security#rotación-de-secret).
+The new secret is shown the same way as in `new`. For zero-downtime rotation, see the [strategy in security](/dev/webhooks/security#rotación-de-secret).
 
 ### `keebai webhooks delete <id>`
 
-Elimina la subscripción. Eventos futuros no se envían. Pide confirmación.
+Deletes the subscription. Future events are not sent. Asks for confirmation.
 
 ```bash
 keebai webhooks delete wh_01HXYZ...
 ```
 
-## Flags globales
+## Global flags
 
-| Flag | Descripción |
+| Flag | Description |
 |---|---|
-| `--api-url <url>` | Override del API base (default `https://api.keebai.com/v1`). Útil contra staging. |
-| `--output pretty\|json` | Formato. `json` para pipear a `jq`. |
-| `--verbose` | Logs de cada request HTTP. **Nunca imprime el secret completo, solo los primeros 12 chars.** |
-| `--no-browser` | En `keebai login`, no abre el browser; imprime la URL para copiar/pegar. Útil en SSH/CI. |
-| `--profile <name>` | Multi-perfil. Default `default`. Cada perfil guarda credenciales separadas en `~/.keebai/credentials.json`. |
+| `--api-url <url>` | Override the API base (default `https://api.keebai.com/v1`). Useful for staging. |
+| `--output pretty\|json` | Output format. Use `json` for piping to `jq`. |
+| `--verbose` | Logs every HTTP request. **Never prints the full secret, only the first 12 chars.** |
+| `--no-browser` | In `keebai login`, doesn't open the browser; prints the URL to copy/paste. Useful over SSH/CI. |
+| `--profile <name>` | Multi-profile. Default `default`. Each profile stores separate credentials in `~/.keebai/credentials.json`. |
 
 ## CI/CD
 
-Para uso desde pipelines, override el token vía env y evitá el archivo de credenciales:
+For pipeline use, override the token via env and skip the credentials file:
 
 ```bash
 export KEEBAI_API_TOKEN=kbai_pk_xxx
 keebai webhooks list
 ```
 
-`KEEBAI_API_TOKEN` tiene precedencia sobre `~/.keebai/credentials.json`. El PAT debe tener scopes `webhooks:read` y/o `webhooks:manage` según los comandos que vayas a ejecutar.
+`KEEBAI_API_TOKEN` takes precedence over `~/.keebai/credentials.json`. The PAT must have the `webhooks:read` and/or `webhooks:manage` scopes depending on the commands you intend to run.
 
-## Ver también
+## See also
 
 <CardGroup cols={2}>
-  <Card title="Verificación de firma" icon="shield" href="/dev/webhooks/security">
-    Cómo validar `X-Keebai-Signature` en tu endpoint.
+  <Card title="Signature verification" icon="shield" href="/dev/webhooks/security">
+    How to validate `X-Keebai-Signature` in your endpoint.
   </Card>
-  <Card title="Catálogo de eventos" icon="list" href="/dev/webhooks/events">
-    Lista completa de tipos y shapes de `data`.
+  <Card title="Event catalog" icon="list" href="/dev/webhooks/events">
+    Full list of types and `data` shapes.
   </Card>
-  <Card title="Endpoints REST" icon="code" href="/dev/webhooks/manage">
-    Mismas operaciones vía API HTTP, sin CLI.
+  <Card title="REST endpoints" icon="code" href="/dev/webhooks/manage">
+    Same operations over HTTP, no CLI required.
   </Card>
   <Card title="Connect WhatsApp via CLI" icon="plug" href="/dev/endpoints/channels-whatsapp-connect">
-    `keebai whatsapp connect` y la API equivalente.
+    `keebai whatsapp connect` and the equivalent API.
   </Card>
-  <Card title="Connect WhatsApp por QR" icon="qrcode" href="/dev/endpoints/channels-whatsapp-connect-qr">
-    `keebai whatsapp connect --qr` — pairing por QR escaneado desde la terminal.
+  <Card title="Connect WhatsApp via QR" icon="qrcode" href="/dev/endpoints/channels-whatsapp-connect-qr">
+    `keebai whatsapp connect --qr` — QR pairing scanned straight from the terminal.
   </Card>
 </CardGroup>
 
-## Conectar WhatsApp desde el CLI
+## Connect WhatsApp from the CLI
 
-Hay dos modos de pairing:
+There are two pairing modes:
 
 ```bash
-# Embedded Signup (Cloud API, abre browser):
+# Embedded Signup (Cloud API, opens browser):
 keebai whatsapp connect [--coexistence] [--pipeline-id pip_…]
 
-# QR multi-device (escaneás el QR en la terminal):
-keebai whatsapp connect --qr [--name "WhatsApp Soporte"]
+# QR multi-device (scan the QR in the terminal):
+keebai whatsapp connect --qr [--name "WhatsApp Support"]
 ```
 
-El modo `--qr` dibuja el código en tu terminal, lo refresca automáticamente y al escanearse imprime el `channel_id` del canal nuevo. Detalles del flujo SSE en [POST /v1/channels/whatsapp/connect (modo QR)](/dev/endpoints/channels-whatsapp-connect-qr).
+The `--qr` mode draws the code in your terminal, refreshes it automatically, and once scanned prints the `channel_id` of the new channel. SSE flow details in [POST /v1/channels/whatsapp/connect (QR mode)](/dev/endpoints/channels-whatsapp-connect-qr).
 
-Una vez conectado el canal (sea Cloud API o QR), enviá mensajes con el mismo comando:
+Once a channel is connected (either Cloud API or QR), send messages with the same command:
 
 ```bash
 keebai whatsapp messages send \
-  --from <channel_id-o-numero> \
+  --from <channel_id-or-number> \
   --to +5491155555555 \
-  --text "Hola desde el canal QR"
+  --text "Hello from the QR channel"
 ```
 
-Internamente el CLI llama `POST /v1/messages/text`, que detecta el tipo de canal (Cloud API vs QR) y hace el routing correspondiente. Templates y bulk no están soportados contra canales QR.
+Internally the CLI calls `POST /v1/messages/text`, which detects the channel type (Cloud API vs QR) and routes accordingly. Templates and bulk are not supported against QR channels.

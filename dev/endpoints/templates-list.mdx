@@ -1,11 +1,11 @@
 ---
 title: "GET /v1/templates"
 sidebarTitle: "GET templates"
-description: "Lista los templates de WhatsApp aprobados de tu company, con sus variables esperadas, paginado."
+description: "Lists your tenant's approved WhatsApp templates with their expected variables, paginated."
 openapi: "GET /v1/templates"
 ---
 
-Devuelve los templates de WhatsApp de tu company. Por defecto solo los `APPROVED`, pero podés filtrar por estado. Cada item incluye las variables esperadas extraídas del cuerpo del template, lo que te permite construir el `variables` correcto para [`POST /v1/messages/template`](/dev/endpoints/messages-template) sin tener que mantener la lista en tu lado.
+Returns the WhatsApp templates for your tenant. By default only `APPROVED` ones, but you can filter by status. Each item includes the expected variables extracted from the template body, so you can build the right `variables` payload for [`POST /v1/messages/template`](/dev/endpoints/messages-template) without keeping that list on your side.
 
 ## Endpoint
 
@@ -13,26 +13,26 @@ Devuelve los templates de WhatsApp de tu company. Por defecto solo los `APPROVED
 GET https://api.keebai.com/v1/templates
 ```
 
-## Scope requerido
+## Required scope
 
 `templates:read`
 
 ## Headers
 
-| Header | Requerido | Valor |
+| Header | Required | Value |
 |---|---|---|
-| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
 
 ## Query params
 
-| Param | Tipo | Default | Descripción |
+| Param | Type | Default | Description |
 |---|---|---|---|
-| `page` | `number` | `0` | Página, base 0. |
-| `limit` | `number` | `50` | Items por página, máximo `100`. |
+| `page` | `number` | `0` | Page number, 0-indexed. |
+| `limit` | `number` | `50` | Items per page, up to `100`. |
 | `status` | `string` | `APPROVED` | `PENDING`, `IN_REVIEW`, `APPROVED`, `REJECTED`, `PAUSED`, `DISABLED`, `IN_APPEAL`. |
-| `channel_id` | `string` | — | `ObjectId` para filtrar por canal específico. Si lo omitís, devuelve templates de todos los canales de la company. |
+| `channel_id` | `string` | — | `ObjectId` to filter by a specific channel. If omitted, returns templates across all channels in the tenant. |
 
-## Ejemplo de request
+## Example request
 
 <CodeGroup>
 
@@ -64,7 +64,7 @@ items = resp.json()["items"]
 
 </CodeGroup>
 
-## Respuesta
+## Response
 
 ### 200 OK
 
@@ -96,24 +96,24 @@ items = resp.json()["items"]
 }
 ```
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
-| `items[].id` | `string` | `ObjectId` interno del template. |
-| `items[].name` | `string` | Nombre del template tal como está en Meta. Es lo que pasás en `template_name` al enviar. |
-| `items[].language` | `string` | Código de idioma. |
-| `items[].status` | `string` | Estado del template en Meta. |
+| `items[].id` | `string` | Internal `ObjectId` of the template. |
+| `items[].name` | `string` | Template name exactly as registered in Meta. This is what you pass as `template_name` when sending. |
+| `items[].language` | `string` | Language code. |
+| `items[].status` | `string` | Template status in Meta. |
 | `items[].category` | `string` | `MARKETING`, `UTILITY`, `AUTHENTICATION`. |
-| `items[].parameter_format` | `string` | `NAMED` o `POSITIONAL`. Para los nuevos integradores recomendamos solo usar `NAMED`. |
-| `items[].variables` | `string[]` | Variables nombradas detectadas en el cuerpo del template. Las claves del objeto `variables` que envíes en `POST /v1/messages/template` deben coincidir con esta lista. |
-| `page` | `number` | Página devuelta. |
-| `limit` | `number` | Items por página. |
-| `total` | `number` | Total de templates que matchean el filtro. |
+| `items[].parameter_format` | `string` | `NAMED` or `POSITIONAL`. We recommend new integrations stick to `NAMED`. |
+| `items[].variables` | `string[]` | Named variables detected in the template body. The keys of the `variables` object you send in `POST /v1/messages/template` must match this list. |
+| `page` | `number` | Returned page. |
+| `limit` | `number` | Items per page. |
+| `total` | `number` | Total templates matching the filter. |
 
 ### 401 / 403 / 429
 
-Errores estándar de auth, scope y rate limit.
+Standard auth, scope, and rate limit errors.
 
-## Cómo usarlo en tu integración
+## How to use it in your integration
 
 ```python
 import os, requests
@@ -133,14 +133,14 @@ def fetch_template_meta(template_name: str) -> dict | None:
 
 template = fetch_template_meta("welcome_v2")
 if template is None:
-    raise SystemExit("Template no aprobado todavía")
+    raise SystemExit("Template not approved yet")
 
 required_vars = set(template["variables"])
 provided = {"nombre": "Lucio", "monto": "1500"}
 if not required_vars.issubset(provided):
-    raise ValueError(f"Faltan variables: {required_vars - set(provided)}")
+    raise ValueError(f"Missing variables: {required_vars - set(provided)}")
 ```
 
 <Tip>
-  Cacheá la respuesta de `GET /v1/templates` por unos minutos en tu integración. Los templates nuevos no aparecen en producción de un día para otro: hay que crearlos en el portal y esperar la aprobación de Meta.
+  Cache the `GET /v1/templates` response for a few minutes in your integration. New templates don't appear in production overnight: you create them in the portal and wait for Meta's approval.
 </Tip>

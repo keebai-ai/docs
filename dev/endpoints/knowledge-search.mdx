@@ -1,19 +1,19 @@
 ---
 title: "POST /v1/knowledge/search"
 sidebarTitle: "POST search"
-description: "Busca en la base de conocimientos por full-text, vector o híbrido."
+description: "Search the knowledge base by full-text, vector, or hybrid."
 openapi: "POST /v1/knowledge/search"
 ---
 
-Ejecuta una consulta sobre los chunks indexados de la base de conocimientos. Soporta tres modos de búsqueda — elegí el que mejor se adapte al tipo de query del usuario:
+Runs a query over the indexed chunks of the knowledge base. Supports three search modes — pick the one that best fits the user's query:
 
-| Modo | Cuándo usarlo | Cómo funciona internamente |
+| Mode | When to use it | How it works internally |
 |---|---|---|
-| `full` | Términos exactos, palabras clave, números, IDs. | Índice text de MongoDB sobre `page_content` con stemming en español. |
-| `vector` | Preguntas en lenguaje natural, sinónimos, parafraseo. | MongoDB Atlas Vector Search con embeddings `text-embedding-3-small`. |
-| `hybrid` | Default razonable cuando no sabés qué tipo de query viene. | Lanza ambos en paralelo, normaliza scores y combina con peso 0.6 vector / 0.4 full-text. |
+| `full` | Exact terms, keywords, numbers, IDs. | MongoDB text index over `page_content` with Spanish stemming. |
+| `vector` | Natural language questions, synonyms, paraphrasing. | MongoDB Atlas Vector Search with `text-embedding-3-small` embeddings. |
+| `hybrid` | Sensible default when you don't know what kind of query is coming. | Runs both in parallel, normalizes scores, and combines them with a 0.6 vector / 0.4 full-text weight. |
 
-Los resultados se agrupan por `node_id` (un mismo documento aparece una sola vez aunque varios chunks matcheen) y se ordenan por score descendente.
+Results are grouped by `node_id` (the same document appears only once even if several chunks match) and sorted by descending score.
 
 ## Endpoint
 
@@ -21,27 +21,27 @@ Los resultados se agrupan por `node_id` (un mismo documento aparece una sola vez
 POST https://api.keebai.com/v1/knowledge/search
 ```
 
-## Scope requerido
+## Required scope
 
 `knowledge:query`
 
 ## Headers
 
-| Header | Requerido | Valor |
+| Header | Required | Value |
 |---|---|---|
-| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
-| `Content-Type` | Sí | `application/json` |
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
 
 ## Body
 
-| Campo | Tipo | Requerido | Descripción |
+| Field | Type | Required | Description |
 |---|---|---|---|
-| `query` | `string` | Sí | Texto de búsqueda. |
-| `mode` | `string` | Sí | `full`, `vector` o `hybrid`. |
-| `top_k` | `number` | No | Cantidad máxima de resultados, entre 1 y 25. Default `5`. |
-| `node_ids` | `string[]` | No | Limita la búsqueda a estos `node_id` (carpetas o documentos). Útil para acotar a un dominio dentro del árbol. Máx. 100 ids. |
+| `query` | `string` | Yes | Search text. |
+| `mode` | `string` | Yes | `full`, `vector`, or `hybrid`. |
+| `top_k` | `number` | No | Max number of results, between 1 and 25. Default `5`. |
+| `node_ids` | `string[]` | No | Restrict the search to these `node_id` values (folders or documents). Useful to scope to a domain within the tree. Max 100 ids. |
 
-## Ejemplo de request
+## Example request
 
 <CodeGroup>
 
@@ -94,7 +94,7 @@ results = resp.json()["results"]
 
 </CodeGroup>
 
-## Respuesta
+## Response
 
 ### 200 OK
 
@@ -120,20 +120,20 @@ results = resp.json()["results"]
 }
 ```
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
-| `mode` | `string` | Modo aplicado (igual al del request). |
-| `results[].node_id` | `string` | `ObjectId` del documento en la base de conocimientos. Útil para hacer cross-reference con [`GET /v1/knowledge/tree`](/dev/endpoints/knowledge-tree). |
-| `results[].title` | `string` | Título del documento (sin contenido completo). |
-| `results[].snippet` | `string` | Fragmento del chunk con mejor score, truncado a ~320 caracteres. |
-| `results[].score` | `number` | Score normalizado. La escala depende del modo: en `vector` y `hybrid` está en [0,1]; en `full` es el `textScore` crudo de Mongo. Solo es comparable entre items del mismo response. |
-| `results[].source` | `string` | `vector` o `full`, según qué motor produjo el match con mejor score (en `hybrid` indica cuál ganó tras la combinación). |
+| `mode` | `string` | Mode applied (same as in the request). |
+| `results[].node_id` | `string` | `ObjectId` of the document in the knowledge base. Useful for cross-referencing with [`GET /v1/knowledge/tree`](/dev/endpoints/knowledge-tree). |
+| `results[].title` | `string` | Document title (no full content). |
+| `results[].snippet` | `string` | Fragment of the highest-scoring chunk, truncated to ~320 characters. |
+| `results[].score` | `number` | Normalized score. The scale depends on the mode: in `vector` and `hybrid` it's in [0,1]; in `full` it's the raw Mongo `textScore`. Only comparable between items in the same response. |
+| `results[].source` | `string` | `vector` or `full`, depending on which engine produced the top-scoring match (in `hybrid` it indicates which one won after combination). |
 
 ### 400 / 401 / 403 / 429
 
-- `400 BAD_REQUEST`: `query` vacío, `mode` no soportado, o `node_ids` con formato inválido.
-- `403 FORBIDDEN` con `code: INSUFFICIENT_SCOPE`: el PAT no tiene `knowledge:query`.
+- `400 BAD_REQUEST`: `query` empty, `mode` not supported, or `node_ids` with invalid format.
+- `403 FORBIDDEN` with `code: INSUFFICIENT_SCOPE`: the PAT doesn't have `knowledge:query`.
 
 <Tip>
-  Si vas a alimentar un LLM externo con los resultados (RAG), preferí `hybrid` con `top_k=5` como punto de partida. Es el setup que mejor balancea recall (vector) con precisión sobre términos exactos (full-text).
+  If you're going to feed the results to an external LLM (RAG), prefer `hybrid` with `top_k=5` as a starting point. It's the setup that best balances recall (vector) with precision on exact terms (full-text).
 </Tip>

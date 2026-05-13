@@ -1,11 +1,11 @@
 ---
 title: "GET /v1/knowledge/tree"
 sidebarTitle: "GET tree"
-description: "Devuelve el árbol completo de carpetas y documentos de la base de conocimientos de tu company."
+description: "Returns the full tree of folders and documents in your company's knowledge base."
 openapi: "GET /v1/knowledge/tree"
 ---
 
-Devuelve la jerarquía completa de carpetas y documentos activos de la base de conocimientos. La respuesta es un árbol anidado por `parent_id`, ordenado por `position`. Los nodos no incluyen el contenido (`content_json` / `content_text`) para mantener la respuesta liviana — para crear documentos usá [`POST /v1/knowledge/documents`](/dev/endpoints/knowledge-document-create) y para buscar dentro de su contenido usá [`POST /v1/knowledge/search`](/dev/endpoints/knowledge-search).
+Returns the full hierarchy of active folders and documents in the knowledge base. The response is a tree nested by `parent_id`, ordered by `position`. Nodes don't include content (`content_json` / `content_text`) to keep the response lightweight — to create documents use [`POST /v1/knowledge/documents`](/dev/endpoints/knowledge-document-create), and to search within their content use [`POST /v1/knowledge/search`](/dev/endpoints/knowledge-search).
 
 ## Endpoint
 
@@ -13,17 +13,17 @@ Devuelve la jerarquía completa de carpetas y documentos activos de la base de c
 GET https://api.keebai.com/v1/knowledge/tree
 ```
 
-## Scope requerido
+## Required scope
 
 `knowledge:read`
 
 ## Headers
 
-| Header | Requerido | Valor |
+| Header | Required | Value |
 |---|---|---|
-| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
 
-## Ejemplo de request
+## Example request
 
 <CodeGroup>
 
@@ -53,7 +53,7 @@ tree = resp.json()["items"]
 
 </CodeGroup>
 
-## Respuesta
+## Response
 
 ### 200 OK
 
@@ -87,16 +87,16 @@ tree = resp.json()["items"]
 }
 ```
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
-| `items[].id` | `string` | `ObjectId` del nodo. |
-| `items[].title` | `string` | Título tal como se muestra en el portal. |
-| `items[].node_type` | `string` | `folder` o `document`. |
-| `items[].parent_id` | `string \| null` | `ObjectId` de la carpeta padre. `null` si está en la raíz. |
-| `items[].position` | `number` | Orden dentro del padre (menor primero). |
-| `items[].path_cache` | `string` | Ruta concatenada (ej. `/Soporte/Política de devolución`). |
-| `items[].children` | `array` | Hijos directos del nodo, con la misma estructura. |
+| `items[].id` | `string` | `ObjectId` of the node. |
+| `items[].title` | `string` | Title as shown in the portal. |
+| `items[].node_type` | `string` | `folder` or `document`. |
+| `items[].parent_id` | `string \| null` | `ObjectId` of the parent folder. `null` if at the root. |
+| `items[].position` | `number` | Order within the parent (lowest first). |
+| `items[].path_cache` | `string` | Concatenated path (e.g. `/Soporte/Política de devolución`). |
+| `items[].children` | `array` | Direct children of the node, with the same structure. |
 
 ### 401 / 403 / 429
 
-Errores estándar de auth, scope y rate limit.
+Standard auth, scope, and rate limit errors.

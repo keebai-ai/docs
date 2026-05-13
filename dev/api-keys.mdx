@@ -1,106 +1,106 @@
 ---
-title: "Generar API Keys"
-sidebarTitle: "Generar API Keys"
-description: "Crea, lista y revoca Personal Access Tokens desde el portal de Keebai. Modo desarrollador, scopes acotados y revocación inmediata."
+title: "Get an API key"
+sidebarTitle: "Get an API key"
+description: "Create, list, and revoke Personal Access Tokens from the Keebai dashboard. Scoped permissions, instant revocation, dev mode unlocked per role."
 ---
 
-Las API Keys de Keebai son **Personal Access Tokens (PAT)**: cada usuario genera sus propios tokens, con scopes acotados y revocables en cualquier momento. Cada token actúa siempre con la identidad del usuario que lo creó.
+Keebai API keys are **Personal Access Tokens (PATs)**: each user mints their own, with explicit scopes, revocable at any time. A token always acts with the identity of the user who created it.
 
-## Habilitar el modo desarrollador
+## Unlock developer mode
 
-Para ver y gestionar tokens necesitás el permiso `developer.manage_tokens`. Es un permiso nuevo que un admin de tu tenant te debe otorgar:
+You need the `developer.manage_tokens` permission to see and manage tokens. It's a new permission that a tenant admin has to grant you:
 
 <Steps>
-  <Step title="Pedirle al admin">
-    El admin tiene que ir a **System Settings → Roles**, abrir tu rol, marcar **Administrar API Tokens** (categoría *Developer*) y guardar.
+  <Step title="Ask an admin">
+    They go to **System Settings → Roles**, open your role, check **Manage API Tokens** under *Developer*, and save.
   </Step>
-  <Step title="Refrescar tu sesión">
-    Cerrá sesión y volvé a entrar para que la UI cargue los nuevos permisos. Vas a ver el banner **API para Desarrolladores** al final de System Settings.
+  <Step title="Refresh your session">
+    Log out and back in so the UI picks up the new permissions. You'll see the **Developer API** banner at the bottom of System Settings.
   </Step>
 </Steps>
 
-## Crear un token
+## Create a token
 
 <Steps>
-  <Step title="Ir a API Keys">
-    Entrá a **System Settings**. Al final de la página, clic en **Ir a API Keys** del banner *API para Desarrolladores*. URL directa: [app.keebai.com/system-settings/api-keys](https://app.keebai.com/system-settings/api-keys).
+  <Step title="Open API Keys">
+    Go to **System Settings**. Scroll to the *Developer API* banner and click **Open API Keys**. Direct URL: [app.keebai.com/system-settings/api-keys](https://app.keebai.com/system-settings/api-keys).
   </Step>
-  <Step title="Clic en Crear API Key">
-    Se abre un modal con tres campos.
+  <Step title="Click Create API Key">
+    A modal opens with three fields.
   </Step>
-  <Step title="Ponerle nombre">
-    Identificá el token con un nombre descriptivo. Te ayuda más adelante a saber para qué era cada token cuando tenés varios activos. Ejemplos: `Zapier production`, `n8n nightly sync`, `Mi laptop dev`.
+  <Step title="Name it">
+    Give the token a descriptive name. It saves you headaches later when you have many active tokens. Examples: `Zapier production`, `n8n nightly sync`, `Local dev`.
   </Step>
-  <Step title="Elegir los scopes">
-    Marcá solo los permisos que el token realmente va a necesitar. Solo aparecen los permisos que tu usuario ya tiene asignados.
+  <Step title="Pick the scopes">
+    Check only the permissions the token actually needs. Only the permissions your own user has are shown.
 
     <Tip>
-      Principio de menor privilegio: si tu integración solo lee mensajes, no le des permisos de escritura. Cuanto más acotado el scope, menos daño hace si el token leakea.
+      Least privilege wins. If your integration only reads messages, don't grant write permissions. The tighter the scope, the smaller the blast radius if the token leaks.
     </Tip>
   </Step>
-  <Step title="Definir expiración (opcional)">
-    Recomendamos 90 días. Después de esa fecha, el token deja de funcionar y necesitás crear uno nuevo. Dejarlo vacío significa que el token no expira nunca.
+  <Step title="Set expiration (optional)">
+    We recommend 90 days. After that date the token stops working and you mint a new one. Leave it blank for no expiration.
   </Step>
-  <Step title="Confirmar y copiar">
-    Clic en **Crear token**. Keebai genera el token y te lo muestra una vez, con un botón **Copiar token**. Pegalo en tu gestor de secretos antes de cerrar el modal.
+  <Step title="Confirm and copy">
+    Click **Create token**. Keebai shows the token **once**, with a **Copy token** button. Paste it into your secret manager before closing the modal.
 
     <Warning>
-      Este es el único momento en que vas a ver el token completo. Si lo perdés, tenés que revocarlo y crear uno nuevo.
+      This is the only time you'll see the full token. If you lose it, revoke and create a new one.
     </Warning>
   </Step>
 </Steps>
 
-## Anatomía del token
+## Token anatomy
 
-Los tokens tienen el formato:
+Tokens look like this:
 
 ```
 kbai_pk_a1b2c3d4e5f6...0123456789abcdef
 ```
 
-- **Prefijo `kbai_pk_`** — identifica el formato Keebai. Útil para que herramientas de detección de secrets (GitHub secret scanning, gitleaks) reconozcan el token si por error se commitea a un repo público.
-- **64 caracteres hex** — 32 bytes de aleatoriedad (256 bits de entropía). No predecible.
+- **`kbai_pk_` prefix** — identifies the Keebai format. Secret-scanning tools (GitHub secret scanning, gitleaks) recognize it automatically if the token ever lands in a public repo.
+- **64 hex chars** — 32 bytes of entropy (256 bits). Not predictable.
 
-Solo ves el prefijo y los primeros 4 caracteres del token después de crearlo. El resto se guarda hasheado del lado del servidor.
+After creation, you only see the prefix and the first 4 chars; the rest is hashed server-side.
 
-## Listar y revisar tokens
+## List and audit your tokens
 
-La tabla de **API Keys** muestra todos tus tokens (activos y revocados):
+The **API Keys** table shows every token you've created (active and revoked):
 
-| Columna | Qué significa |
+| Column | Meaning |
 |---|---|
-| **Nombre** | El que pusiste al crearlo. |
-| **Prefijo** | Los primeros 12 caracteres del token (`kbai_pk_a1b2`). Te ayuda a identificarlo sin exponer el secreto. |
-| **Permisos** | Lista de scopes que el token tiene asignados. |
-| **Último uso** | Última vez que el token se usó en una request exitosa. Te ayuda a detectar tokens olvidados o sospechosos. |
-| **Expira** | Fecha de expiración, o "Sin uso" si no aplica. |
-| **Estado** | `Activo`, `Expirado` o `Revocado`. |
+| **Name** | Whatever you typed at creation. |
+| **Prefix** | First 12 chars (`kbai_pk_a1b2`). Lets you ID it without exposing the secret. |
+| **Scopes** | Permissions assigned to the token. |
+| **Last used** | Timestamp of the last successful request. Helps spot abandoned or suspicious tokens. |
+| **Expires** | Expiration date, or *Never* if not set. |
+| **Status** | `Active`, `Expired`, or `Revoked`. |
 
-## Revocar un token
+## Revoke a token
 
-Si sospechás que un token se filtró o ya no lo necesitás:
+If you suspect a leak, or you don't need the token anymore:
 
 <Steps>
-  <Step title="Identificar el token en la tabla">
-    Buscá la fila por nombre o por prefijo.
+  <Step title="Find the row">
+    Look it up by name or prefix.
   </Step>
-  <Step title="Clic en Revocar">
-    En la última columna de la fila, clic en el botón **Revocar**. Confirmá en el diálogo.
+  <Step title="Click Revoke">
+    In the last column, click **Revoke**. Confirm in the dialog.
   </Step>
-  <Step title="Verificar">
-    El token deja de funcionar **inmediatamente**: cualquier request siguiente con ese token recibe `401 Unauthorized`. El token queda con estado `Revocado` para auditoría — no se borra de la tabla.
+  <Step title="Verify">
+    The token stops working **immediately** — any further request with it returns `401 Unauthorized`. The row stays in the table with status `Revoked` for audit; it isn't deleted.
   </Step>
 </Steps>
 
-## Buenas prácticas
+## Best practices
 
-- **Un token por integración**: si tenés Zapier + un script local + un cron interno, generá un token distinto para cada uno. Cuando uno se compromete, lo revocás sin afectar al resto.
-- **Rotación periódica**: incluso si no hubo incidente, rotá los tokens cada 90 días. Generá el nuevo, actualizá tus integraciones, revocá el viejo.
-- **Nunca al cliente**: estos tokens son para **backend a backend**. Nunca los embebas en una app móvil, una SPA pública o cualquier cliente que un usuario final pueda inspeccionar.
-- **Storage adecuado**: guardalos en gestores de secretos (AWS Secrets Manager, 1Password, GitHub Actions secrets, Vault), nunca en archivos de configuración committeados al repo.
-- **Monitoreá el `Último uso`**: si un token marcó `Sin uso` por meses, revocálo. Si un token muestra actividad fuera de las horas en que tu integración corre, investigá.
+- **One token per integration.** Zapier + a local script + an internal cron? Three separate tokens. If one leaks, revoke just that one.
+- **Rotate every 90 days.** Even without an incident — mint the new one, update integrations, revoke the old.
+- **Never on the client.** These tokens are backend-to-backend. Don't ship them inside a mobile app, a public SPA, or anything a user can inspect.
+- **Proper storage.** Secrets managers (AWS Secrets Manager, 1Password, GitHub Actions secrets, Vault) — never config files committed to the repo.
+- **Watch *Last used*.** Token marked unused for months? Revoke it. Token active outside of expected hours? Investigate.
 
-## Límites
+## Limits
 
-- Hasta **10 tokens activos por usuario**. Si alcanzás el límite, revocá alguno antes de crear otro. Si necesitás más, escribinos a [support@keebai.com](mailto:support@keebai.com).
-- Los tokens revocados no cuentan para el límite.
+- Up to **10 active tokens per user**. Hit the limit? Revoke one before creating a new one. Need more? Email [support@keebai.com](mailto:support@keebai.com).
+- Revoked tokens don't count toward the limit.

@@ -1,15 +1,15 @@
 ---
 title: "GET /v1/me"
 sidebarTitle: "GET /v1/me"
-description: "Devuelve los scopes del Personal Access Token autenticado. Útil para validar que el token funciona y descubrir qué endpoints podés llamar."
+description: "Returns the scopes of the authenticated Personal Access Token. Useful for verifying the token works and discovering which endpoints you can call."
 openapi: "GET /v1/me"
 ---
 
-Devuelve los scopes del token autenticado tal como están guardados en la base. Sirve principalmente para:
+Returns the scopes of the authenticated token as stored in the database. Mostly useful for:
 
-- Validar al inicio de tu integración que el token está vivo y tiene los scopes que esperás.
-- Mostrar al usuario final (en una UI de configuración de tu app) qué acciones va a poder hacer.
-- Detectar si el token fue revocado (el endpoint devolverá `401`).
+- Validating at the start of your integration that the token is alive and carries the scopes you expect.
+- Showing the end user (in your app's settings UI) which actions they'll be able to perform.
+- Detecting whether the token has been revoked (the endpoint will return `401`).
 
 ## Endpoint
 
@@ -19,13 +19,13 @@ GET https://api.keebai.com/v1/me
 
 ## Headers
 
-| Header | Requerido | Valor |
+| Header | Required | Value |
 |---|---|---|
-| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
 
-No requiere body, query params ni path params.
+No body, query params, or path params required.
 
-## Ejemplo de request
+## Example request
 
 <CodeGroup>
 
@@ -55,7 +55,7 @@ permissions = resp.json()["permissions"]
 
 </CodeGroup>
 
-## Respuesta
+## Response
 
 ### 200 OK
 
@@ -68,13 +68,13 @@ permissions = resp.json()["permissions"]
 }
 ```
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
-| `permissions` | `string[]` | Scopes del token. Equivale al array `scopes` que se eligió al crearlo. No varía entre requests salvo que generes un token nuevo. |
+| `permissions` | `string[]` | The token's scopes. Matches the `scopes` array chosen at creation. Doesn't change between requests unless you mint a new token. |
 
 ### 401 Unauthorized
 
-Token inválido, revocado o expirado. Ver [Errores de autenticación](/dev/authentication#errores-de-autenticación).
+Token is invalid, revoked, or expired. See [Authentication errors](/dev/authentication#authentication-errors).
 
 ```json
 {
@@ -86,11 +86,11 @@ Token inválido, revocado o expirado. Ver [Errores de autenticación](/dev/authe
 
 ### 429 Too Many Requests
 
-Pasaste el rate limit. Ver [Rate limits](/dev/rate-limits).
+You hit the rate limit. See [Rate limits](/dev/rate-limits).
 
-## Patrones comunes
+## Common patterns
 
-### Validar al inicio de la integración
+### Validate at integration startup
 
 ```python
 import os, requests, sys
@@ -103,45 +103,45 @@ resp = requests.get(
     timeout=10,
 )
 if resp.status_code == 401:
-    sys.exit("Token inválido o revocado")
+    sys.exit("Token invalid or revoked")
 resp.raise_for_status()
 
 scopes = set(resp.json()["permissions"])
 missing = REQUIRED - scopes
 if missing:
-    sys.exit(f"Faltan scopes: {sorted(missing)}")
+    sys.exit(f"Missing scopes: {sorted(missing)}")
 
-print("Token OK con scopes:", sorted(scopes))
+print("Token OK with scopes:", sorted(scopes))
 ```
 
-### Health check de tu integración
+### Integration health check
 
-Llamar `GET /v1/me` cada 5 minutos como liveness probe interno: si recibís `401` reiteradamente, alertás a tu equipo de que el token fue revocado o expiró.
+Call `GET /v1/me` every 5 minutes as an internal liveness probe: if you get `401` repeatedly, alert your team that the token has been revoked or has expired.
 
-## Revocar el token actual
+## Revoke the current token
 
-`DELETE /v1/me/token` — server-side logout: marca el PAT con el que viene autenticada esta request como revocado. Próximas requests con el mismo token devuelven `401`.
+`DELETE /v1/me/token` — server-side logout: marks the PAT this request is authenticated with as revoked. Future requests with the same token return `401`.
 
 ```bash
 curl -X DELETE https://api.keebai.com/v1/me/token \
   -H "Authorization: Bearer kbai_pk_xxx"
 ```
 
-**Response 204** — sin body.
+**Response 204** — no body.
 
-Equivale a `keebai logout` desde el CLI: el archivo de credenciales local se borra y server-side el token queda inválido para siempre.
+Equivalent to `keebai logout` from the CLI: the local credentials file is removed and server-side the token is permanently invalid.
 
 <Tip>
-  No requiere scope. Cualquier PAT puede revocarse a sí mismo. Para revocar **otros** tokens (por ejemplo, desde un panel de admin), usá los endpoints internos del portal, no la API pública.
+  No scope required. Any PAT can revoke itself. To revoke **other** tokens (for instance, from an admin panel), use the portal's internal endpoints, not the public API.
 </Tip>
 
-Casos de uso típicos:
+Typical use cases:
 
 <CardGroup cols={2}>
-  <Card title="Logout en una integración multi-tenant">
-    Tu app permite a un usuario desvincular Keebai. Disparás `DELETE /v1/me/token` y borrás el token de tu storage.
+  <Card title="Logout in a multi-tenant integration">
+    Your app lets a user unlink Keebai. You fire `DELETE /v1/me/token` and delete the token from your storage.
   </Card>
-  <Card title="Rotación con expiración garantizada">
-    Tras crear un token nuevo y rotar tu integración, llamás `DELETE /v1/me/token` con el viejo para asegurar que queda inválido (no esperás a que el usuario lo revoque manualmente).
+  <Card title="Rotation with guaranteed expiry">
+    After minting a new token and rotating your integration, call `DELETE /v1/me/token` on the old one to make sure it's invalid (don't wait for the user to revoke it manually).
   </Card>
 </CardGroup>

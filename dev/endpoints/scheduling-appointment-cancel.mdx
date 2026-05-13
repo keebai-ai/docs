@@ -1,11 +1,11 @@
 ---
 title: "POST /v1/scheduling/appointments/:id/cancel"
 sidebarTitle: "POST appointments/:id/cancel"
-description: "Suspende (cancela) una cita con razón opcional. Marca status como cancelled y graba cancelled_at."
+description: "Cancel an appointment with an optional reason. Marks status as cancelled and records cancelled_at."
 openapi: "POST /v1/scheduling/appointments/{id}/cancel"
 ---
 
-Marca la cita como cancelada. Persiste `cancelled_at: <ahora>` y `cancellation_reason` si se envía. Liberar el slot del calendario es automático: a partir de este momento el horario vuelve a aparecer como disponible.
+Marks the appointment as cancelled. Persists `cancelled_at: <now>` and `cancellation_reason` if provided. Freeing the calendar slot is automatic: from this point on the time slot shows up as available again.
 
 ## Endpoint
 
@@ -13,30 +13,30 @@ Marca la cita como cancelada. Persiste `cancelled_at: <ahora>` y `cancellation_r
 POST https://api.keebai.com/v1/scheduling/appointments/:id/cancel
 ```
 
-## Scope requerido
+## Required scope
 
 `scheduling:appointments:cancel`
 
 ## Path params
 
-| Param | Tipo | Descripción |
+| Param | Type | Description |
 |---|---|---|
-| `id` | `string` | Id de la cita. |
+| `id` | `string` | Appointment id. |
 
 ## Headers
 
-| Header | Requerido | Valor |
+| Header | Required | Value |
 |---|---|---|
-| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
-| `Content-Type` | Sí (si envía body) | `application/json` |
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes (if sending a body) | `application/json` |
 
 ## Body
 
-| Campo | Tipo | Requerido | Descripción |
+| Field | Type | Required | Description |
 |---|---|---|---|
-| `reason` | `string` | No | Motivo de cancelación (máx. 500 caracteres). Se persiste en `cancellation_reason`. |
+| `reason` | `string` | No | Cancellation reason (max 500 characters). Persisted in `cancellation_reason`. |
 
-## Ejemplo de request
+## Example request
 
 <CodeGroup>
 
@@ -61,15 +61,15 @@ resp.raise_for_status()
 
 </CodeGroup>
 
-## Respuesta
+## Response
 
 ### 200 OK
 
-Devuelve la cita con `status: "cancelled"`, `cancelled_at` y `cancellation_reason` poblados.
+Returns the appointment with `status: "cancelled"`, `cancelled_at`, and `cancellation_reason` populated.
 
 ### 404 Not Found
 
-La cita no existe o pertenece a otra company.
+The appointment doesn't exist or belongs to another company.
 
 ### 409 Conflict
 
@@ -82,8 +82,8 @@ La cita no existe o pertenece a otra company.
 }
 ```
 
-Otros estados (por ejemplo `completed`) también devuelven 409 si no admiten cancelación.
+Other states (such as `completed`) also return 409 if they don't allow cancellation.
 
 ### 401 Unauthorized · 403 Forbidden
 
-Mismas semánticas que el resto de la API pública.
+Same semantics as the rest of the public API.

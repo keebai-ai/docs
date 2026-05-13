@@ -1,11 +1,11 @@
 ---
 title: "POST /v1/messages/text"
 sidebarTitle: "POST messages/text"
-description: "Envía texto libre a un destinatario que tiene la ventana de conversación de 24h abierta. Para fuera de esa ventana, usá un template."
+description: "Send free-form text to a recipient with an open 24-hour conversation window. For sends outside that window, use a template."
 openapi: "POST /v1/messages/text"
 ---
 
-Envía un mensaje de texto libre a un destinatario. WhatsApp solo permite texto libre dentro de la **ventana de 24 horas** desde el último mensaje recibido del usuario; si la ventana está cerrada, el mensaje será rechazado por Meta y el broadcast quedará en `FAILED`. Para casos fuera de ventana, usá [`POST /v1/messages/template`](/dev/endpoints/messages-template).
+Sends a free-form text message to a recipient. WhatsApp only allows free-form text inside the **24-hour window** since the user's last inbound message; if the window is closed, Meta will reject the message and the broadcast ends in `FAILED`. For sends outside the window, use [`POST /v1/messages/template`](/dev/endpoints/messages-template).
 
 ## Endpoint
 
@@ -13,27 +13,27 @@ Envía un mensaje de texto libre a un destinatario. WhatsApp solo permite texto 
 POST https://api.keebai.com/v1/messages/text
 ```
 
-## Scope requerido
+## Required scope
 
 `messages:send`
 
 ## Headers
 
-| Header | Requerido | Valor |
+| Header | Required | Value |
 |---|---|---|
-| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
-| `Content-Type` | Sí | `application/json` |
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
 
 ## Body
 
-| Campo | Tipo | Requerido | Descripción |
+| Field | Type | Required | Description |
 |---|---|---|---|
-| `to` | `string` | Sí | Número del destinatario en formato E.164. |
-| `channel_id` | `string` | Sí | `ObjectId` del canal de WhatsApp emisor. |
-| `text` | `string` | Sí | Cuerpo del mensaje. Máximo 4096 caracteres. |
-| `meta_data` | `object` | No | Metadata libre que se persiste con el mensaje. |
+| `to` | `string` | Yes | Recipient phone number in E.164 format. |
+| `channel_id` | `string` | Yes | `ObjectId` of the sending WhatsApp channel. |
+| `text` | `string` | Yes | Message body. Up to 4096 characters. |
+| `meta_data` | `object` | No | Free-form metadata persisted with the message. |
 
-## Ejemplo de request
+## Example request
 
 <CodeGroup>
 
@@ -80,7 +80,7 @@ requests.post(
 
 </CodeGroup>
 
-## Respuesta
+## Response
 
 ### 202 Accepted
 
@@ -93,22 +93,22 @@ requests.post(
 }
 ```
 
-Mismo shape que [`POST /v1/messages/template`](/dev/endpoints/messages-template#202-accepted).
+Same shape as [`POST /v1/messages/template`](/dev/endpoints/messages-template#202-accepted).
 
 ### 400 Bad Request
 
-Body inválido (texto vacío, mayor a 4096 caracteres, teléfono mal formado).
+Invalid body (empty text, longer than 4096 characters, malformed phone number).
 
 ### 401 Unauthorized
 
-Token ausente, inválido, revocado o expirado.
+Missing, invalid, revoked, or expired token.
 
 ### 403 Forbidden
 
-El token no tiene el scope `messages:send`.
+The token does not have the `messages:send` scope.
 
-## Notas operativas
+## Operational notes
 
-- **Ventana de 24h**: Keebai no rechaza la request si la ventana está cerrada — el mensaje se intenta enviar y, si Meta lo rechaza, el broadcast termina en estado `FAILED`. Consultá el estado con [`GET /v1/messages/bulk/:broadcastId`](/dev/endpoints/messages-bulk-status).
-- **Sin emojis especiales**: WhatsApp soporta UTF-8 completo, incluyendo emojis. No hay sanitización adicional del lado de Keebai.
-- **Sin formato Markdown nativo**: WhatsApp interpreta `*texto*` como negrita, `_texto_` como itálica y `~texto~` como tachado. El backslash escapa estos caracteres.
+- **24-hour window**: Keebai does not reject the request if the window is closed — the send is attempted and, if Meta rejects it, the broadcast ends in `FAILED`. Check status with [`GET /v1/messages/bulk/:broadcastId`](/dev/endpoints/messages-bulk-status).
+- **No special emoji handling**: WhatsApp supports full UTF-8, including emojis. Keebai performs no extra sanitization.
+- **No native Markdown formatting**: WhatsApp interprets `*text*` as bold, `_text_` as italic, and `~text~` as strikethrough. A backslash escapes these characters.

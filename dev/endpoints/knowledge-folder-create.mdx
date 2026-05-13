@@ -1,11 +1,11 @@
 ---
 title: "POST /v1/knowledge/folders"
 sidebarTitle: "POST folder"
-description: "Crea una carpeta en la base de conocimientos, opcionalmente anidada bajo otra carpeta."
+description: "Create a folder in the knowledge base, optionally nested under another folder."
 openapi: "POST /v1/knowledge/folders"
 ---
 
-Crea una carpeta vacía en la base de conocimientos. Las carpetas son contenedores: agrupan documentos y otras carpetas, pero no tienen contenido propio. Para crear documentos usá [`POST /v1/knowledge/documents`](/dev/endpoints/knowledge-document-create).
+Creates an empty folder in the knowledge base. Folders are containers: they group documents and other folders, but have no content of their own. To create documents use [`POST /v1/knowledge/documents`](/dev/endpoints/knowledge-document-create).
 
 ## Endpoint
 
@@ -13,25 +13,25 @@ Crea una carpeta vacía en la base de conocimientos. Las carpetas son contenedor
 POST https://api.keebai.com/v1/knowledge/folders
 ```
 
-## Scope requerido
+## Required scope
 
 `knowledge:write`
 
 ## Headers
 
-| Header | Requerido | Valor |
+| Header | Required | Value |
 |---|---|---|
-| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
-| `Content-Type` | Sí | `application/json` |
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
 
 ## Body
 
-| Campo | Tipo | Requerido | Descripción |
+| Field | Type | Required | Description |
 |---|---|---|---|
-| `title` | `string` | Sí | Nombre de la carpeta. Máx. 200 caracteres. |
-| `parent_id` | `string` | No | `ObjectId` de la carpeta padre. Omitir para crear en la raíz. |
+| `title` | `string` | Yes | Folder name. Max. 200 characters. |
+| `parent_id` | `string` | No | `ObjectId` of the parent folder. Omit to create at the root. |
 
-## Ejemplo de request
+## Example request
 
 <CodeGroup>
 
@@ -78,7 +78,7 @@ folder = resp.json()
 
 </CodeGroup>
 
-## Respuesta
+## Response
 
 ### 201 Created
 
@@ -95,17 +95,17 @@ folder = resp.json()
 }
 ```
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
-| `id` | `string` | `ObjectId` del nodo recién creado. |
-| `title` | `string` | Título guardado. |
-| `node_type` | `string` | Siempre `folder`. |
-| `parent_id` | `string \| null` | Padre si fue informado, `null` si está en la raíz. |
-| `position` | `number` | Posición asignada (último de su nivel). |
-| `path_cache` | `string` | Ruta absoluta calculada al crear. |
+| `id` | `string` | `ObjectId` of the newly created node. |
+| `title` | `string` | Saved title. |
+| `node_type` | `string` | Always `folder`. |
+| `parent_id` | `string \| null` | Parent if provided, `null` if at the root. |
+| `position` | `number` | Assigned position (last in its level). |
+| `path_cache` | `string` | Absolute path computed at creation. |
 
 ### 400 / 401 / 403 / 404 / 429
 
-- `400 BAD_REQUEST`: `title` vacío o supera 200, `parent_id` con formato inválido, o `parent_id` apunta a un documento (no a una carpeta).
-- `403 FORBIDDEN` con `code: INSUFFICIENT_SCOPE`: el PAT no tiene `knowledge:write`.
-- `404 NOT_FOUND`: el `parent_id` no existe o no pertenece a tu company.
+- `400 BAD_REQUEST`: `title` empty or longer than 200, `parent_id` with invalid format, or `parent_id` pointing to a document (not a folder).
+- `403 FORBIDDEN` with `code: INSUFFICIENT_SCOPE`: the PAT doesn't have `knowledge:write`.
+- `404 NOT_FOUND`: the `parent_id` doesn't exist or doesn't belong to your company.

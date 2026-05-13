@@ -1,11 +1,11 @@
 ---
 title: "GET /v1/messages/bulk/:broadcastId"
 sidebarTitle: "GET messages/bulk/:id"
-description: "Devuelve el estado y los counters de un envío masivo: total, enviados, fallidos y pendientes."
+description: "Returns the status and counters of a bulk send: total, sent, failed, and pending."
 openapi: "GET /v1/messages/bulk/{broadcastId}"
 ---
 
-Consulta el estado de un broadcast creado por [`POST /v1/messages/bulk`](/dev/endpoints/messages-bulk) o por cualquier envío single (`/v1/messages/template`, `/v1/messages/text`) que internamente también crea un broadcast.
+Returns the status of a broadcast created by [`POST /v1/messages/bulk`](/dev/endpoints/messages-bulk) or by any single send (`/v1/messages/template`, `/v1/messages/text`), which internally also creates a broadcast.
 
 ## Endpoint
 
@@ -13,30 +13,30 @@ Consulta el estado de un broadcast creado por [`POST /v1/messages/bulk`](/dev/en
 GET https://api.keebai.com/v1/messages/bulk/:broadcastId
 ```
 
-## Scope requerido
+## Required scope
 
 `messages:bulk`
 
 ## Headers
 
-| Header | Requerido | Valor |
+| Header | Required | Value |
 |---|---|---|
-| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
 
 ## Path params
 
-| Param | Tipo | Descripción |
+| Param | Type | Description |
 |---|---|---|
-| `broadcastId` | `string` | `ObjectId` del broadcast retornado al crear el envío. |
+| `broadcastId` | `string` | `ObjectId` of the broadcast returned when the send was created. |
 
-## Ejemplo de request
+## Example request
 
 ```bash
 curl https://api.keebai.com/v1/messages/bulk/65f4b5c6d7e8f9a0b1c2d3e4 \
   -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
-## Respuesta
+## Response
 
 ### 200 OK
 
@@ -53,20 +53,20 @@ curl https://api.keebai.com/v1/messages/bulk/65f4b5c6d7e8f9a0b1c2d3e4 \
 }
 ```
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
-| `broadcast_id` | `string` | Mismo id que pediste. |
+| `broadcast_id` | `string` | Same id you requested. |
 | `status` | `string` | `PENDING`, `IN_PROGRESS`, `COMPLETED`, `FAILED`, `CANCELLED`. |
-| `total_recipients` | `number` | Total de destinatarios al crear el broadcast. |
-| `sent` | `number` | Mensajes que Meta confirmó como enviados. |
-| `failed` | `number` | Mensajes que fallaron (Meta los rechazó o hubo error en el dispatch). |
-| `pending` | `number` | Mensajes aún en cola. |
-| `started_at` | `string \| null` | Timestamp ISO 8601 cuando empezó el procesamiento. `null` si aún no empezó. |
-| `completed_at` | `string \| null` | Timestamp ISO 8601 cuando terminó. `null` si todavía está en curso. |
+| `total_recipients` | `number` | Total recipients at broadcast creation. |
+| `sent` | `number` | Messages Meta confirmed as sent. |
+| `failed` | `number` | Messages that failed (rejected by Meta or dispatch error). |
+| `pending` | `number` | Messages still in queue. |
+| `started_at` | `string \| null` | ISO 8601 timestamp when processing started. `null` if not started yet. |
+| `completed_at` | `string \| null` | ISO 8601 timestamp when processing finished. `null` if still in progress. |
 
 ### 400 Bad Request
 
-`broadcastId` no es un `ObjectId` válido.
+`broadcastId` is not a valid `ObjectId`.
 
 ```json
 {
@@ -79,7 +79,7 @@ curl https://api.keebai.com/v1/messages/bulk/65f4b5c6d7e8f9a0b1c2d3e4 \
 
 ### 404 Not Found
 
-El broadcast no existe o pertenece a otra company.
+The broadcast does not exist or belongs to another tenant.
 
 ```json
 {
@@ -92,11 +92,11 @@ El broadcast no existe o pertenece a otra company.
 
 ### 401 / 403
 
-Errores estándar de auth y scope.
+Standard auth and scope errors.
 
-## Patrón de polling
+## Polling pattern
 
-Para esperar la finalización de un broadcast desde tu integración:
+To wait for a broadcast to finish from your integration:
 
 ```python
 import os, time, requests
@@ -114,9 +114,9 @@ def wait_broadcast(broadcast_id: str, timeout: int = 600) -> dict:
         if data["status"] in ("COMPLETED", "FAILED", "CANCELLED"):
             return data
         time.sleep(5)
-    raise TimeoutError(f"Broadcast {broadcast_id} no terminó en {timeout}s")
+    raise TimeoutError(f"Broadcast {broadcast_id} did not finish in {timeout}s")
 ```
 
 <Tip>
-  Usá un sleep razonable (≥5s) entre polls para no consumir tu rate limit. Para campañas grandes (>1000 destinatarios), polleá cada 30s.
+  Use a reasonable sleep (≥5s) between polls to avoid burning through your rate limit. For large campaigns (>1000 recipients), poll every 30s.
 </Tip>

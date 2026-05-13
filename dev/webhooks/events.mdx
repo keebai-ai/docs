@@ -1,19 +1,19 @@
 ---
-title: "Catálogo de eventos"
-sidebarTitle: "Eventos"
-description: "Lista completa de eventos disponibles para suscripción. Cada evento tiene un shape de `data` específico."
+title: "Event catalog"
+sidebarTitle: "Events"
+description: "Full list of events you can subscribe to. Each event has its own `data` shape."
 ---
 
-Cada evento se identifica por un `type` con formato `<canal>.<dominio>.<acción>`. El campo `data` del envelope cambia según el `type`.
+Every event is identified by a `type` in the form `<channel>.<domain>.<action>`. The envelope's `data` field changes based on the `type`.
 
-## WhatsApp — mensajes
+## WhatsApp — messages
 
 ### `whatsapp.message.received`
 
-Mensaje entrante de un usuario al canal WhatsApp.
+Inbound message from a user to the WhatsApp channel.
 
 <CodeGroup>
-```json Texto
+```json Text
 {
   "id": "evt_01HXYZ...",
   "type": "whatsapp.message.received",
@@ -51,19 +51,19 @@ Mensaje entrante de un usuario al canal WhatsApp.
 ```
 </CodeGroup>
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
-| `phone_number_id` | string | ID del número emisor de Keebai (lado nuestro). |
-| `from` | string | Número del usuario que envía (E.164). |
-| `to` | string | Número de tu canal WhatsApp. |
-| `message_id` | string | `wamid.XXX` único de Meta. Idempotency key. |
+| `phone_number_id` | string | ID of the sending Keebai number (our side). |
+| `from` | string | Sending user's number (E.164). |
+| `to` | string | Your WhatsApp channel's number. |
+| `message_id` | string | Unique `wamid.XXX` from Meta. Idempotency key. |
 | `type` | enum | `text` \| `image` \| `audio` \| `video` \| `document` \| `sticker` \| `location` \| `contacts` \| `interactive`. |
-| `text` | object \| null | Si `type=text`, contenido `{ body }`. |
-| `timestamp` | string | Unix seconds Meta. |
+| `text` | object \| null | If `type=text`, contains `{ body }`. |
+| `timestamp` | string | Meta Unix seconds. |
 
 ### `whatsapp.message.sent`
 
-Confirmación que el mensaje saliente fue aceptado por Meta.
+Confirmation that the outbound message was accepted by Meta.
 
 ```json
 {
@@ -80,7 +80,7 @@ Confirmación que el mensaje saliente fue aceptado por Meta.
 
 ### `whatsapp.message.delivered`
 
-El mensaje saliente llegó al device del usuario (doble check gris en WhatsApp).
+The outbound message reached the user's device (gray double-check in WhatsApp).
 
 ```json
 {
@@ -97,7 +97,7 @@ El mensaje saliente llegó al device del usuario (doble check gris en WhatsApp).
 
 ### `whatsapp.message.read`
 
-El usuario abrió la conversación y vio el mensaje (doble check azul).
+The user opened the conversation and saw the message (blue double-check).
 
 ```json
 {
@@ -114,7 +114,7 @@ El usuario abrió la conversación y vio el mensaje (doble check azul).
 
 ### `whatsapp.message.failed`
 
-Meta rechazó el envío. Hay info de error en `data.error`.
+Meta rejected the send. Error info is available in `data.error`.
 
 ```json
 {
@@ -138,7 +138,7 @@ Meta rechazó el envío. Hay info de error en `data.error`.
 
 ### `whatsapp.template.status_updated`
 
-Meta cambió el status de un template (aprobación, rechazo, pausa, eliminación).
+Meta changed a template's status (approval, rejection, pause, deletion).
 
 ```json
 {
@@ -152,16 +152,16 @@ Meta cambió el status de un template (aprobación, rechazo, pausa, eliminación
 }
 ```
 
-| Campo | Valores posibles |
+| Field | Possible values |
 |---|---|
 | `status` | `PENDING` \| `IN_REVIEW` \| `APPROVED` \| `REJECTED` \| `PAUSED` \| `DISABLED` \| `IN_APPEAL` |
-| `reason` | string \| null. Razón de Meta cuando rechaza, pausa o deshabilita. |
+| `reason` | string \| null. Meta's reason when it rejects, pauses, or disables a template. |
 
-## WhatsApp — canales
+## WhatsApp — channels
 
 ### `whatsapp.channel.connected`
 
-Un canal WhatsApp Business completó el embedded signup. Útil para activar onboarding en tu producto.
+A WhatsApp Business channel finished embedded signup. Useful for kicking off onboarding in your product.
 
 ```json
 {
@@ -176,7 +176,7 @@ Un canal WhatsApp Business completó el embedded signup. Útil para activar onbo
 
 ### `whatsapp.channel.disconnected`
 
-El canal fue desconectado (manual desde el portal o revocado por Meta).
+The channel was disconnected (manually from the portal or revoked by Meta).
 
 ```json
 {
@@ -189,9 +189,9 @@ El canal fue desconectado (manual desde el portal o revocado por Meta).
 }
 ```
 
-## Eventos sintéticos (`_test: true`)
+## Synthetic events (`_test: true`)
 
-Cuando llamás `keebai webhooks test <id> --event ...` o `POST /v1/webhooks/:id/test`, despachamos un evento sintético con la misma forma que el real, pero `data._test: true`. Útil para validar tu pipeline en staging sin tráfico real.
+When you run `keebai webhooks test <id> --event ...` or `POST /v1/webhooks/:id/test`, we dispatch a synthetic event with the same shape as the real one, but with `data._test: true`. Useful for validating your pipeline in staging without real traffic.
 
 ```json
 {
@@ -210,5 +210,5 @@ Cuando llamás `keebai webhooks test <id> --event ...` o `POST /v1/webhooks/:id/
 ```
 
 <Tip>
-  En tu handler, deduplicá por `X-Keebai-Event-Id` o `body.id`. Reintentos por timeout / 5xx llegan con el mismo id pero distinto `X-Keebai-Delivery-Id`.
+  In your handler, dedup by `X-Keebai-Event-Id` or `body.id`. Retries on timeout / 5xx arrive with the same id but a different `X-Keebai-Delivery-Id`.
 </Tip>

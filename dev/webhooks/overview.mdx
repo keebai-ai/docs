@@ -1,52 +1,52 @@
 ---
-title: "Webhooks salientes"
-sidebarTitle: "Visión general"
-description: "Recibe notificaciones HTTP firmadas cuando ocurren eventos en Keebai: mensajes entrantes, status updates, cambios de templates y conexiones de canal."
+title: "Outbound webhooks"
+sidebarTitle: "Overview"
+description: "Receive signed HTTP notifications when events happen in Keebai: inbound messages, status updates, template changes, and channel connections."
 ---
 
-Los **webhooks salientes** son llamadas HTTP que Keebai hace hacia tu servidor cuando algo pasa en tu cuenta — un mensaje de WhatsApp entrante, un cambio de status, una actualización de template, una conexión nueva. Es la cara complementaria de la API: en lugar de que vos pollees, Keebai te empuja el evento.
+**Outbound webhooks** are HTTP calls Keebai makes to your server when something happens in your account — an inbound WhatsApp message, a status change, a template update, a new connection. They're the flip side of the API: instead of you polling, Keebai pushes the event to you.
 
 <Note>
-  No confundir con los webhooks **entrantes** que Meta manda a Keebai. Esos los configura Keebai en el dashboard de Meta cuando conectás un canal vía Embedded Signup; vos no los tocás.
+  Not to be confused with the **inbound** webhooks Meta sends to Keebai. Those are configured by Keebai in the Meta dashboard when you connect a channel via Embedded Signup; you don't touch them.
 </Note>
 
-## Casos de uso
+## Use cases
 
 <CardGroup cols={2}>
-  <Card title="Sincronizar mensajes a tu CRM" icon="rotate">
-    Recibí cada `whatsapp.message.received` y guardalo en tu sistema con la conversación, el contacto y el contenido.
+  <Card title="Sync messages to your CRM" icon="rotate">
+    Receive every `whatsapp.message.received` and store it in your system along with the conversation, contact, and content.
   </Card>
-  <Card title="Trackear delivery / read" icon="eye">
-    Suscribite a `whatsapp.message.delivered` / `.read` / `.failed` para reportar tasas de entrega en tu dashboard.
+  <Card title="Track delivery / read" icon="eye">
+    Subscribe to `whatsapp.message.delivered` / `.read` / `.failed` to report delivery rates in your dashboard.
   </Card>
-  <Card title="Reaccionar a templates" icon="bell">
-    Recibí `whatsapp.template.status_updated` cuando Meta aprueba o rechaza un template, y notificá al equipo de marketing.
+  <Card title="React to templates" icon="bell">
+    Receive `whatsapp.template.status_updated` when Meta approves or rejects a template, and notify your marketing team.
   </Card>
-  <Card title="Provisioning automatizado" icon="plug">
-    Escuchá `whatsapp.channel.connected` para activar el flow de onboarding en tu producto al instante.
+  <Card title="Automated provisioning" icon="plug">
+    Listen for `whatsapp.channel.connected` to trigger your onboarding flow the moment a channel is ready.
   </Card>
 </CardGroup>
 
-## Cómo funciona
+## How it works
 
 <Steps>
-  <Step title="Registrás una URL HTTPS">
-    Vía CLI (`keebai webhooks new`) o vía API (`POST /v1/webhooks`). Especificás los eventos que te interesan y opcionalmente headers extra.
+  <Step title="Register an HTTPS URL">
+    Via CLI (`keebai webhooks new`) or via API (`POST /v1/webhooks`). Specify the events you care about and optionally extra headers.
   </Step>
-  <Step title="Keebai te devuelve un secret">
-    Una sola vez. Lo usás para verificar que cada delivery viene realmente de nosotros (firma HMAC-SHA256). **No se puede recuperar después** — guardalo en tu gestor de secretos.
+  <Step title="Keebai returns a secret">
+    Once. You use it to verify that each delivery actually came from us (HMAC-SHA256 signature). **It cannot be retrieved later** — store it in your secret manager.
   </Step>
-  <Step title="Cuando ocurre un evento, te lo entregamos">
-    Llamada `POST` a tu URL con el envelope JSON estándar y headers de firma. Si tu endpoint responde 2xx, marcamos delivery exitosa. Si responde 5xx / timeout / 408 / 429, reintentamos con backoff exponencial (5 attempts, hasta ~3h).
+  <Step title="When an event happens, we deliver it">
+    `POST` call to your URL with the standard JSON envelope and signature headers. If your endpoint responds 2xx, we mark the delivery as successful. If it responds 5xx / timeout / 408 / 429, we retry with exponential backoff (5 attempts, up to ~3h).
   </Step>
-  <Step title="Si fallan 50 deliveries seguidas, auto-desactivamos">
-    Para no spammear tu endpoint cuando está caído por mucho tiempo. Te llega un email y la subscripción queda con `is_active: false` y `disabled_reason: 'excessive_failures'`. Reactivás vía `PATCH`.
+  <Step title="After 50 consecutive failures, we auto-disable">
+    To avoid hammering an endpoint that's been down for a long time. You receive an email and the subscription is left with `is_active: false` and `disabled_reason: 'excessive_failures'`. Reactivate via `PATCH`.
   </Step>
 </Steps>
 
 ## Envelope
 
-Todos los eventos comparten el mismo shape externo. La diferencia está en el campo `data`, que es discriminado por `type`.
+Every event shares the same outer shape. The difference is the `data` field, discriminated by `type`.
 
 ```json
 {
@@ -67,60 +67,60 @@ Todos los eventos comparten el mismo shape externo. La diferencia está en el ca
 }
 ```
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
-| `id` | string | ID único del evento. Estable: si reintentamos el delivery, llega el mismo. Usalo para deduplicar. |
-| `type` | enum | Discriminator del catálogo. Ver [eventos](/dev/webhooks/events). |
-| `occurred_at` | ISO-8601 | Timestamp del evento (UTC). |
-| `company_id` | string | Tu company id en Keebai. |
-| `channel_id` | string \| null | Canal asociado al evento, si aplica. |
-| `data` | object | Payload específico del evento. Shape varía según `type`. |
+| `id` | string | Unique event ID. Stable: if we retry the delivery, the same ID arrives. Use it to deduplicate. |
+| `type` | enum | Discriminator from the catalog. See [events](/dev/webhooks/events). |
+| `occurred_at` | ISO-8601 | Event timestamp (UTC). |
+| `company_id` | string | Your Keebai company ID. |
+| `channel_id` | string \| null | Channel associated with the event, if applicable. |
+| `data` | object | Event-specific payload. Shape varies by `type`. |
 
-## Headers de delivery
+## Delivery headers
 
-Cada `POST` a tu endpoint incluye:
+Every `POST` to your endpoint includes:
 
-| Header | Ejemplo | Uso |
+| Header | Example | Usage |
 |---|---|---|
-| `X-Keebai-Signature` | `t=1714214100,v1=8f2c...` | Firma HMAC-SHA256 sobre `${t}.${rawBody}`. Ver [security](/dev/webhooks/security). |
-| `X-Keebai-Event-Id` | `evt_01HXYZ...` | Mismo que `body.id`. Útil para deduplicar sin parsear. |
+| `X-Keebai-Signature` | `t=1714214100,v1=8f2c...` | HMAC-SHA256 signature over `${t}.${rawBody}`. See [security](/dev/webhooks/security). |
+| `X-Keebai-Event-Id` | `evt_01HXYZ...` | Same as `body.id`. Handy for dedup without parsing the body. |
 | `X-Keebai-Event-Type` | `whatsapp.message.received` | Discriminator. |
-| `X-Keebai-Delivery-Id` | `dlv_...` | ID del intento de entrega. Cambia entre retries del mismo evento. |
-| `X-Keebai-Timestamp` | `1714214100` | Unix seconds del momento de la firma. Mismo valor que `t=` en `X-Keebai-Signature`. |
+| `X-Keebai-Delivery-Id` | `dlv_...` | Delivery attempt ID. Changes between retries of the same event. |
+| `X-Keebai-Timestamp` | `1714214100` | Unix seconds when the signature was generated. Same value as `t=` in `X-Keebai-Signature`. |
 | `User-Agent` | `Keebai-Webhooks/1.0` | |
 | `Content-Type` | `application/json` | |
-| `+headers custom` | | Si configuraste `headers` al crear la subscripción, vienen también. |
+| `+custom headers` | | If you configured `headers` when creating the subscription, they're included too. |
 
-## Garantías y limitaciones
+## Guarantees and limitations
 
 <CardGroup cols={2}>
   <Card title="At-least-once delivery">
-    Si tu endpoint timeout-ea o devuelve 5xx, reintentamos. Tu endpoint **debe ser idempotente**: deduplicá por `event_id`.
+    If your endpoint times out or returns 5xx, we retry. Your endpoint **must be idempotent**: dedup by `event_id`.
   </Card>
-  <Card title="Sin garantía de orden">
-    Eventos del mismo canal pueden llegar fuera de orden cronológico (especialmente con retries). Usá `occurred_at` para ordenar.
+  <Card title="No ordering guarantee">
+    Events from the same channel can arrive out of chronological order (especially with retries). Use `occurred_at` to sort.
   </Card>
-  <Card title="Timeout 10s">
-    Si tu endpoint no responde en 10 segundos, contamos timeout y reintentamos. Procesá rápido y devolvé 2xx; si necesitás trabajo pesado, mandá a una queue tuya.
+  <Card title="10s timeout">
+    If your endpoint doesn't respond within 10 seconds, we count a timeout and retry. Process fast and return 2xx; if you need heavy work, push it to your own queue.
   </Card>
-  <Card title="HTTPS obligatorio">
-    No aceptamos URLs `http://`. Usá un certificado válido (Let's Encrypt sirve).
+  <Card title="HTTPS required">
+    We don't accept `http://` URLs. Use a valid certificate (Let's Encrypt works).
   </Card>
 </CardGroup>
 
-## Próximos pasos
+## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Catálogo de eventos" icon="list" href="/dev/webhooks/events">
-    Lista completa de `type` y el shape de `data` de cada uno.
+  <Card title="Event catalog" icon="list" href="/dev/webhooks/events">
+    Full list of `type` values and the `data` shape for each one.
   </Card>
-  <Card title="Verificación de firma" icon="shield" href="/dev/webhooks/security">
-    Cómo validar `X-Keebai-Signature` con HMAC-SHA256 en Node, Python y PHP.
+  <Card title="Signature verification" icon="shield" href="/dev/webhooks/security">
+    How to validate `X-Keebai-Signature` with HMAC-SHA256 in Node, Python, and PHP.
   </Card>
-  <Card title="Gestión vía CLI" icon="terminal" href="/dev/webhooks/cli">
-    Quickstart con `keebai webhooks new/list/test/rotate/delete`.
+  <Card title="Manage via CLI" icon="terminal" href="/dev/webhooks/cli">
+    Quickstart with `keebai webhooks new/list/test/rotate/delete`.
   </Card>
-  <Card title="Gestión vía API" icon="code" href="/dev/webhooks/manage">
-    Endpoints REST `/v1/webhooks` para crear, listar, rotar, eliminar y testear.
+  <Card title="Manage via API" icon="code" href="/dev/webhooks/manage">
+    REST endpoints `/v1/webhooks` to create, list, rotate, delete, and test.
   </Card>
 </CardGroup>

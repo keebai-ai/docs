@@ -1,11 +1,11 @@
 ---
 title: "GET /v1/scheduling/services/:id"
 sidebarTitle: "GET services/:id"
-description: "Obtiene el detalle completo de un servicio: duración, buffers, restricciones horarias y profesionales permitidos."
+description: "Fetch the full detail of a service: duration, buffers, time restrictions, and allowed professionals."
 openapi: "GET /v1/scheduling/services/{id}"
 ---
 
-Devuelve el detalle del servicio indicado siempre que pertenezca al tenant del PAT. Incluye los campos necesarios para construir un selector de servicio en una UI pública (duración, descripción, precios) y los datos que el motor de disponibilidad usa internamente (`time_rules`, `allowedProfessionals`).
+Returns the requested service as long as it belongs to the PAT's tenant. Includes the fields needed to build a service picker in a public UI (duration, description, pricing) and the data the availability engine uses internally (`time_rules`, `allowedProfessionals`).
 
 ## Endpoint
 
@@ -13,24 +13,24 @@ Devuelve el detalle del servicio indicado siempre que pertenezca al tenant del P
 GET https://api.keebai.com/v1/scheduling/services/:id
 ```
 
-## Scope requerido
+## Required scope
 
 `scheduling:services:read`
 
 ## Path params
 
-| Param | Tipo | Descripción |
+| Param | Type | Description |
 |---|---|---|
-| `id` | `string` | Id del servicio. |
+| `id` | `string` | Service id. |
 
-## Ejemplo de request
+## Example request
 
 ```bash
 curl https://api.keebai.com/v1/scheduling/services/65b1c2d3e4f5a6b7c8d9e0f1 \
   -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
-## Respuesta
+## Response
 
 ### 200 OK
 
@@ -52,8 +52,8 @@ curl https://api.keebai.com/v1/scheduling/services/65b1c2d3e4f5a6b7c8d9e0f1 \
 
 ### 404 Not Found
 
-El servicio no existe o pertenece a otra company.
+The service doesn't exist or belongs to another company.
 
 ### 401 Unauthorized · 403 Forbidden
 
-Mismas semánticas que el resto de la API pública.
+Same semantics as the rest of the public API.

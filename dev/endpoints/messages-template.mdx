@@ -1,13 +1,13 @@
 ---
 title: "POST /v1/messages/template"
 sidebarTitle: "POST messages/template"
-description: "Envía un template aprobado de WhatsApp a un destinatario único. Acepta variables nombradas y devuelve el id del envío para tracking."
+description: "Send a Meta-approved WhatsApp template to a single recipient. Accepts named variables and returns the send id for tracking."
 openapi: "POST /v1/messages/template"
 ---
 
-Encola el envío de un **template aprobado por Meta** a un único destinatario. Útil para notificaciones transaccionales, recordatorios y mensajes 1 a 1 disparados desde tu backend.
+Queues delivery of a **Meta-approved template** to a single recipient. Useful for transactional notifications, reminders, and 1-to-1 messages triggered from your backend.
 
-Internamente Keebai crea un broadcast con un único recipient, lo que permite consultar el estado más adelante con [`GET /v1/messages/bulk/:broadcastId`](/dev/endpoints/messages-bulk-status).
+Under the hood, Keebai creates a broadcast with a single recipient, which lets you check its status later with [`GET /v1/messages/bulk/:broadcastId`](/dev/endpoints/messages-bulk-status).
 
 ## Endpoint
 
@@ -15,29 +15,29 @@ Internamente Keebai crea un broadcast con un único recipient, lo que permite co
 POST https://api.keebai.com/v1/messages/template
 ```
 
-## Scope requerido
+## Required scope
 
 `messages:send`
 
 ## Headers
 
-| Header | Requerido | Valor |
+| Header | Required | Value |
 |---|---|---|
-| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
-| `Content-Type` | Sí | `application/json` |
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
 
 ## Body
 
-| Campo | Tipo | Requerido | Descripción |
+| Field | Type | Required | Description |
 |---|---|---|---|
-| `to` | `string` | Sí | Número del destinatario en formato E.164 (ej. `+5491155555555`). |
-| `channel_id` | `string` | Sí | `ObjectId` del canal de WhatsApp desde el que se envía. Lo obtenés en el portal en **Canales**. |
-| `template_name` | `string` | Sí | Nombre del template tal como está aprobado en Meta. |
-| `language` | `string` | Sí | Código de idioma del template (`es`, `en`, `pt_BR`, etc.). |
-| `variables` | `object<string, string>` | No | Mapa de variables nombradas que el template espera. Las claves deben coincidir con los placeholders `{{nombre}}` del template. Lista esperada disponible en [`GET /v1/templates`](/dev/endpoints/templates-list). |
-| `meta_data` | `object` | No | Metadata libre que se persiste con el mensaje. Útil para correlacionar con tu sistema. |
+| `to` | `string` | Yes | Recipient phone number in E.164 format (e.g. `+5491155555555`). |
+| `channel_id` | `string` | Yes | `ObjectId` of the WhatsApp channel used to send. Get it from the portal under **Channels**. |
+| `template_name` | `string` | Yes | Template name exactly as approved in Meta. |
+| `language` | `string` | Yes | Template language code (`es`, `en`, `pt_BR`, etc.). |
+| `variables` | `object<string, string>` | No | Map of named variables the template expects. Keys must match the template's `{{name}}` placeholders. The expected list is available via [`GET /v1/templates`](/dev/endpoints/templates-list). |
+| `meta_data` | `object` | No | Free-form metadata persisted with the message. Useful to correlate with your system. |
 
-## Ejemplo de request
+## Example request
 
 <CodeGroup>
 
@@ -99,11 +99,11 @@ print(resp.json())
 
 </CodeGroup>
 
-## Respuesta
+## Response
 
 ### 202 Accepted
 
-El envío fue aceptado y encolado. La entrega real a WhatsApp ocurre asincrónicamente.
+The send was accepted and queued. Actual delivery to WhatsApp happens asynchronously.
 
 ```json
 {
@@ -114,24 +114,24 @@ El envío fue aceptado y encolado. La entrega real a WhatsApp ocurre asincrónic
 }
 ```
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
-| `broadcast_id` | `string` | Id del broadcast creado. Útil para consultar estado con `GET /v1/messages/bulk/:broadcastId`. |
-| `status` | `string` | Estado inicial del broadcast: `PENDING`, `IN_PROGRESS`, `COMPLETED`, `FAILED`. |
-| `total_recipients` | `number` | Siempre `1` para este endpoint. |
-| `scheduled_at` | `string \| null` | Fecha de agendamiento en ISO 8601 si aplica, `null` para envío inmediato. |
+| `broadcast_id` | `string` | Id of the created broadcast. Use it to check status via `GET /v1/messages/bulk/:broadcastId`. |
+| `status` | `string` | Initial broadcast status: `PENDING`, `IN_PROGRESS`, `COMPLETED`, `FAILED`. |
+| `total_recipients` | `number` | Always `1` for this endpoint. |
+| `scheduled_at` | `string \| null` | ISO 8601 schedule date if applicable, `null` for immediate delivery. |
 
 ### 400 Bad Request
 
-Body inválido (formato de teléfono incorrecto, `channel_id` mal formado, campos faltantes).
+Invalid body (incorrect phone format, malformed `channel_id`, missing fields).
 
 ### 401 Unauthorized
 
-Token ausente, inválido, revocado o expirado.
+Missing, invalid, revoked, or expired token.
 
 ### 403 Forbidden
 
-El token no tiene el scope `messages:send`.
+The token does not have the `messages:send` scope.
 
 ```json
 {
@@ -148,11 +148,11 @@ El token no tiene el scope `messages:send`.
 
 ### 502 Bad Gateway
 
-Error contactando al servicio de envío upstream. Reintentar con backoff.
+Error contacting the upstream delivery service. Retry with backoff.
 
-## Patrones comunes
+## Common patterns
 
-### Notificación transaccional con correlación
+### Transactional notification with correlation
 
 ```python
 import os, requests

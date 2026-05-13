@@ -1,13 +1,13 @@
 ---
 title: "DELETE /v1/knowledge/nodes/:id"
 sidebarTitle: "DELETE node"
-description: "Elimina un nodo (carpeta o documento). Si es carpeta, también elimina todos sus descendientes."
+description: "Delete a node (folder or document). If it's a folder, all of its descendants are deleted too."
 openapi: "DELETE /v1/knowledge/nodes/{id}"
 ---
 
-Elimina un nodo de la base de conocimientos. Si el nodo es una carpeta, todos sus descendientes (subcarpetas y documentos) se desactivan junto con ella. La eliminación es lógica (`is_active: false`); los datos siguen en la base por si el equipo de soporte necesita restaurarlos, pero dejan de aparecer en [`GET /v1/knowledge/tree`](/dev/endpoints/knowledge-tree) y de ser elegibles para [`POST /v1/knowledge/search`](/dev/endpoints/knowledge-search).
+Deletes a node from the knowledge base. If the node is a folder, all of its descendants (subfolders and documents) are deactivated along with it. The delete is logical (`is_active: false`); data stays in the database in case the support team needs to restore it, but it stops appearing in [`GET /v1/knowledge/tree`](/dev/endpoints/knowledge-tree) and is no longer eligible for [`POST /v1/knowledge/search`](/dev/endpoints/knowledge-search).
 
-Tras eliminar, la API encola un reindexado para depurar los chunks asociados al nodo.
+After deletion, the API enqueues a reindex to clean up the chunks tied to the node.
 
 ## Endpoint
 
@@ -15,23 +15,23 @@ Tras eliminar, la API encola un reindexado para depurar los chunks asociados al 
 DELETE https://api.keebai.com/v1/knowledge/nodes/{id}
 ```
 
-## Scope requerido
+## Required scope
 
 `knowledge:delete`
 
 ## Headers
 
-| Header | Requerido | Valor |
+| Header | Required | Value |
 |---|---|---|
-| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
 
 ## Path params
 
-| Param | Tipo | Descripción |
+| Param | Type | Description |
 |---|---|---|
-| `id` | `string` | `ObjectId` del nodo (carpeta o documento) a eliminar. |
+| `id` | `string` | `ObjectId` of the node (folder or document) to delete. |
 
-## Ejemplo de request
+## Example request
 
 <CodeGroup>
 
@@ -63,17 +63,17 @@ resp.raise_for_status()
 
 </CodeGroup>
 
-## Respuesta
+## Response
 
 ### 204 No Content
 
-Sin body. La eliminación es idempotente solo dentro de la misma request: si el nodo ya estaba eliminado, devuelve `404 NOT_FOUND`.
+No body. The delete is idempotent only within the same request: if the node was already deleted, it returns `404 NOT_FOUND`.
 
 ### 401 / 403 / 404 / 429
 
-- `403 FORBIDDEN` con `code: INSUFFICIENT_SCOPE`: el PAT no tiene `knowledge:delete`.
-- `404 NOT_FOUND`: el nodo no existe, ya estaba eliminado o pertenece a otra company.
+- `403 FORBIDDEN` with `code: INSUFFICIENT_SCOPE`: the PAT doesn't have `knowledge:delete`.
+- `404 NOT_FOUND`: the node doesn't exist, was already deleted, or belongs to another company.
 
 <Warning>
-  Las asignaciones a workers (ver [`POST /v1/knowledge/assignments`](/dev/endpoints/knowledge-assign)) se mantienen apuntando al nodo eliminado. Como el chunk se elimina del índice en el siguiente rebuild, el asistente deja de tener acceso al contenido aunque el `knowledge_node_id` siga referenciado.
+  Worker assignments (see [`POST /v1/knowledge/assignments`](/dev/endpoints/knowledge-assign)) keep pointing to the deleted node. Since the chunk is removed from the index on the next rebuild, the assistant loses access to the content even if the `knowledge_node_id` is still referenced.
 </Warning>

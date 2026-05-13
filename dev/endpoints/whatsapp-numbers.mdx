@@ -1,17 +1,17 @@
 ---
 title: "GET /v1/whatsapp/numbers"
 sidebarTitle: "GET whatsapp/numbers"
-description: "Vista directa de los phone_number_id activos de la company. Útil para integraciones que solo necesitan saber qué número usar al enviar."
+description: "Direct view of the company's active phone_number_ids. Handy for integrations that just need to know which number to send from."
 openapi: "GET /v1/whatsapp/numbers"
 ---
 
-Devuelve los números WhatsApp Business conectados a la company, en un shape liviano. Es una proyección de [GET /channels?type=whatsapp](/dev/endpoints/channels-list) optimizada para los flujos donde solo necesitás identificadores Meta.
+Returns the WhatsApp Business numbers connected to the company in a lightweight shape. It's a projection of [GET /channels?type=whatsapp](/dev/endpoints/channels-list) optimized for flows where you only need Meta identifiers.
 
 ```http
 GET /v1/whatsapp/numbers
 ```
 
-**Scope requerido:** `channels:read`
+**Required scope:** `channels:read`
 
 ## Request
 
@@ -36,27 +36,27 @@ curl https://api.keebai.com/v1/whatsapp/numbers \
 }
 ```
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
-| `id` | string | `phone_number_id` de Meta. Usalo en `POST /v1/messages` (`from_phone_number_id`) cuando tengas más de un número. |
-| `phone_number` | string | Número en formato E.164. |
-| `waba_id` | string | WhatsApp Business Account id de Meta. |
-| `channel_id` | string | Channel id de Keebai. Mismo que aparece en `/v1/channels`. |
+| `id` | string | Meta's `phone_number_id`. Use it in `POST /v1/messages` (`from_phone_number_id`) when you have more than one number. |
+| `phone_number` | string | Number in E.164 format. |
+| `waba_id` | string | Meta's WhatsApp Business Account id. |
+| `channel_id` | string | Keebai channel id. Same one that appears in `/v1/channels`. |
 | `status` | enum | `active` \| `paused` \| `disconnected`. |
 
-## Casos de uso típicos
+## Typical use cases
 
 <CardGroup cols={2}>
-  <Card title="Selector de número emisor">
-    Tu integración tiene varios números (ej: Chile, México, Perú). Listás `whatsapp/numbers` y mostrás un dropdown al usuario.
+  <Card title="Sender number picker">
+    Your integration has several numbers (e.g. Chile, Mexico, Peru). List `whatsapp/numbers` and show a dropdown to the user.
   </Card>
-  <Card title="Validar antes de mandar">
-    Antes de un envío masivo, chequeás que el `phone_number_id` configurado siga `active`.
+  <Card title="Validate before sending">
+    Before a bulk send, check that the configured `phone_number_id` is still `active`.
   </Card>
-  <Card title="Asociar webhooks salientes">
-    Cuando recibís un `whatsapp.message.received` con `phone_number_id: X`, podés mapearlo a un `channel_id` con esta lista cacheada.
+  <Card title="Map outgoing webhooks">
+    When you receive a `whatsapp.message.received` with `phone_number_id: X`, you can map it back to a `channel_id` using this list cached locally.
   </Card>
   <Card title="Discoverability">
-    Tu CLI de provisioning no sabe qué números existen — listalos al arrancar.
+    Your provisioning CLI doesn't know which numbers exist — list them at startup.
   </Card>
 </CardGroup>

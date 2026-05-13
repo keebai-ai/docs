@@ -1,33 +1,33 @@
 ---
 title: "Agent Skills"
 sidebarTitle: "Agent Skills"
-description: "Skills oficiales de Keebai para Claude Code y agentes IA compatibles con el formato abierto Agent Skills. Empaquetan el conocimiento de Keebai + @keebai/sdk para que un agente pueda mandar WhatsApp, manejar templates y recibir webhooks sin reinventar la integración."
+description: "Official Keebai skills for Claude Code and AI agents that support the open Agent Skills format. They bundle the Keebai + @keebai/sdk know-how so an agent can send WhatsApp messages, manage templates, and receive webhooks without reinventing the integration."
 ---
 
-Las **Agent Skills** son módulos de conocimiento empaquetado que enseñan a un agente IA (Claude Code, Cursor, Codex, Gemini CLI y otros) cómo operar Keebai end-to-end. Cuando la skill está instalada, basta con que le digas a tu agente "mandale 'Hola' al +56... por WhatsApp" para que ejecute el flujo correcto sin tener que explicarle el SDK, los endpoints ni la auth.
+**Agent Skills** are packaged knowledge modules that teach an AI agent (Claude Code, Cursor, Codex, Gemini CLI, and others) how to operate Keebai end-to-end. Once the skill is installed, you can tell your agent "send 'Hello' to +1555... via WhatsApp" and it will run the right flow without you having to explain the SDK, the endpoints, or auth.
 
-Repo: [github.com/keebai-ai/agent-skills](https://github.com/keebai-ai/agent-skills) — formato abierto [Agent Skills](https://github.com/vercel-labs/skills) (mismo que usan Vercel, Kapso, Shopify y otros).
+Repo: [github.com/keebai-ai/agent-skills](https://github.com/keebai-ai/agent-skills) — the open [Agent Skills](https://github.com/vercel-labs/skills) format (the same one used by Vercel, Kapso, Shopify, and others).
 
-## Por qué usar las skills
+## Why use the skills
 
 <CardGroup cols={2}>
-  <Card title="Cero ramp-up del agente" icon="bolt">
-    Sin la skill, un agente tiene que descubrir qué SDK usar, dónde está el PAT, qué método existe para cada caso y cómo manejar errores. Con la skill: lee `SKILL.md`, ejecuta el script, listo.
+  <Card title="Zero agent ramp-up" icon="bolt">
+    Without the skill, an agent has to figure out which SDK to use, where the PAT is, which method covers each case, and how to handle errors. With the skill: read `SKILL.md`, run the script, done.
   </Card>
-  <Card title="Scripts ejecutables incluidos" icon="terminal">
-    25 scripts CLI (uno por método del SDK) que toman `--to`, `--text`, `--template`, etc. El agente los corre directo, sin escribir código.
+  <Card title="Executable scripts included" icon="terminal">
+    25 CLI scripts (one per SDK method) that take `--to`, `--text`, `--template`, etc. The agent runs them directly, no code to write.
   </Card>
-  <Card title="Referencias bundle" icon="book">
-    9 archivos en `references/` (messages, media, templates, interactive, webhooks, errors, etc.). Lazy-loaded por el agente cuando los necesita.
+  <Card title="Bundled references" icon="book">
+    9 files in `references/` (messages, media, templates, interactive, webhooks, errors, etc.). The agent lazy-loads them on demand.
   </Card>
-  <Card title="Format estándar" icon="puzzle-piece">
-    Frontmatter YAML + Markdown. Funciona con Claude Code, Cursor, Codex, Gemini CLI, Aider, Continue, Cline, Roo, Warp, Goose, OpenHands y 50+ agentes más.
+  <Card title="Standard format" icon="puzzle-piece">
+    YAML frontmatter + Markdown. Works with Claude Code, Cursor, Codex, Gemini CLI, Aider, Continue, Cline, Roo, Warp, Goose, OpenHands, and 50+ other agents.
   </Card>
 </CardGroup>
 
-## Instalación
+## Installation
 
-Con el package [`skills`](https://www.npmjs.com/package/skills) de Vercel Labs (sin instalación previa, viene con `npx`):
+With Vercel Labs' [`skills`](https://www.npmjs.com/package/skills) package (no prior install needed, comes via `npx`):
 
 ```bash
 npx skills add keebai-ai/agent-skills -g -y
@@ -35,51 +35,51 @@ npx skills add keebai-ai/agent-skills -g -y
 
 Flags:
 
-| Flag | Para qué |
+| Flag | What it does |
 |---|---|
-| `-g` | Global (queda en `~/.claude/skills/` o el dir correspondiente al agente). |
-| `-y` | Skip confirmaciones interactivas. |
-| `-a <agent>` | Instalar solo a un agente específico (ej: `claude-code`). |
-| `--copy` | Copiar archivos en vez de symlink. |
+| `-g` | Global (lands in `~/.claude/skills/` or the directory matching your agent). |
+| `-y` | Skip interactive confirmations. |
+| `-a <agent>` | Install for a specific agent only (e.g. `claude-code`). |
+| `--copy` | Copy files instead of symlinking. |
 
-Modos alternativos:
+Alternative modes:
 
 ```bash
-# Solo listar qué skills tiene el repo, sin instalar
+# Just list what skills the repo ships, without installing
 npx skills add keebai-ai/agent-skills -l
 
-# Project-level (solo en el cwd actual, no global)
-cd ~/mi-proyecto && npx skills add keebai-ai/agent-skills -y
+# Project-level (only in the current cwd, not global)
+cd ~/my-project && npx skills add keebai-ai/agent-skills -y
 
-# Ver skills instaladas
+# View installed skills
 npx skills list
 
-# Actualizar a la última versión
+# Update to the latest version
 npx skills update integrate-keebai-whatsapp -y
 
-# Remover
+# Remove
 npx skills remove integrate-keebai-whatsapp -g -y
 ```
 
-## Skill disponible
+## Available skill
 
 ### `integrate-keebai-whatsapp`
 
-WhatsApp integrations end-to-end. Cubre todo el ciclo: enviar mensajes (texto, media, interactive, templates), subir/bajar media, agendar difusiones masivas, recibir eventos vía webhooks. Soporta los dos modos del SDK (Keebai PAT o Meta directo).
+End-to-end WhatsApp integrations. Covers the full cycle: sending messages (text, media, interactive, templates), uploading and downloading media, scheduling mass broadcasts, and receiving events via webhooks. Supports both SDK modes (Keebai PAT or direct Meta).
 
-**Triggers** que la invocan automáticamente en una conversación con el agente:
+**Triggers** that auto-invoke it in a conversation with the agent:
 
 - "@keebai/sdk", "Keebai SDK", "Keebai public-api"
 - "send WhatsApp via Keebai", "Keebai WhatsApp template"
 - "pat_" / "kbai_pk_", "phone_number_id"
 - "api.keebai.com", "Keebai webhooks"
 
-**Contenido** (`SKILL.md` + bundles):
+**Contents** (`SKILL.md` + bundles):
 
 ```
 integrate-keebai-whatsapp/
 ├── SKILL.md                          # entry point
-├── references/                       # docs detalladas, lazy-loaded
+├── references/                       # detailed docs, lazy-loaded
 │   ├── getting-started.md
 │   ├── messages-reference.md
 │   ├── media-reference.md
@@ -89,7 +89,7 @@ integrate-keebai-whatsapp/
 │   ├── errors-reference.md
 │   ├── meta-direct-mode.md
 │   └── public-api-reference.md
-├── scripts/                          # 25 ejecutables Node.js
+├── scripts/                          # 25 Node.js executables
 │   ├── send-text.mjs
 │   ├── send-image.mjs
 │   ├── send-template.mjs
@@ -97,7 +97,7 @@ integrate-keebai-whatsapp/
 │   ├── upload-media.mjs
 │   ├── mark-read.mjs
 │   └── …
-└── assets/                           # ejemplos JSON
+└── assets/                           # JSON examples
     ├── webhook-message-received.example.json
     ├── webhook-message-status.example.json
     └── template-create.example.json
@@ -105,39 +105,39 @@ integrate-keebai-whatsapp/
 
 ## Setup
 
-Una vez instalada, exportá las credenciales una vez (las skill scripts las leen automáticamente):
+Once installed, export the credentials once (the skill scripts read them automatically):
 
 ```bash
-# Recomendado: ~/.zshenv (cargado por TODO shell zsh, incluido non-interactive)
+# Recommended: ~/.zshenv (loaded by every zsh shell, including non-interactive ones)
 cat >> ~/.zshenv <<'EOF'
 
-# Keebai credentials para integrate-keebai-whatsapp skill
+# Keebai credentials for the integrate-keebai-whatsapp skill
 export KEEBAI_API_KEY=kbai_pk_<hex64>
 export KEEBAI_PHONE_NUMBER_ID=<numeric>
 EOF
 
-# Instalar deps de los scripts (una vez)
+# Install the script dependencies (once)
 cd ~/.agents/skills/integrate-keebai-whatsapp && npm install
 ```
 
 <Warning>
-  Usar `~/.zshenv` y no `~/.zshrc`. La Bash tool de Claude Code (y otros agentes) corre comandos en modo no-interactivo, y `~/.zshrc` solo se carga en shells interactivas. `~/.zshenv` lo lee todo shell zsh.
+  Use `~/.zshenv`, not `~/.zshrc`. The Bash tool in Claude Code (and other agents) runs commands in non-interactive mode, and `~/.zshrc` only loads in interactive shells. `~/.zshenv` is read by every zsh shell.
 </Warning>
 
-## Uso con Claude Code
+## Usage with Claude Code
 
-Después del setup, en cualquier sesión:
+After setup, in any session:
 
-> *Usuario*: necesito mandar "Hola desde Keebai" al +5491155555555
+> *User*: I need to send "Hello from Keebai" to +15551234567
 
-Claude (con la skill cargada) ejecuta directo:
+Claude (with the skill loaded) runs directly:
 
 ```bash
 node ~/.claude/skills/integrate-keebai-whatsapp/scripts/send-text.mjs \
-  --to +5491155555555 --text "Hola desde Keebai"
+  --to +15551234567 --text "Hello from Keebai"
 ```
 
-Y devuelve:
+And returns:
 
 ```json
 {
@@ -147,23 +147,23 @@ Y devuelve:
 }
 ```
 
-Sin que el usuario tenga que decirle qué script, qué flags, qué endpoint ni qué credenciales.
+Without the user having to say which script, which flags, which endpoint, or which credentials.
 
-## Scripts CLI (sin agente)
+## CLI scripts (no agent)
 
-También sirven como utilidades CLI standalone, sin necesidad de un agente:
+The scripts also work as standalone CLI utilities, no agent required:
 
 ```bash
-# Enviar texto
+# Send text
 node ~/.claude/skills/integrate-keebai-whatsapp/scripts/send-text.mjs \
-  --to +5491155555555 --text "hola"
+  --to +15551234567 --text "hello"
 
-# Enviar template con variables
+# Send a template with variables
 node ~/.claude/skills/integrate-keebai-whatsapp/scripts/send-template.mjs \
-  --to +5491155555555 --name welcome_v2 --language es \
-  --variables '{"nombre":"Lucio"}'
+  --to +15551234567 --name welcome_v2 --language en_US \
+  --variables '{"name":"Alex"}'
 
-# Subir media
+# Upload media
 node ~/.claude/skills/integrate-keebai-whatsapp/scripts/upload-media.mjs \
   --file ./logo.png --type image/png
 
@@ -171,15 +171,15 @@ node ~/.claude/skills/integrate-keebai-whatsapp/scripts/upload-media.mjs \
 node ~/.claude/skills/integrate-keebai-whatsapp/scripts/mark-read.mjs \
   --message-id wamid.HBgL... --typing text
 
-# Listar templates aprobados
+# List approved templates
 node ~/.claude/skills/integrate-keebai-whatsapp/scripts/list-templates.mjs
 ```
 
-Cada script acepta `--help` con la ayuda de sus flags.
+Every script accepts `--help` with flag documentation.
 
-## Compatibilidad de agentes
+## Agent compatibility
 
-El formato `SKILL.md` es soportado por:
+The `SKILL.md` format is supported by:
 
 - **Claude Code** (Anthropic CLI)
 - **Cursor**
@@ -193,32 +193,32 @@ El formato `SKILL.md` es soportado por:
 - **Goose**
 - **OpenHands**
 - **Windsurf**
-- Y 50+ agentes más vía el [registro abierto](https://github.com/vercel-labs/skills)
+- And 50+ other agents via the [open registry](https://github.com/vercel-labs/skills)
 
-Lista completa en el package [`skills` npm](https://www.npmjs.com/package/skills).
+Full list in the [`skills` npm package](https://www.npmjs.com/package/skills).
 
-## Próximas skills
+## Upcoming skills
 
-Roadmap, sin fecha comprometida:
+Roadmap, no committed dates:
 
-- **`automate-keebai-whatsapp`** — asistentes IA, base de conocimiento, scheduling, workflows.
-- **`observe-keebai-whatsapp`** — debug de delivery, inspección de webhooks, health checks.
+- **`automate-keebai-whatsapp`** — AI assistants, knowledge base, scheduling, workflows.
+- **`observe-keebai-whatsapp`** — delivery debugging, webhook inspection, health checks.
 
-Si necesitás alguna antes que las publiquemos, escribinos a [support@keebai.com](mailto:support@keebai.com) o abrí un issue en el [repo](https://github.com/keebai-ai/agent-skills/issues).
+Need one before we ship it? Write to [support@keebai.com](mailto:support@keebai.com) or open an issue in the [repo](https://github.com/keebai-ai/agent-skills/issues).
 
-## Recursos
+## Resources
 
 <CardGroup cols={2}>
-  <Card title="Repo en GitHub" icon="github" href="https://github.com/keebai-ai/agent-skills">
-    Source de las skills, issues y PRs.
+  <Card title="GitHub repo" icon="github" href="https://github.com/keebai-ai/agent-skills">
+    Skill source, issues, and PRs.
   </Card>
-  <Card title="SDK TypeScript" icon="code" href="/dev/sdks/typescript">
-    Cliente sobre el que se basan las skills.
+  <Card title="TypeScript SDK" icon="code" href="/dev/sdks/typescript">
+    The client the skills are built on top of.
   </Card>
   <Card title="Agent Skills format" icon="puzzle-piece" href="https://github.com/vercel-labs/skills">
-    Especificación del formato abierto.
+    Spec for the open format.
   </Card>
-  <Card title="API REST" icon="book" href="/dev/overview">
-    Endpoints raw para casos sin SDK ni agente.
+  <Card title="REST API" icon="book" href="/dev/overview">
+    Raw endpoints for cases without an SDK or agent.
   </Card>
 </CardGroup>

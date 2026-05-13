@@ -1,11 +1,11 @@
 ---
 title: "POST /v1/scheduling/appointments/:id/confirm"
 sidebarTitle: "POST appointments/:id/confirm"
-description: "Confirma una cita pasándola de pending a confirmed. Devuelve 409 si la cita no está en pending."
+description: "Confirm an appointment, moving it from pending to confirmed. Returns 409 if the appointment isn't in pending."
 openapi: "POST /v1/scheduling/appointments/{id}/confirm"
 ---
 
-Pasa la cita de `pending` a `confirmed`. La llamada lee primero la cita actual y rechaza con `409` si el estado no es `pending` (no se puede confirmar una cita ya confirmada, completada o cancelada).
+Moves the appointment from `pending` to `confirmed`. The call reads the current appointment first and rejects with `409` if the state isn't `pending` (you can't confirm an appointment that's already confirmed, completed, or cancelled).
 
 ## Endpoint
 
@@ -13,36 +13,36 @@ Pasa la cita de `pending` a `confirmed`. La llamada lee primero la cita actual y
 POST https://api.keebai.com/v1/scheduling/appointments/:id/confirm
 ```
 
-## Scope requerido
+## Required scope
 
 `scheduling:appointments:confirm`
 
 ## Path params
 
-| Param | Tipo | Descripción |
+| Param | Type | Description |
 |---|---|---|
-| `id` | `string` | Id de la cita. |
+| `id` | `string` | Appointment id. |
 
 ## Headers
 
-| Header | Requerido | Valor |
+| Header | Required | Value |
 |---|---|---|
-| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
 
-No requiere body.
+No body required.
 
-## Ejemplo de request
+## Example request
 
 ```bash
 curl -X POST https://api.keebai.com/v1/scheduling/appointments/9d5b1f4e-7c2a-4a4d-9d3e-9f1b1f8c7a3a/confirm \
   -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
-## Respuesta
+## Response
 
 ### 200 OK
 
-Devuelve la cita con `status: "confirmed"`. Estructura idéntica al body de [`GET /appointments/:id`](/dev/endpoints/scheduling-appointment-get).
+Returns the appointment with `status: "confirmed"`. Shape identical to the body of [`GET /appointments/:id`](/dev/endpoints/scheduling-appointment-get).
 
 ### 409 Conflict
 
@@ -57,8 +57,8 @@ Devuelve la cita con `status: "confirmed"`. Estructura idéntica al body de [`GE
 
 ### 404 Not Found
 
-La cita no existe o pertenece a otra company.
+The appointment doesn't exist or belongs to another company.
 
 ### 401 Unauthorized · 403 Forbidden
 
-Mismas semánticas que el resto de la API pública.
+Same semantics as the rest of the public API.

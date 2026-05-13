@@ -1,14 +1,14 @@
 ---
-title: "Scopes y permisos"
+title: "Scopes"
 sidebarTitle: "Scopes"
-description: "Los scopes definen qué puede hacer cada Personal Access Token. Catálogo persistido en MongoDB y validado endpoint por endpoint."
+description: "Scopes define exactly what a Personal Access Token can do. Catalog stored in MongoDB and validated endpoint-by-endpoint."
 ---
 
-Cada Personal Access Token (PAT) tiene un conjunto de **scopes**: el listado de acciones que ese token puede ejercer contra la API pública. Los scopes se eligen al crear el token y no se modifican después — para cambiarlos hay que generar un token nuevo y revocar el viejo.
+Every Personal Access Token (PAT) carries a set of **scopes** — the list of actions that token can perform against the public API. You pick scopes at creation time, and they're immutable afterward — to change them, mint a new token and revoke the old one.
 
-## Cómo se validan
+## How they're validated
 
-En cada request, el guard de autenticación carga el token y deja sus scopes en el contexto. Cada endpoint declara qué scope necesita con `@RequireScopes('messages:send')`. Si el scope falta, la respuesta es `403 Forbidden` con `code: INSUFFICIENT_SCOPE`.
+On every request, the auth guard loads the token and puts its scopes on the request context. Each endpoint declares the scope it needs with `@RequireScopes('messages:send')`. If the scope is missing, the response is `403 Forbidden` with `code: INSUFFICIENT_SCOPE`.
 
 ```http
 HTTP/1.1 403 Forbidden
@@ -28,132 +28,132 @@ Content-Type: application/json
 }
 ```
 
-A diferencia de los errores de autenticación (que son intencionalmente genéricos), los errores de autorización indican qué scope falta — porque ya autenticaste correctamente, solo te falta permiso.
+Unlike auth errors (which are intentionally generic), authorization errors spell out which scope is missing — because you already authenticated successfully; you just lack permission.
 
-## Catálogo de scopes
+## Catalog
 
-El catálogo vive en la colección `api_scopes` de MongoDB. El portal lo consume vía `GET /api/v1/api-scopes` y arma dinámicamente los checkboxes del modal de creación, así que agregar un scope nuevo no requiere deploy del frontend.
+The catalog lives in the `api_scopes` MongoDB collection. The portal pulls it via `GET /api/v1/api-scopes` and builds the create-token modal dynamically, so adding a new scope doesn't require a frontend deploy.
 
-| Scope | Grupo | Acción |
+| Scope | Group | Action |
 |---|---|---|
-| `messages:send` | messages | Envío de un mensaje individual (texto o template) a un destinatario. |
-| `messages:bulk` | messages | Envío masivo de un template a múltiples destinatarios y consulta del estado de la campaña. |
-| `templates:read` | templates | Lectura del catálogo de templates aprobados de la company. |
-| `templates:create` | templates | Crear templates de WhatsApp y enviarlos a Meta para aprobación. |
-| `templates:update` | templates | Editar un template existente (componentes, categoría, idioma, status). |
-| `channels:read` | channels | Listar canales (`/v1/channels`) y números WhatsApp (`/v1/whatsapp/numbers`). |
-| `channels:connect` | channels | Iniciar y pollear sesiones de [conexión de WhatsApp Business](/dev/endpoints/channels-whatsapp-connect) desde el CLI o un backend propio. |
-| `webhooks:read` | webhooks | Listar subscripciones de [webhooks salientes](/dev/webhooks/overview) y consultar deliveries. |
-| `webhooks:manage` | webhooks | Crear, actualizar, rotar secret, eliminar subscripciones y disparar eventos sintéticos. |
-| `knowledge:read` | knowledge | Lectura del [árbol de carpetas y documentos](/dev/endpoints/knowledge-tree) de la base de conocimientos. |
-| `knowledge:write` | knowledge | Crear [carpetas](/dev/endpoints/knowledge-folder-create) y [documentos](/dev/endpoints/knowledge-document-create) (markdown → BlockNote). |
-| `knowledge:delete` | knowledge | [Eliminar nodos](/dev/endpoints/knowledge-node-delete) (carpetas y documentos) de la base de conocimientos. |
-| `knowledge:query` | knowledge | Consultar la base de conocimientos con [búsqueda full-text, vectorial o híbrida](/dev/endpoints/knowledge-search). |
-| `knowledge:assign` | knowledge | [Asignar nodos](/dev/endpoints/knowledge-assign) de la base de conocimientos a los workers de un asistente. |
-| `assistants:read` | assistants | [Listar y buscar asistentes](/dev/endpoints/assistants-list) activos de la company. |
-| `scheduling:branches:read` | scheduling | [Listar sucursales activas](/dev/endpoints/scheduling-branches-list) y [obtener detalle](/dev/endpoints/scheduling-branch-get). |
-| `scheduling:services:read` | scheduling | [Listar servicios](/dev/endpoints/scheduling-services-list) y [detalle](/dev/endpoints/scheduling-service-get) (duración, restricciones, profesionales permitidos). |
-| `scheduling:professionals:read` | scheduling | [Listar profesionales](/dev/endpoints/scheduling-professionals-list) y [detalle](/dev/endpoints/scheduling-professional-get) por sucursal o servicio. |
-| `scheduling:availability:read` | scheduling | Consultar disponibilidad [por fecha](/dev/endpoints/scheduling-availability), [por rango](/dev/endpoints/scheduling-availability-range) y [próximos slots cercanos](/dev/endpoints/scheduling-availability-next). |
-| `scheduling:appointments:read` | scheduling | [Obtener una cita](/dev/endpoints/scheduling-appointment-get) por id dentro del tenant. |
-| `scheduling:appointments:create` | scheduling | [Crear citas](/dev/endpoints/scheduling-appointment-create) con datos del cliente embebidos. |
-| `scheduling:appointments:confirm` | scheduling | [Confirmar citas](/dev/endpoints/scheduling-appointment-confirm) (`pending` → `confirmed`). |
-| `scheduling:appointments:cancel` | scheduling | [Suspender (cancelar) citas](/dev/endpoints/scheduling-appointment-cancel) con razón opcional. |
+| `messages:send` | messages | Send a single message (text or template) to one recipient. |
+| `messages:bulk` | messages | Bulk-send a template to many recipients and read campaign status. |
+| `templates:read` | templates | Read the company's approved template catalog. |
+| `templates:create` | templates | Create WhatsApp templates and submit them to Meta. |
+| `templates:update` | templates | Edit an existing template (components, category, language, status). |
+| `channels:read` | channels | List channels (`/v1/channels`) and WhatsApp numbers (`/v1/whatsapp/numbers`). |
+| `channels:connect` | channels | Start and poll [WhatsApp Business connect sessions](/dev/endpoints/channels-whatsapp-connect) from the CLI or your backend. |
+| `webhooks:read` | webhooks | List [outbound webhook](/dev/webhooks/overview) subscriptions and read delivery history. |
+| `webhooks:manage` | webhooks | Create, update, rotate secret, delete subscriptions, and fire test events. |
+| `knowledge:read` | knowledge | Read the [knowledge base tree](/dev/endpoints/knowledge-tree). |
+| `knowledge:write` | knowledge | Create [folders](/dev/endpoints/knowledge-folder-create) and [documents](/dev/endpoints/knowledge-document-create) (markdown → BlockNote). |
+| `knowledge:delete` | knowledge | [Delete nodes](/dev/endpoints/knowledge-node-delete) (folders and documents) from the knowledge base. |
+| `knowledge:query` | knowledge | Query the knowledge base with [full-text, vector, or hybrid search](/dev/endpoints/knowledge-search). |
+| `knowledge:assign` | knowledge | [Assign nodes](/dev/endpoints/knowledge-assign) of the knowledge base to an assistant's workers. |
+| `assistants:read` | assistants | [List and search active assistants](/dev/endpoints/assistants-list) in your company. |
+| `scheduling:branches:read` | scheduling | [List branches](/dev/endpoints/scheduling-branches-list) and [get details](/dev/endpoints/scheduling-branch-get). |
+| `scheduling:services:read` | scheduling | [List services](/dev/endpoints/scheduling-services-list) and [details](/dev/endpoints/scheduling-service-get) (duration, restrictions, allowed professionals). |
+| `scheduling:professionals:read` | scheduling | [List professionals](/dev/endpoints/scheduling-professionals-list) and [details](/dev/endpoints/scheduling-professional-get) by branch or service. |
+| `scheduling:availability:read` | scheduling | Query availability [by date](/dev/endpoints/scheduling-availability), [by range](/dev/endpoints/scheduling-availability-range), and [next available slots](/dev/endpoints/scheduling-availability-next). |
+| `scheduling:appointments:read` | scheduling | [Get an appointment](/dev/endpoints/scheduling-appointment-get) by id within the tenant. |
+| `scheduling:appointments:create` | scheduling | [Create appointments](/dev/endpoints/scheduling-appointment-create) with embedded customer data. |
+| `scheduling:appointments:confirm` | scheduling | [Confirm appointments](/dev/endpoints/scheduling-appointment-confirm) (`pending` → `confirmed`). |
+| `scheduling:appointments:cancel` | scheduling | [Cancel appointments](/dev/endpoints/scheduling-appointment-cancel) with an optional reason. |
 
 <Tip>
-  La lista que aparece en el modal de **Crear API Key** se carga en vivo desde el backend. Si un scope no está, es porque está marcado como `is_active: false` en la base.
+  The checkboxes in the **Create API Key** modal load live from the backend. A missing scope means it's flagged `is_active: false` in the database.
 </Tip>
 
-## Independencia de los permisos del rol
+## Scopes are independent from role permissions
 
-Los scopes son **independientes** de los permisos del rol del usuario que crea el token. La validación de qué scopes podés asignar ocurre **al momento de crear** la key (el backend chequea que cada scope exista y esté activo en `api_scopes`), pero una vez emitido, el token funciona con los scopes que tiene grabados sin importar cambios posteriores en el rol del usuario.
+Scopes are **independent** from the role permissions of the user who creates the token. The backend validates *what scopes you're allowed to assign* at creation time (each scope must exist and be active in `api_scopes`), but once minted, the token uses its assigned scopes regardless of later changes to your role.
 
-Esto significa:
+That means:
 
-1. **Para crear un token necesitás el permiso `developer.manage_tokens`** en tu rol del portal. Sin ese permiso ni siquiera ves la pantalla de API Keys.
-2. **Una vez creado, los scopes del token son fijos**. Si después te quitan permisos en el portal, el token sigue funcionando con sus scopes originales. Para revocar el acceso, hay que revocar la key explícitamente.
-3. **Para usar scopes nuevos hay que crear un token nuevo**. No se pueden agregar scopes a una key existente.
+1. **To create a token** you need `developer.manage_tokens` on your role. Without it you don't even see the API Keys screen.
+2. **Once created, a token's scopes are fixed.** If your role is later trimmed, the token keeps working with its original scopes. To revoke access, revoke the key explicitly.
+3. **To use new scopes, mint a new token.** You can't add scopes to an existing key.
 
 <Warning>
-  Como los scopes sobreviven a cambios en el rol, **revisá periódicamente la tabla de API Keys** y revocá los tokens de personas que ya no deberían tener acceso. La columna *Último uso* ayuda a detectar tokens olvidados.
+  Because scopes survive role changes, **audit the API Keys table periodically** and revoke tokens belonging to people who shouldn't have access anymore. The *Last used* column helps find forgotten keys.
 </Warning>
 
-## Principio de menor privilegio
+## Least privilege by example
 
-Asigná solo los scopes que el token realmente necesita. La separación de `messages:send` vs `messages:bulk` está pensada exactamente para esto: el bulk es más sensible (costo de Meta, reputación del número emisor, posibles abusos) y conviene aislarlo en una key controlada por la herramienta de marketing, no en la key del backend transaccional.
+Pick the smallest scope set that does the job. Splitting `messages:send` and `messages:bulk` exists exactly for this — bulk is higher-risk (Meta cost, sender reputation, abuse potential), so isolate it in a key the marketing tool owns, not the transactional backend.
 
 <CardGroup cols={2}>
-  <Card title="Backend transaccional (notificaciones 1 a 1)">
-    Solo necesita disparar mensajes únicos.
+  <Card title="Transactional backend (1:1 notifications)">
+    Only needs to send single messages.
 
     `messages:send`.
   </Card>
-  <Card title="Herramienta de marketing / CRM saliente">
-    Necesita lanzar campañas y consultar su estado.
+  <Card title="Marketing tool / outbound CRM">
+    Needs to launch campaigns and check status.
 
     `messages:bulk`, `templates:read`.
   </Card>
-  <Card title="App de chequeo de plantillas">
-    Solo lectura del catálogo aprobado.
+  <Card title="Template viewer">
+    Read-only browser of the approved catalog.
 
     `templates:read`.
   </Card>
-  <Card title="Gestión de templates (provisioning)">
-    Crea y mantiene los templates de la company sin tocar el portal.
+  <Card title="Template provisioning">
+    Creates and maintains the company's templates without using the portal.
 
     `templates:read`, `templates:create`, `templates:update`.
   </Card>
-  <Card title="Integración full-stack (uso interno)">
-    Combo completo si está bajo control directo del equipo.
+  <Card title="Full-stack integration (internal)">
+    The whole combo, when it's under your team's direct control.
 
     `messages:send`, `messages:bulk`, `templates:read`, `templates:create`, `templates:update`.
   </Card>
-  <Card title="Provisioning desde CLI">
-    Onboarding automatizado: conecta canales, registra webhooks y verifica.
+  <Card title="CLI-driven provisioning">
+    Automated onboarding: connects channels, registers webhooks, verifies.
 
     `channels:read`, `channels:connect`, `webhooks:read`, `webhooks:manage`.
   </Card>
-  <Card title="Integración con webhooks salientes">
-    Tu backend recibe eventos en tiempo real y consulta diagnostic.
+  <Card title="Webhook-based integration">
+    Your backend receives realtime events and inspects delivery history.
 
     `webhooks:read`, `webhooks:manage`, `channels:read`.
   </Card>
-  <Card title="Sincronización de base de conocimientos">
-    Tu CMS o pipeline de docs publica documentos automáticamente y los asigna al asistente correspondiente.
+  <Card title="Knowledge-base sync">
+    Your CMS or docs pipeline publishes documents and assigns them to assistants automatically.
 
     `knowledge:read`, `knowledge:write`, `knowledge:delete`, `knowledge:assign`, `assistants:read`.
   </Card>
-  <Card title="RAG / búsqueda externa">
-    Una app externa consulta la base de conocimientos como retrieval para su propio LLM.
+  <Card title="External RAG / search">
+    An external app queries your knowledge base as retrieval for its own LLM.
 
     `knowledge:read`, `knowledge:query`.
   </Card>
-  <Card title="Agendamiento — sólo lectura (catálogo y disponibilidad)">
-    Tu sitio web público o app cliente muestra sucursales, servicios, profesionales y horas disponibles, sin tomar reservas.
+  <Card title="Scheduling — read-only catalog and availability">
+    Your public website or client app shows branches, services, professionals, and available times — no booking.
 
     `scheduling:branches:read`, `scheduling:services:read`, `scheduling:professionals:read`, `scheduling:availability:read`.
   </Card>
-  <Card title="Agendamiento — flujo completo de reserva">
-    Tu integración crea, confirma y suspende citas de extremo a extremo.
+  <Card title="Scheduling — full booking flow">
+    Your integration creates, confirms, and cancels appointments end-to-end.
 
     `scheduling:branches:read`, `scheduling:services:read`, `scheduling:professionals:read`, `scheduling:availability:read`, `scheduling:appointments:read`, `scheduling:appointments:create`, `scheduling:appointments:confirm`, `scheduling:appointments:cancel`.
   </Card>
 </CardGroup>
 
-## Cambiar los scopes de un token
+## Change a token's scopes
 
-No se pueden modificar los scopes de un token existente. El flujo es:
+You can't edit scopes on an existing token. The pattern is:
 
 <Steps>
-  <Step title="Crear un token nuevo con los scopes correctos">
-    Desde [API Keys](https://app.keebai.com/system-settings/api-keys), clic en **Crear API Key** y elegí los nuevos scopes.
+  <Step title="Mint a new token with the right scopes">
+    From [API Keys](https://app.keebai.com/system-settings/api-keys), click **Create API Key** and pick the new scopes.
   </Step>
-  <Step title="Actualizar tu integración">
-    Reemplazá el token viejo por el nuevo en tu gestor de secretos.
+  <Step title="Update your integration">
+    Swap the old token for the new one in your secret manager.
   </Step>
-  <Step title="Revocar el viejo">
-    Una vez confirmado que la integración funciona con el token nuevo, revocá el viejo.
+  <Step title="Revoke the old">
+    Once the integration is happily on the new token, revoke the old one.
   </Step>
 </Steps>
 
-Este flujo te permite hacer la rotación sin downtime de la integración.
+This pattern gives you zero-downtime rotation.

@@ -1,11 +1,11 @@
 ---
 title: "GET /v1/scheduling/services"
 sidebarTitle: "GET services"
-description: "Lista los servicios disponibles del tenant. Soporta filtro por sucursal, búsqueda full-text y filtro por estado."
+description: "List the tenant's available services. Supports filtering by branch, full-text search, and filtering by status."
 openapi: "GET /v1/scheduling/services"
 ---
 
-Devuelve los servicios configurados en el tenant resuelto desde el PAT. La búsqueda usa el índice de texto del servicio (`name`, `description`) en español. Los servicios incluyen duración, restricciones horarias y profesionales/recursos permitidos para agendar.
+Returns the services configured for the tenant resolved from the PAT. Search uses the service text index (`name`, `description`) in Spanish. Services include duration, time restrictions, and the professionals or resources allowed to deliver them.
 
 ## Endpoint
 
@@ -13,21 +13,21 @@ Devuelve los servicios configurados en el tenant resuelto desde el PAT. La búsq
 GET https://api.keebai.com/v1/scheduling/services
 ```
 
-## Scope requerido
+## Required scope
 
 `scheduling:services:read`
 
 ## Query params
 
-| Param | Tipo | Default | Descripción |
+| Param | Type | Default | Description |
 |---|---|---|---|
-| `branchId` | `string` | — | Filtrar servicios disponibles en una sucursal específica. |
-| `search` | `string` | — | Búsqueda full-text sobre nombre y descripción. |
-| `status` | `string` | — | Filtrar por estado del servicio (`active`, `inactive`). |
-| `skip` | `number` | `0` | Offset de paginación. |
-| `limit` | `number` | `50` | Tamaño de página (máximo 200). |
+| `branchId` | `string` | — | Filter services available at a specific branch. |
+| `search` | `string` | — | Full-text search over name and description. |
+| `status` | `string` | — | Filter by service status (`active`, `inactive`). |
+| `skip` | `number` | `0` | Pagination offset. |
+| `limit` | `number` | `50` | Page size (max 200). |
 
-## Ejemplo de request
+## Example request
 
 <CodeGroup>
 
@@ -63,24 +63,24 @@ services = resp.json()
 
 </CodeGroup>
 
-## Respuesta
+## Response
 
 ### 200 OK
 
-Lista de servicios. Cada item incluye al menos:
+List of services. Each item includes at least:
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
-| `_id` | `string` | Id del servicio. Se usa como `service_id` en disponibilidad y al crear citas. |
-| `name` | `string` | Nombre visible del servicio. |
-| `description` | `string` | Descripción libre. |
-| `duration_minutes` | `number` | Duración por defecto en minutos. Define el tamaño del slot. |
-| `bufferBefore` / `bufferAfter` | `number` | Minutos de buffer alrededor del slot. |
-| `time_rules` | `object` | `{ earliest_start, latest_end }` — restringe la franja horaria en la que se puede agendar. |
-| `allowedProfessionals` | `string[]` | Ids de profesionales habilitados para prestar el servicio. |
-| `price` / `currency` | — | Tarifa de referencia. |
-| `status` | `string` | `active` o `inactive`. |
+| `_id` | `string` | Service id. Used as `service_id` in availability and when creating appointments. |
+| `name` | `string` | Service display name. |
+| `description` | `string` | Free-form description. |
+| `duration_minutes` | `number` | Default duration in minutes. Defines slot size. |
+| `bufferBefore` / `bufferAfter` | `number` | Buffer minutes around the slot. |
+| `time_rules` | `object` | `{ earliest_start, latest_end }` — restricts the window during which booking is allowed. |
+| `allowedProfessionals` | `string[]` | Ids of professionals allowed to deliver the service. |
+| `price` / `currency` | — | Reference price. |
+| `status` | `string` | `active` or `inactive`. |
 
 ### 401 Unauthorized · 403 Forbidden
 
-Mismas semánticas que el resto de la API pública.
+Same semantics as the rest of the public API.

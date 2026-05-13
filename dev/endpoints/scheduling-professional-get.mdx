@@ -1,11 +1,11 @@
 ---
 title: "GET /v1/scheduling/professionals/:id"
 sidebarTitle: "GET professionals/:id"
-description: "Obtiene el detalle completo de un profesional: sucursales asignadas, servicios habilitados, especialidades y estado."
+description: "Fetch the full detail of a professional: assigned branches, allowed services, specialties, and status."
 openapi: "GET /v1/scheduling/professionals/{id}"
 ---
 
-Devuelve el detalle del profesional indicado siempre que pertenezca al tenant del PAT.
+Returns the requested professional as long as they belong to the PAT's tenant.
 
 ## Endpoint
 
@@ -13,24 +13,24 @@ Devuelve el detalle del profesional indicado siempre que pertenezca al tenant de
 GET https://api.keebai.com/v1/scheduling/professionals/:id
 ```
 
-## Scope requerido
+## Required scope
 
 `scheduling:professionals:read`
 
 ## Path params
 
-| Param | Tipo | Descripción |
+| Param | Type | Description |
 |---|---|---|
-| `id` | `string` | Id del profesional. |
+| `id` | `string` | Professional id. |
 
-## Ejemplo de request
+## Example request
 
 ```bash
 curl https://api.keebai.com/v1/scheduling/professionals/66c1d2e3f4a5b6c7d8e9f0a1 \
   -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
-## Respuesta
+## Response
 
 ### 200 OK
 
@@ -52,8 +52,8 @@ curl https://api.keebai.com/v1/scheduling/professionals/66c1d2e3f4a5b6c7d8e9f0a1
 
 ### 404 Not Found
 
-El profesional no existe o pertenece a otra company.
+The professional doesn't exist or belongs to another company.
 
 ### 401 Unauthorized · 403 Forbidden
 
-Mismas semánticas que el resto de la API pública.
+Same semantics as the rest of the public API.

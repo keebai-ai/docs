@@ -1,13 +1,13 @@
 ---
 title: "POST /v1/knowledge/documents"
 sidebarTitle: "POST document"
-description: "Crea un documento desde Markdown. El contenido se convierte a BlockNote y se reindexa para búsqueda."
+description: "Create a document from Markdown. The content is converted to BlockNote and reindexed for search."
 openapi: "POST /v1/knowledge/documents"
 ---
 
-Crea un documento en la base de conocimientos a partir de Markdown. La API convierte el Markdown a BlockNote (el formato editorial usado por el portal) y dispara un reindexado del vector store y del índice full-text para que el documento quede disponible inmediatamente en [`POST /v1/knowledge/search`](/dev/endpoints/knowledge-search).
+Creates a document in the knowledge base from Markdown. The API converts the Markdown to BlockNote (the editor format used by the portal) and triggers a reindex of the vector store and the full-text index so the document becomes immediately available in [`POST /v1/knowledge/search`](/dev/endpoints/knowledge-search).
 
-El reindexado se encola de forma asíncrona en el servicio de procesamiento; el endpoint devuelve apenas el documento queda persistido. La búsqueda puede tardar unos segundos en ver el contenido nuevo (depende de la cola).
+The reindex is enqueued asynchronously in the processing service; the endpoint returns as soon as the document is persisted. Search may take a few seconds to surface the new content (depends on the queue).
 
 ## Endpoint
 
@@ -15,26 +15,26 @@ El reindexado se encola de forma asíncrona en el servicio de procesamiento; el 
 POST https://api.keebai.com/v1/knowledge/documents
 ```
 
-## Scope requerido
+## Required scope
 
 `knowledge:write`
 
 ## Headers
 
-| Header | Requerido | Valor |
+| Header | Required | Value |
 |---|---|---|
-| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
-| `Content-Type` | Sí | `application/json` |
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
 
 ## Body
 
-| Campo | Tipo | Requerido | Descripción |
+| Field | Type | Required | Description |
 |---|---|---|---|
-| `title` | `string` | Sí | Título del documento. Máx. 200 caracteres. |
-| `parent_id` | `string` | No | `ObjectId` de la carpeta padre. Omitir para crear en la raíz. |
-| `markdown` | `string` | Sí | Contenido en Markdown. Soporta encabezados (`# ##  ###`), listas (con viñetas, numeradas y de tareas) y tablas. |
+| `title` | `string` | Yes | Document title. Max. 200 characters. |
+| `parent_id` | `string` | No | `ObjectId` of the parent folder. Omit to create at the root. |
+| `markdown` | `string` | Yes | Markdown content. Supports headings (`# ##  ###`), lists (bulleted, numbered, and task lists) and tables. |
 
-## Ejemplo de request
+## Example request
 
 <CodeGroup>
 
@@ -87,7 +87,7 @@ document = resp.json()
 
 </CodeGroup>
 
-## Respuesta
+## Response
 
 ### 201 Created
 
@@ -104,18 +104,18 @@ document = resp.json()
 }
 ```
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
-| `id` | `string` | `ObjectId` del documento creado. |
-| `node_type` | `string` | Siempre `document`. |
-| `path_cache` | `string` | Ruta absoluta calculada al crear. |
+| `id` | `string` | `ObjectId` of the created document. |
+| `node_type` | `string` | Always `document`. |
+| `path_cache` | `string` | Absolute path computed at creation. |
 
 ### 400 / 401 / 403 / 404 / 429
 
-- `400 BAD_REQUEST`: `title` o `markdown` vacíos, `parent_id` apunta a un documento.
-- `403 FORBIDDEN` con `code: INSUFFICIENT_SCOPE`: el PAT no tiene `knowledge:write`.
-- `404 NOT_FOUND`: `parent_id` inexistente o de otra company.
+- `400 BAD_REQUEST`: `title` or `markdown` empty, `parent_id` points to a document.
+- `403 FORBIDDEN` with `code: INSUFFICIENT_SCOPE`: the PAT doesn't have `knowledge:write`.
+- `404 NOT_FOUND`: `parent_id` doesn't exist or belongs to another company.
 
 <Tip>
-  Para asegurar que el documento esté disponible para los asistentes, asignalo con [`POST /v1/knowledge/assignments`](/dev/endpoints/knowledge-assign). El contenido siempre es buscable por scope `knowledge:query` aunque no esté asignado a ningún asistente.
+  To make sure the document is available to assistants, assign it with [`POST /v1/knowledge/assignments`](/dev/endpoints/knowledge-assign). The content is always searchable via the `knowledge:query` scope even if it isn't assigned to any assistant.
 </Tip>

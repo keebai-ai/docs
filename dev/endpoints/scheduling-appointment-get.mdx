@@ -1,11 +1,11 @@
 ---
 title: "GET /v1/scheduling/appointments/:id"
 sidebarTitle: "GET appointments/:id"
-description: "Obtiene el detalle de una cita por id. Devuelve 404 si pertenece a otra company."
+description: "Fetch an appointment by id. Returns 404 if it belongs to another company."
 openapi: "GET /v1/scheduling/appointments/{id}"
 ---
 
-Devuelve la cita indicada siempre que pertenezca al tenant del PAT.
+Returns the requested appointment as long as it belongs to the PAT's tenant.
 
 ## Endpoint
 
@@ -13,24 +13,24 @@ Devuelve la cita indicada siempre que pertenezca al tenant del PAT.
 GET https://api.keebai.com/v1/scheduling/appointments/:id
 ```
 
-## Scope requerido
+## Required scope
 
 `scheduling:appointments:read`
 
 ## Path params
 
-| Param | Tipo | Descripción |
+| Param | Type | Description |
 |---|---|---|
-| `id` | `string` | Id de la cita (UUID generado al crearla). |
+| `id` | `string` | Appointment id (UUID generated at creation). |
 
-## Ejemplo de request
+## Example request
 
 ```bash
 curl https://api.keebai.com/v1/scheduling/appointments/9d5b1f4e-7c2a-4a4d-9d3e-9f1b1f8c7a3a \
   -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
-## Respuesta
+## Response
 
 ### 200 OK
 
@@ -62,16 +62,16 @@ curl https://api.keebai.com/v1/scheduling/appointments/9d5b1f4e-7c2a-4a4d-9d3e-9
 }
 ```
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
 | `status` | `string` | `pending`, `confirmed`, `completed`, `cancelled`, `blocked`, `waitlist`. |
 | `payment_status` | `string` | `pending`, `paid`, `partial`, `refunded`, `cancelled`. |
-| `dates.timezone` | `string` | Tz de la sucursal en la que se agendó la cita. |
+| `dates.timezone` | `string` | Tz of the branch the appointment was booked at. |
 
 ### 404 Not Found
 
-La cita no existe o pertenece a otra company.
+The appointment doesn't exist or belongs to another company.
 
 ### 401 Unauthorized · 403 Forbidden
 
-Mismas semánticas que el resto de la API pública.
+Same semantics as the rest of the public API.

@@ -18,28 +18,24 @@
   "navbar": {
     "links": [
       {
-        "label": "Soporte",
+        "label": "Support",
         "href": "mailto:support@keebai.com"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Ir a Keebai",
+      "label": "Open Keebai",
       "href": "https://app.keebai.com"
     }
   },
   "navigation": {
     "tabs": [
       {
-        "tab": "Autenticación",
-        "icon": "shield-check",
-        "openapi": {
-          "source": "https://api.keebai.com/v1/docs-json",
-          "directory": "_openapi/auth"
-        },
+        "tab": "Guides",
+        "icon": "book-open",
         "groups": [
           {
-            "group": "Empezar",
+            "group": "Get started",
             "pages": [
               "index",
               "dev/overview",
@@ -47,7 +43,7 @@
             ]
           },
           {
-            "group": "Tokens",
+            "group": "Authentication",
             "pages": [
               "dev/api-keys",
               "dev/authentication",
@@ -55,29 +51,27 @@
             ]
           },
           {
-            "group": "Sesión actual",
+            "group": "SDK",
             "pages": [
-              "dev/endpoints/me"
+              "dev/sdks/typescript"
             ]
           },
           {
-            "group": "Operación",
+            "group": "CLI",
+            "pages": [
+              "dev/sdks/cli"
+            ]
+          },
+          {
+            "group": "Agent Skills",
+            "pages": [
+              "dev/sdks/agent-skills"
+            ]
+          },
+          {
+            "group": "Limits",
             "pages": [
               "dev/rate-limits"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "SDKs y herramientas",
-        "icon": "code",
-        "groups": [
-          {
-            "group": "Librerías oficiales",
-            "pages": [
-              "dev/sdks/typescript",
-              "dev/sdks/cli",
-              "dev/sdks/agent-skills"
             ]
           }
         ]
@@ -108,7 +102,7 @@
             ]
           },
           {
-            "group": "Canales",
+            "group": "Channels",
             "pages": [
               "dev/endpoints/channels-list",
               "dev/endpoints/whatsapp-numbers",
@@ -119,7 +113,7 @@
         ]
       },
       {
-        "tab": "Conocimiento",
+        "tab": "Knowledge",
         "icon": "book-bookmark",
         "openapi": {
           "source": "https://api.keebai.com/v1/docs-json",
@@ -127,7 +121,7 @@
         },
         "groups": [
           {
-            "group": "Base de conocimientos",
+            "group": "Knowledge base",
             "pages": [
               "dev/endpoints/knowledge-tree",
               "dev/endpoints/knowledge-folder-create",
@@ -138,7 +132,7 @@
             ]
           },
           {
-            "group": "Asistentes",
+            "group": "Assistants",
             "pages": [
               "dev/endpoints/assistants-list"
             ]
@@ -154,14 +148,14 @@
         },
         "groups": [
           {
-            "group": "Empezar",
+            "group": "Get started",
             "pages": [
               "dev/webhooks/overview",
               "dev/webhooks/cli"
             ]
           },
           {
-            "group": "Referencia",
+            "group": "Reference",
             "pages": [
               "dev/webhooks/events",
               "dev/webhooks/security",
@@ -171,7 +165,7 @@
         ]
       },
       {
-        "tab": "Agendamiento",
+        "tab": "Scheduling",
         "icon": "calendar-check",
         "openapi": {
           "source": "https://api.keebai.com/v1/docs-json",
@@ -179,7 +173,7 @@
         },
         "groups": [
           {
-            "group": "Recursos",
+            "group": "Resources",
             "pages": [
               "dev/endpoints/scheduling-branches-list",
               "dev/endpoints/scheduling-branch-get",
@@ -190,7 +184,7 @@
             ]
           },
           {
-            "group": "Disponibilidad",
+            "group": "Availability",
             "pages": [
               "dev/endpoints/scheduling-availability",
               "dev/endpoints/scheduling-availability-range",
@@ -198,7 +192,7 @@
             ]
           },
           {
-            "group": "Citas",
+            "group": "Appointments",
             "pages": [
               "dev/endpoints/scheduling-appointment-get",
               "dev/endpoints/scheduling-appointment-create",
@@ -212,7 +206,7 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Soporte",
+          "anchor": "Support",
           "href": "mailto:support@keebai.com",
           "icon": "envelope"
         }

@@ -1,52 +1,52 @@
 ---
 title: "Quickstart"
 sidebarTitle: "Quickstart"
-description: "Genera tu primer Personal Access Token y enviá un mensaje de WhatsApp con la API pública de Keebai en menos de 5 minutos."
+description: "Mint your first Personal Access Token and send a WhatsApp message through the Keebai public API in under five minutes."
 ---
 
-Esta guía te lleva del registro a la primera respuesta exitosa de la API.
+Goes from signup to first successful API call.
 
-## Requisitos
+## Before you start
 
-- Una cuenta activa en Keebai con acceso a [app.keebai.com](https://app.keebai.com).
-- El permiso `developer.manage_tokens` asignado a tu rol. Si no lo tenés, pedile al admin de tu tenant que te lo otorgue desde **System Settings → Roles**.
-- Al menos un canal de WhatsApp configurado y un template aprobado por Meta en tu company.
-- Una herramienta para hacer requests HTTP (`curl`, Postman, Insomnia, o el lenguaje que prefieras).
+- A Keebai account at [app.keebai.com](https://app.keebai.com).
+- The `developer.manage_tokens` permission on your role. If your account doesn't show **API Keys**, ask your tenant admin to grant it under **System Settings → Roles**.
+- At least one WhatsApp channel connected and one template approved by Meta.
+- Anything that speaks HTTP — `curl`, Postman, Insomnia, or your favorite SDK.
 
-## 1. Generar un token
+## 1. Create a token
 
 <Steps>
-  <Step title="Entrar a la sección de API Keys">
-    En el portal, andá a **System Settings → API Keys**. URL directa: [app.keebai.com/system-settings/api-keys](https://app.keebai.com/system-settings/api-keys).
+  <Step title="Open API Keys">
+    Go to **System Settings → API Keys** in the dashboard: [app.keebai.com/system-settings/api-keys](https://app.keebai.com/system-settings/api-keys).
 
-    Si no ves la entrada es porque tu rol no tiene `developer.manage_tokens`. Pedíselo a un admin.
+    Not seeing it? Your role is missing `developer.manage_tokens`. Ask an admin.
   </Step>
-  <Step title="Crear un token nuevo">
-    Clic en **Crear API Key**. Te pide tres cosas:
+  <Step title="Create a new key">
+    Click **Create API Key**. Three fields:
 
-    - **Nombre**: descriptivo, te ayuda a identificarlo después. Ej: `Backend de ventas`, `Reportes nocturnos`, `Local dev`.
-    - **Permisos del token (scopes)**: marcá solo los que el token va a necesitar. Para este quickstart marcá `messages:send` y `templates:read`.
-    - **Expiración** *(opcional)*: recomendamos 90 días. Vacío significa que no expira.
+    - **Name** — anything descriptive. `Sales backend`, `Nightly reports`, `Local dev`.
+    - **Permissions (scopes)** — only the ones the token will actually use. For this quickstart, pick `messages:send` and `templates:read`.
+    - **Expiration** *(optional)* — we recommend 90 days. Leave blank for no expiry.
   </Step>
-  <Step title="Copiar el token">
-    Al confirmar, Keebai genera el token y te lo muestra **una sola vez**. Tiene el formato `kbai_pk_<64 chars hex>`.
+  <Step title="Copy the token">
+    Keebai shows the token **once**. Format: `kbai_pk_<64 hex chars>`.
 
     <Warning>
-      Este es el único momento en que vas a ver el token completo. Copialo y guardalo en un gestor de secretos (1Password, AWS Secrets Manager, GitHub Actions secrets, `.env` local). Si lo perdés, tenés que revocarlo y crear uno nuevo.
+      This is the only time you'll see the full token. Store it in a secret manager (1Password, AWS Secrets Manager, GitHub Actions secrets, a local `.env`). If you lose it, you'll have to revoke and create a new one.
     </Warning>
   </Step>
 </Steps>
 
-## 2. Listar tus templates aprobados
+## 2. List your approved templates
 
-Antes de enviar un mensaje necesitás conocer el `template_name` y las variables que espera. Hacelo con `GET /v1/templates`:
+To send a template you need its `template_name`, `language`, and variable names. Pull them with `GET /v1/templates`:
 
 ```bash
 curl https://api.keebai.com/v1/templates \
   -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
-Respuesta esperada (HTTP 200):
+Expected response (HTTP 200):
 
 ```json
 {
@@ -58,7 +58,7 @@ Respuesta esperada (HTTP 200):
       "status": "APPROVED",
       "category": "MARKETING",
       "parameter_format": "NAMED",
-      "variables": ["nombre", "monto"]
+      "variables": ["name", "amount"]
     }
   ],
   "page": 0,
@@ -67,61 +67,66 @@ Respuesta esperada (HTTP 200):
 }
 ```
 
-## 3. Enviar tu primer mensaje
+## 3. Send your first message
 
-Con el `template_name`, las `variables` esperadas y el `channel_id` de tu canal de WhatsApp, hacé `POST /v1/messages/template`:
+Grab the `phone_number_id` of your channel from [`GET /v1/whatsapp/numbers`](/dev/endpoints/whatsapp-numbers), then call `POST /v1/messages/template`:
 
 ```bash
 curl -X POST https://api.keebai.com/v1/messages/template \
   -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
-    "to": "+5491155555555",
-    "channel_id": "65a1f2b3c4d5e6f7a8b9c0d1",
+    "to": "+15551234567",
+    "phone_number_id": "100000000000001",
     "template_name": "welcome_v2",
-    "language": "es",
+    "language": "en_US",
     "variables": {
-      "nombre": "Lucio",
-      "monto": "1500"
+      "name": "Alex",
+      "amount": "1500"
     }
   }'
 ```
 
-Respuesta esperada (HTTP 202):
+Expected response (HTTP 202):
 
 ```json
 {
-  "broadcast_id": "65f4b5c6d7e8f9a0b1c2d3e4",
-  "status": "PENDING",
-  "total_recipients": 1,
-  "scheduled_at": null
+  "message_id": "wamid.HBgL...",
+  "status": "sent",
+  "sent_at": "2026-05-13T00:00:00.000Z"
 }
 ```
 
-El mensaje queda encolado. WhatsApp lo entrega en pocos segundos.
+The message is on its way — WhatsApp usually delivers within seconds.
 
-## 4. ¿Y si falla?
+## 4. If something breaks
 
-| Status | Significado | Acción |
+| Status | Meaning | What to do |
 |---|---|---|
-| `401 Unauthorized` | Token inválido, revocado o expirado. | Verificá que copiaste el token completo (incluyendo `kbai_pk_`). Si no aparece en tu lista de tokens activos, generá uno nuevo. |
-| `403 Forbidden` (`INSUFFICIENT_SCOPE`) | El token no tiene el scope que el endpoint requiere. | Generá un token nuevo marcando los scopes faltantes. |
-| `400 Bad Request` | Body inválido o `channel_id` mal formado. | Revisá el JSON contra el [contrato del endpoint](/dev/endpoints/messages-template). |
-| `429 Too Many Requests` | Pasaste el rate limit (60 req/min, 1000 req/hora por token). | Esperá unos segundos y reintentá con backoff exponencial. |
+| `401 Unauthorized` | Token is invalid, revoked, or expired. | Check you copied the full token (`kbai_pk_` prefix included). If it's not in your active token list, mint a new one. |
+| `403 Forbidden` (`INSUFFICIENT_SCOPE`) | Token doesn't carry the scope the endpoint needs. | Mint a new token with the missing scopes checked. |
+| `400 Bad Request` | Body is malformed or `phone_number_id` is off. | Check the JSON against the [endpoint contract](/dev/endpoints/messages-template). |
+| `429 Too Many Requests` | You hit the rate limit (60 req/min, 1,000 req/hour per token). | Back off, then retry with exponential backoff. |
 
-## 5. Próximos pasos
+## 5. Where to next
 
 <CardGroup cols={2}>
-  <Card title="Cómo gestionar tokens" icon="key" href="/dev/api-keys">
-    Crear, listar, revocar y rotar tokens desde el portal.
+  <Card title="TypeScript SDK" icon="code" href="/dev/sdks/typescript">
+    Skip writing HTTP by hand — use the typed client.
   </Card>
-  <Card title="Scopes y permisos" icon="shield" href="/dev/scopes">
-    Qué hace cada scope y cuándo usarlo.
+  <Card title="CLI" icon="terminal" href="/dev/sdks/cli">
+    `keebai login` and `keebai whatsapp messages send` from your shell.
   </Card>
-  <Card title="Envío masivo (bulk)" icon="paper-plane" href="/dev/endpoints/messages-bulk">
-    Lanzar el mismo template a miles de destinatarios y ver el estado.
+  <Card title="Manage tokens" icon="key" href="/dev/api-keys">
+    Create, list, revoke, and rotate tokens.
   </Card>
-  <Card title="Spec OpenAPI" icon="file-code" href="https://api.keebai.com/v1/docs">
-    Swagger UI con todos los endpoints, schemas y ejemplos.
+  <Card title="Scopes" icon="shield" href="/dev/scopes">
+    What each scope does and when to use it.
+  </Card>
+  <Card title="Bulk send" icon="paper-plane" href="/dev/endpoints/messages-bulk">
+    Send the same template to thousands of recipients and track status.
+  </Card>
+  <Card title="OpenAPI spec" icon="file-code" href="https://api.keebai.com/v1/docs">
+    Swagger UI with every endpoint, schema, and example.
   </Card>
 </CardGroup>

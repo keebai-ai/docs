@@ -1,15 +1,15 @@
 ---
 title: "POST /v1/knowledge/assignments"
 sidebarTitle: "POST assign"
-description: "Asigna nodos de la base de conocimientos a todos los workers de un asistente."
+description: "Assign knowledge base nodes to all of an assistant's workers."
 openapi: "POST /v1/knowledge/assignments"
 ---
 
-Asocia uno o más nodos de la base de conocimientos a un asistente. La asignación se propaga a **todos los workers** del asistente (excepto los `supervisor`), agregando los `node_id` indicados a su lista de conocimientos accesibles. La operación es idempotente: si un nodo ya estaba asignado, no se duplica.
+Associates one or more knowledge base nodes with an assistant. The assignment propagates to **all of the assistant's workers** (except `supervisor` workers), adding the given `node_id` values to their list of accessible knowledge. The operation is idempotent: if a node was already assigned, it isn't duplicated.
 
-Para listar los asistentes disponibles usá [`GET /v1/assistants`](/dev/endpoints/assistants-list). Para obtener los `node_id` validados de tus carpetas y documentos usá [`GET /v1/knowledge/tree`](/dev/endpoints/knowledge-tree).
+To list available assistants use [`GET /v1/assistants`](/dev/endpoints/assistants-list). To get validated `node_id` values for your folders and documents use [`GET /v1/knowledge/tree`](/dev/endpoints/knowledge-tree).
 
-Tras la asignación se encola un reindexado para refrescar los embeddings cacheados de los workers.
+After the assignment, a reindex is enqueued to refresh the workers' cached embeddings.
 
 ## Endpoint
 
@@ -17,25 +17,25 @@ Tras la asignación se encola un reindexado para refrescar los embeddings cachea
 POST https://api.keebai.com/v1/knowledge/assignments
 ```
 
-## Scope requerido
+## Required scope
 
 `knowledge:assign`
 
 ## Headers
 
-| Header | Requerido | Valor |
+| Header | Required | Value |
 |---|---|---|
-| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
-| `Content-Type` | Sí | `application/json` |
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
 
 ## Body
 
-| Campo | Tipo | Requerido | Descripción |
+| Field | Type | Required | Description |
 |---|---|---|---|
-| `assistant_id` | `string` | Sí | `ObjectId` del asistente destino. |
-| `node_ids` | `string[]` | Sí | `ObjectId` de los nodos a asignar. Mínimo 1, máximo 200. |
+| `assistant_id` | `string` | Yes | `ObjectId` of the target assistant. |
+| `node_ids` | `string[]` | Yes | `ObjectId` values of the nodes to assign. Minimum 1, maximum 200. |
 
-## Ejemplo de request
+## Example request
 
 <CodeGroup>
 
@@ -88,7 +88,7 @@ print(resp.json()["workers_updated"])
 
 </CodeGroup>
 
-## Respuesta
+## Response
 
 ### 200 OK
 
@@ -98,12 +98,12 @@ print(resp.json()["workers_updated"])
 }
 ```
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
-| `workers_updated` | `number` | Cantidad de workers del asistente que recibieron la asignación. `0` significa que el asistente no tiene workers no-supervisor. |
+| `workers_updated` | `number` | Number of assistant workers that received the assignment. `0` means the assistant has no non-supervisor workers. |
 
 ### 400 / 401 / 403 / 404 / 429
 
-- `400 BAD_REQUEST`: `assistant_id` o `node_ids` con formato inválido, o `node_ids` vacío.
-- `403 FORBIDDEN` con `code: INSUFFICIENT_SCOPE`: el PAT no tiene `knowledge:assign`.
-- `404 NOT_FOUND`: el `assistant_id` no existe, o uno o más `node_ids` no pertenecen a tu company.
+- `400 BAD_REQUEST`: `assistant_id` or `node_ids` with invalid format, or `node_ids` empty.
+- `403 FORBIDDEN` with `code: INSUFFICIENT_SCOPE`: the PAT doesn't have `knowledge:assign`.
+- `404 NOT_FOUND`: the `assistant_id` doesn't exist, or one or more `node_ids` don't belong to your company.

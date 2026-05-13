@@ -1,11 +1,11 @@
 ---
 title: "GET /v1/scheduling/availability"
 sidebarTitle: "GET availability"
-description: "Disponibilidad para una fecha específica. Devuelve los slots libres por profesional para un servicio dado."
+description: "Availability for a specific date. Returns free slots per professional for a given service."
 openapi: "GET /v1/scheduling/availability"
 ---
 
-Calcula los slots libres para un servicio en una fecha puntual. El motor considera horarios de los profesionales, citas ya agendadas, buffers del servicio (`bufferBefore`, `bufferAfter`) y restricciones horarias (`time_rules.earliest_start`, `time_rules.latest_end`). Si no se especifica `branchId`, se usa la primera sucursal del tenant.
+Computes the free slots for a service on a single date. The engine takes into account professional schedules, existing appointments, service buffers (`bufferBefore`, `bufferAfter`), and time restrictions (`time_rules.earliest_start`, `time_rules.latest_end`). If no `branchId` is provided, the tenant's first branch is used.
 
 ## Endpoint
 
@@ -13,20 +13,20 @@ Calcula los slots libres para un servicio en una fecha puntual. El motor conside
 GET https://api.keebai.com/v1/scheduling/availability
 ```
 
-## Scope requerido
+## Required scope
 
 `scheduling:availability:read`
 
 ## Query params
 
-| Param | Tipo | Requerido | Descripción |
+| Param | Type | Required | Description |
 |---|---|---|---|
-| `serviceId` | `string` | Sí | Servicio a agendar. Define duración y restricciones del slot. |
-| `date` | `string` | Sí | Fecha en formato `YYYY-MM-DD`. Si es anterior a hoy en el tz de la sucursal, devuelve `results: []`. |
-| `branchId` | `string` | No | Sucursal. Si se omite, se usa la primera del tenant. |
-| `professionalId` | `string` | No | Restringir el cálculo a un profesional específico. |
+| `serviceId` | `string` | Yes | Service to book. Defines slot duration and restrictions. |
+| `date` | `string` | Yes | Date in `YYYY-MM-DD` format. If earlier than today in the branch's tz, returns `results: []`. |
+| `branchId` | `string` | No | Branch. If omitted, the tenant's first branch is used. |
+| `professionalId` | `string` | No | Restrict the computation to a specific professional. |
 
-## Ejemplo de request
+## Example request
 
 <CodeGroup>
 
@@ -70,7 +70,7 @@ results = resp.json()["results"]
 
 </CodeGroup>
 
-## Respuesta
+## Response
 
 ### 200 OK
 
@@ -91,23 +91,23 @@ results = resp.json()["results"]
 }
 ```
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
-| `results[].id` | `string` | Id del profesional. |
-| `results[].timeSlots[].time` | `string` | Hora de inicio del slot (`HH:mm`) en el tz de la sucursal. |
+| `results[].id` | `string` | Professional id. |
+| `results[].timeSlots[].time` | `string` | Slot start time (`HH:mm`) in the branch's tz. |
 
 ### 400 Bad Request
 
-`date` con formato inválido, `serviceId` ausente, sucursal del tenant inexistente.
+`date` with an invalid format, missing `serviceId`, or no branch exists for the tenant.
 
 ### 401 Unauthorized · 403 Forbidden
 
-Mismas semánticas que el resto de la API pública.
+Same semantics as the rest of the public API.
 
-## Patrones comunes
+## Common patterns
 
-### UI de selección "fecha → profesional → hora"
+### "Date → professional → time" picker UI
 
-1. El usuario elige una fecha.
-2. Tu app llama a `GET /availability?date=<fecha>&serviceId=...&branchId=...`.
-3. La respuesta agrupa los slots por profesional, listo para pintar como columnas o filas.
+1. The user picks a date.
+2. Your app calls `GET /availability?date=<date>&serviceId=...&branchId=...`.
+3. The response groups slots by professional, ready to render as columns or rows.

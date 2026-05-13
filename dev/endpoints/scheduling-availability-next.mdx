@@ -1,11 +1,11 @@
 ---
 title: "GET /v1/scheduling/availability/next"
 sidebarTitle: "GET availability/next"
-description: "Próximas horas disponibles más cercanas. Recorre desde una fecha base hasta encontrar N slots libres."
+description: "Closest upcoming available time slots. Walks forward from a base date until it finds N free slots."
 openapi: "GET /v1/scheduling/availability/next"
 ---
 
-Devuelve los próximos slots libres a partir de `fromDate` (default: hoy en el tz de la sucursal), recorriendo hasta `maxDays` días y deteniéndose cuando completa `limit` slots por profesional. Pensado para flujos tipo "primera hora disponible".
+Returns the next available slots starting from `fromDate` (default: today in the branch's tz), walking forward up to `maxDays` days and stopping once `limit` slots per professional have been collected. Designed for "first available time" flows.
 
 ## Endpoint
 
@@ -13,22 +13,22 @@ Devuelve los próximos slots libres a partir de `fromDate` (default: hoy en el t
 GET https://api.keebai.com/v1/scheduling/availability/next
 ```
 
-## Scope requerido
+## Required scope
 
 `scheduling:availability:read`
 
 ## Query params
 
-| Param | Tipo | Requerido | Default | Descripción |
+| Param | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `serviceId` | `string` | Sí | — | Servicio a agendar. |
-| `branchId` | `string` | No | primera del tenant | Sucursal. |
-| `professionalId` | `string` | No | — | Restringir a un profesional. |
-| `fromDate` | `string` | No | hoy | Fecha desde la que comenzar a buscar (`YYYY-MM-DD`). |
-| `maxDays` | `number` | No | `14` | Días máximos a recorrer hacia adelante. Rango `1..60`. |
-| `limit` | `number` | No | `5` | Cantidad máxima de slots a devolver por profesional. Rango `1..20`. |
+| `serviceId` | `string` | Yes | — | Service to book. |
+| `branchId` | `string` | No | tenant's first | Branch. |
+| `professionalId` | `string` | No | — | Restrict to a single professional. |
+| `fromDate` | `string` | No | today | Date to start the search from (`YYYY-MM-DD`). |
+| `maxDays` | `number` | No | `14` | Maximum number of days to walk forward. Range `1..60`. |
+| `limit` | `number` | No | `5` | Maximum number of slots to return per professional. Range `1..20`. |
 
-## Ejemplo de request
+## Example request
 
 <CodeGroup>
 
@@ -57,7 +57,7 @@ const { results } = await (
 
 </CodeGroup>
 
-## Respuesta
+## Response
 
 ### 200 OK
 
@@ -80,11 +80,11 @@ const { results } = await (
 }
 ```
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
-| `results[].professional` | `object` | Profesional con id y nombre. |
-| `results[].slots[]` | `array` | Slots libres ordenados de más cercano a más lejano. |
+| `results[].professional` | `object` | Professional with id and name. |
+| `results[].slots[]` | `array` | Free slots ordered from soonest to latest. |
 
 ### 401 Unauthorized · 403 Forbidden
 
-Mismas semánticas que el resto de la API pública.
+Same semantics as the rest of the public API.

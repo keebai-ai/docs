@@ -1,11 +1,11 @@
 ---
 title: "GET /v1/scheduling/professionals"
 sidebarTitle: "GET professionals"
-description: "Lista los profesionales del tenant. Filtros por sucursal, servicio prestado, estado y búsqueda full-text por nombre/cargo."
+description: "List the tenant's professionals. Filters by branch, service delivered, status, and full-text search by name/role."
 openapi: "GET /v1/scheduling/professionals"
 ---
 
-Devuelve los profesionales del tenant. La búsqueda usa el índice de texto del profesional sobre `name`, `last_name`, `email` y `cargo`, por lo que cubre tanto búsquedas por nombre como por especialidad.
+Returns the tenant's professionals. Search uses the professional text index over `name`, `last_name`, `email`, and `cargo`, so it covers searches by name as well as by specialty.
 
 ## Endpoint
 
@@ -13,22 +13,22 @@ Devuelve los profesionales del tenant. La búsqueda usa el índice de texto del 
 GET https://api.keebai.com/v1/scheduling/professionals
 ```
 
-## Scope requerido
+## Required scope
 
 `scheduling:professionals:read`
 
 ## Query params
 
-| Param | Tipo | Default | Descripción |
+| Param | Type | Default | Description |
 |---|---|---|---|
-| `branchId` | `string` | — | Filtrar profesionales asignados a una sucursal. |
-| `serviceId` | `string` | — | Filtrar profesionales habilitados para prestar un servicio. |
-| `search` | `string` | — | Búsqueda full-text sobre nombre, apellido, email y cargo. |
-| `status` | `string` | — | `active`, `inactive` o `on_leave`. |
-| `skip` | `number` | `0` | Offset de paginación. |
-| `limit` | `number` | `50` | Tamaño de página (máximo 200). |
+| `branchId` | `string` | — | Filter professionals assigned to a branch. |
+| `serviceId` | `string` | — | Filter professionals allowed to deliver a service. |
+| `search` | `string` | — | Full-text search over name, last name, email, and role. |
+| `status` | `string` | — | `active`, `inactive`, or `on_leave`. |
+| `skip` | `number` | `0` | Pagination offset. |
+| `limit` | `number` | `50` | Page size (max 200). |
 
-## Ejemplo de request
+## Example request
 
 <CodeGroup>
 
@@ -54,23 +54,23 @@ const { items } = await (
 
 </CodeGroup>
 
-## Respuesta
+## Response
 
 ### 200 OK
 
-Cada item incluye al menos:
+Each item includes at least:
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
-| `_id` | `string` | Id del profesional. Se usa como `professional_id` en disponibilidad y al crear citas. |
-| `name` / `last_name` | `string` | Nombre completo. |
-| `cargo` | `string` | Rol o cargo. Útil para mostrar en la UI. |
-| `specialties` | `string[]` | Especialidades declaradas. |
-| `email` / `phone` | `string` | Datos de contacto del profesional. |
-| `branches` | `string[]` | Sucursales en las que atiende. |
-| `services` | `string[]` | Servicios que puede prestar. |
-| `status` | `string` | `active`, `inactive` u `on_leave`. |
+| `_id` | `string` | Professional id. Used as `professional_id` in availability and when creating appointments. |
+| `name` / `last_name` | `string` | Full name. |
+| `cargo` | `string` | Role or title. Useful to display in the UI. |
+| `specialties` | `string[]` | Declared specialties. |
+| `email` / `phone` | `string` | Professional contact details. |
+| `branches` | `string[]` | Branches where they work. |
+| `services` | `string[]` | Services they can deliver. |
+| `status` | `string` | `active`, `inactive`, or `on_leave`. |
 
 ### 401 Unauthorized · 403 Forbidden
 
-Mismas semánticas que el resto de la API pública.
+Same semantics as the rest of the public API.

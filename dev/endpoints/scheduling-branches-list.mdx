@@ -1,11 +1,11 @@
 ---
 title: "GET /v1/scheduling/branches"
 sidebarTitle: "GET branches"
-description: "Lista las sucursales activas del tenant. Soporta búsqueda full-text por nombre o display_name (índice de texto en español)."
+description: "List the tenant's active branches. Supports full-text search over name and display_name (Spanish text index)."
 openapi: "GET /v1/scheduling/branches"
 ---
 
-Devuelve las sucursales con `status: active` del tenant resuelto desde el PAT. La búsqueda usa el índice de texto `branch_text_search` (idioma `spanish`), por lo que tolera plurales y acentos.
+Returns branches with `status: active` for the tenant resolved from the PAT. Search uses the `branch_text_search` text index (language `spanish`), so it tolerates plurals and accents.
 
 ## Endpoint
 
@@ -13,25 +13,25 @@ Devuelve las sucursales con `status: active` del tenant resuelto desde el PAT. L
 GET https://api.keebai.com/v1/scheduling/branches
 ```
 
-## Scope requerido
+## Required scope
 
 `scheduling:branches:read`
 
 ## Headers
 
-| Header | Requerido | Valor |
+| Header | Required | Value |
 |---|---|---|
-| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
 
 ## Query params
 
-| Param | Tipo | Default | Descripción |
+| Param | Type | Default | Description |
 |---|---|---|---|
-| `search` | `string` | — | Búsqueda full-text sobre `name` y `display_name`. |
-| `skip` | `number` | `0` | Offset de paginación. Mínimo `0`. |
-| `limit` | `number` | `50` | Tamaño de página. Rango `1..200`. |
+| `search` | `string` | — | Full-text search over `name` and `display_name`. |
+| `skip` | `number` | `0` | Pagination offset. Minimum `0`. |
+| `limit` | `number` | `50` | Page size. Range `1..200`. |
 
-## Ejemplo de request
+## Example request
 
 <CodeGroup>
 
@@ -68,7 +68,7 @@ print(resp.json()["items"])
 
 </CodeGroup>
 
-## Respuesta
+## Response
 
 ### 200 OK
 
@@ -97,16 +97,16 @@ print(resp.json()["items"])
 }
 ```
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
-| `total` | `number` | Total de sucursales que matchean los filtros (sin paginar). |
-| `items[].id` | `string` | `ObjectId` de la sucursal. Se usa como `branch_id` en disponibilidad y citas. |
-| `items[].timezone` | `string` | Zona horaria de la sucursal. Toda la disponibilidad y las citas se calculan respecto a este tz. |
+| `total` | `number` | Total branches matching the filters (before pagination). |
+| `items[].id` | `string` | Branch `ObjectId`. Used as `branch_id` for availability and appointments. |
+| `items[].timezone` | `string` | Branch timezone. All availability and appointments are computed against this tz. |
 
 ### 401 Unauthorized
 
-Token ausente, inválido, revocado o expirado.
+Token missing, invalid, revoked, or expired.
 
 ### 403 Forbidden
 
-El token no tiene el scope `scheduling:branches:read`.
+The token doesn't have the `scheduling:branches:read` scope.

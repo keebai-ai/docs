@@ -1,22 +1,22 @@
 ---
-title: "Autenticación"
-sidebarTitle: "Autenticación"
-description: "Cómo enviar el Personal Access Token en cada request a la API pública de Keebai y cómo manejar los errores de autenticación."
+title: "Authentication"
+sidebarTitle: "Authentication"
+description: "Send your Personal Access Token on every request to the Keebai public API, handle 401 errors cleanly, and store tokens safely."
 ---
 
-La API pública usa el esquema **HTTP Bearer Authentication** ([RFC 6750](https://datatracker.ietf.org/doc/html/rfc6750)). Toda request necesita el token en el header `Authorization`.
+The public API uses **HTTP Bearer Authentication** ([RFC 6750](https://datatracker.ietf.org/doc/html/rfc6750)). Every request needs the token in the `Authorization` header.
 
-## Header de autorización
+## The header
 
 ```http
 Authorization: Bearer kbai_pk_a1b2c3d4e5f6...
 ```
 
-- Formato: `Bearer <token>`. El espacio entre `Bearer` y el token es obligatorio.
-- El token va completo, incluyendo el prefijo `kbai_pk_`.
-- HTTPS es obligatorio. Las requests por HTTP plano son rechazadas en producción.
+- Format: `Bearer <token>`. The space between `Bearer` and the token is required.
+- Send the full token, including the `kbai_pk_` prefix.
+- HTTPS is required. Plain HTTP requests are rejected in production.
 
-## Ejemplos por lenguaje
+## Examples
 
 <CodeGroup>
 
@@ -81,9 +81,9 @@ func main() {
 
 </CodeGroup>
 
-## Errores de autenticación
+## Authentication errors
 
-Por seguridad, todos los errores de autenticación devuelven el mismo status y mensaje genérico — no diferencias entre "token inexistente" y "token revocado" para no facilitar enumeración por atacantes.
+All auth errors return the same generic status and message — we don't tell you whether a token is "missing" vs "revoked" to avoid handing enumeration hints to attackers.
 
 ```http
 HTTP/1.1 401 Unauthorized
@@ -98,40 +98,40 @@ Content-Type: application/json
 }
 ```
 
-Causas posibles, en orden de frecuencia:
+Common causes, most frequent first:
 
-| Causa | Acción |
+| Cause | Fix |
 |---|---|
-| Header `Authorization` ausente. | Agregalo. |
-| Header presente pero sin `Bearer ` adelante. | Asegurate de incluir el prefijo `Bearer ` con espacio. |
-| Token mal copiado (truncado, espacios extra, charset distinto). | Re-copialo del gestor de secretos. |
-| Token revocado. | Verificá en [API Keys](https://app.keebai.com/system-settings/api-keys); si está como `Revocado`, generá uno nuevo. |
-| Token expirado. | Lo mismo: verificá la columna *Estado*. |
-| Usuario dueño del token desactivado. | Pedile al admin de tu tenant que reactive tu cuenta. |
+| `Authorization` header missing. | Add it. |
+| Header set but no `Bearer ` prefix. | Include `Bearer ` with a space. |
+| Token mis-copied (truncated, extra whitespace, different charset). | Copy from your secret manager again. |
+| Token revoked. | Check [API Keys](https://app.keebai.com/system-settings/api-keys). If status is `Revoked`, mint a new one. |
+| Token expired. | Same place — check the *Status* column. |
+| Token owner deactivated. | Ask your tenant admin to reactivate the account. |
 
-## Cómo guardar el token de forma segura
+## Where to store your token
 
 <CardGroup cols={2}>
-  <Card title="Gestores de secretos" icon="vault">
-    AWS Secrets Manager, GCP Secret Manager, HashiCorp Vault, 1Password, Doppler. La forma correcta para producción.
+  <Card title="Secret managers" icon="vault">
+    AWS Secrets Manager, GCP Secret Manager, HashiCorp Vault, 1Password, Doppler. The right answer for production.
   </Card>
   <Card title="GitHub Actions" icon="github">
-    Repository Settings → Secrets → Actions → New secret. Referenciado como `${{ secrets.KEEBAI_API_TOKEN }}`.
+    Repository Settings → Secrets → Actions → New secret. Reference as `${{ secrets.KEEBAI_API_TOKEN }}`.
   </Card>
-  <Card title=".env local" icon="file">
-    Solo para desarrollo personal. Asegurate de que `.env` esté en `.gitignore`.
+  <Card title="Local .env" icon="file">
+    Personal dev only. Make sure `.env` is in `.gitignore`.
   </Card>
-  <Card title="Variables de entorno" icon="terminal">
-    En servidores: `export KEEBAI_API_TOKEN=...`. Nunca en el código fuente.
+  <Card title="Server env vars" icon="terminal">
+    On servers: `export KEEBAI_API_TOKEN=...`. Never in source code.
   </Card>
 </CardGroup>
 
 <Warning>
-  **Nunca** committees un token al repositorio. **Nunca** lo embebas en una app móvil, en una SPA pública o en cualquier código que un usuario final pueda inspeccionar. Si por error commiteás un token, [revocálo inmediatamente](/dev/api-keys#revocar-un-token) y reescribí el historial de git si es posible.
+  **Never** commit a token to a repository. **Never** ship one in a mobile app, public SPA, or anything a user can inspect. If you accidentally commit one, [revoke it immediately](/dev/api-keys#revoke-a-token) and rewrite your git history if possible.
 </Warning>
 
-## Detección automática de leaks
+## Automatic leak detection
 
-El prefijo `kbai_pk_` es reconocible por herramientas de secret scanning. Habilitamos detección en GitHub para los tokens Keebai: si por accidente subís un token a un repo público de GitHub, recibirás una alerta y el token será revocado automáticamente.
+The `kbai_pk_` prefix is registered with GitHub's secret scanning. If a token ends up in a public GitHub repo, you'll get an alert and we'll auto-revoke it.
 
-Para habilitarlo en repos privados de tu organización: GitHub → Settings → Code security → Secret scanning.
+To enable secret scanning on your private org repos: GitHub → Settings → Code security → Secret scanning.

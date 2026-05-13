@@ -1,37 +1,37 @@
 ---
 title: "POST /v1/channels/whatsapp/connect"
 sidebarTitle: "POST channels/whatsapp/connect"
-description: "Inicia el flow de conexión de un nuevo canal WhatsApp Business desde tu CLI o backend, sin pasar por el portal."
+description: "Kick off the connection flow for a new WhatsApp Business channel from your CLI or backend, without going through the portal."
 openapi: "POST /v1/channels/whatsapp/connect"
 ---
 
-Hay **dos modos** para conectar un canal de WhatsApp:
+There are **two modes** to connect a WhatsApp channel:
 
-- `mode: "embedded_signup"` (default) — flujo oficial de Meta para WhatsApp Business Cloud API. Requiere que un humano complete el [Embedded Signup](https://developers.facebook.com/docs/whatsapp/embedded-signup) en un browser. Es lo que hace `keebai whatsapp connect`.
-- `mode: "qr"` — pairing por QR multi-dispositivo (sin browser, sin WABA oficial). El endpoint inicia una sesión y devuelve un `stream_url` SSE; el cliente recibe el QR, lo escanea con WhatsApp móvil y, al terminar, recibe el evento `connected` con el `channel_id`. Es lo que hace `keebai whatsapp connect --qr`. Documentado en detalle en [POST /v1/channels/whatsapp/connect (modo QR)](/dev/endpoints/channels-whatsapp-connect-qr).
+- `mode: "embedded_signup"` (default) — Meta's official flow for WhatsApp Business Cloud API. Requires a human to complete the [Embedded Signup](https://developers.facebook.com/docs/whatsapp/embedded-signup) in a browser. This is what `keebai whatsapp connect` does.
+- `mode: "qr"` — multi-device QR pairing (no browser, no official WABA). The endpoint starts a session and returns an SSE `stream_url`; the client receives the QR, scans it with WhatsApp mobile, and when done receives the `connected` event with the `channel_id`. This is what `keebai whatsapp connect --qr` does. Documented in detail at [POST /v1/channels/whatsapp/connect (QR mode)](/dev/endpoints/channels-whatsapp-connect-qr).
 
-## Flow general
+## General flow
 
 <Steps>
-  <Step title="Tu backend pide iniciar la sesión">
-    `POST /v1/channels/whatsapp/connect`. Devuelve `session_id` + `verification_uri`.
+  <Step title="Your backend starts the session">
+    `POST /v1/channels/whatsapp/connect`. Returns `session_id` + `verification_uri`.
   </Step>
-  <Step title="Mostrás la URL al usuario">
-    El usuario la abre en un browser, hace login en el portal Keebai (si no estaba), y arranca el embedded signup de Meta.
+  <Step title="Show the URL to the user">
+    The user opens it in a browser, logs into the Keebai portal (if not already), and starts Meta's embedded signup.
   </Step>
-  <Step title="Pollee el estado cada 5 segundos">
-    `GET /v1/channels/whatsapp/connect/:session_id` hasta `status: completed`. La sesión expira en 15 minutos.
+  <Step title="Poll status every 5 seconds">
+    `GET /v1/channels/whatsapp/connect/:session_id` until `status: completed`. The session expires in 15 minutes.
   </Step>
-  <Step title="Recibís el canal creado">
-    En el response del polling con `status: completed` viene `channel: { id, phone_number, ... }`.
+  <Step title="Receive the created channel">
+    The polling response with `status: completed` includes `channel: { id, phone_number, ... }`.
   </Step>
 </Steps>
 
-## Iniciar sesión
+## Start a session
 
 `POST /v1/channels/whatsapp/connect`
 
-**Scope requerido:** `channels:connect`
+**Required scope:** `channels:connect`
 
 ### Request
 
@@ -45,12 +45,12 @@ curl -X POST https://api.keebai.com/v1/channels/whatsapp/connect \
   }'
 ```
 
-| Campo | Tipo | Requerido | Descripción |
+| Field | Type | Required | Description |
 |---|---|---|---|
-| `mode` | `"embedded_signup" \| "qr"` | no | Default `embedded_signup`. Cuando es `qr`, el resto de campos cambian — ver [modo QR](/dev/endpoints/channels-whatsapp-connect-qr). |
-| `pipeline_id` | string | no | (sólo `embedded_signup`) Id del pipeline al que asociar el canal nuevo. Si lo omitís, el portal usa el pipeline default. |
-| `coexistence_enabled` | boolean | no | (sólo `embedded_signup`) `true` si el número ya está registrado en la WhatsApp Business App tradicional y querés convivencia con Cloud API. Default `false`. |
-| `name` | string | no | (sólo `qr`) Etiqueta del canal QR. Default `"WhatsApp QR"`. |
+| `mode` | `"embedded_signup" \| "qr"` | no | Default `embedded_signup`. When set to `qr`, the rest of the fields change — see [QR mode](/dev/endpoints/channels-whatsapp-connect-qr). |
+| `pipeline_id` | string | no | (`embedded_signup` only) Id of the pipeline to attach the new channel to. If omitted, the portal uses the default pipeline. |
+| `coexistence_enabled` | boolean | no | (`embedded_signup` only) `true` if the number is already registered in the traditional WhatsApp Business App and you want coexistence with Cloud API. Default `false`. |
+| `name` | string | no | (`qr` only) Label for the QR channel. Default `"WhatsApp QR"`. |
 
 ### Response 201
 
@@ -63,18 +63,18 @@ curl -X POST https://api.keebai.com/v1/channels/whatsapp/connect \
 }
 ```
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
-| `session_id` | string | Id de la sesión. Usalo para pollear status. |
-| `verification_uri` | string | URL del portal que el usuario debe abrir. Auto-dispara el modal de embedded signup. |
-| `expires_in` | number | Segundos hasta que la sesión expira (15 minutos). |
-| `poll_interval` | number | Segundos sugeridos entre polls. |
+| `session_id` | string | Session id. Use it to poll status. |
+| `verification_uri` | string | Portal URL the user must open. Auto-triggers the embedded signup modal. |
+| `expires_in` | number | Seconds until the session expires (15 minutes). |
+| `poll_interval` | number | Suggested seconds between polls. |
 
-## Pollear estado
+## Poll status
 
 `GET /v1/channels/whatsapp/connect/:session_id`
 
-**Scope requerido:** `channels:connect`
+**Required scope:** `channels:connect`
 
 ### Request
 
@@ -85,7 +85,7 @@ curl https://api.keebai.com/v1/channels/whatsapp/connect/cs_01HXYZ \
 
 ### Response 200
 
-Mientras el usuario no completa el signup:
+While the user hasn't completed signup:
 
 ```json
 {
@@ -93,7 +93,7 @@ Mientras el usuario no completa el signup:
 }
 ```
 
-Cuando el embedded signup termina exitosamente:
+When embedded signup finishes successfully:
 
 ```json
 {
@@ -110,35 +110,35 @@ Cuando el embedded signup termina exitosamente:
 }
 ```
 
-Estados terminales:
+Terminal states:
 
-| Status | Significado |
+| Status | Meaning |
 |---|---|
-| `completed` | Canal creado. Empezó a recibir webhooks de Meta inmediatamente. |
-| `expired` | Pasaron 15 minutos sin completar. Iniciá una sesión nueva. |
-| `cancelled` | El usuario canceló desde el portal. Iniciá una nueva si querés reintentar. |
+| `completed` | Channel created. It started receiving Meta webhooks immediately. |
+| `expired` | 15 minutes elapsed without completing. Start a new session. |
+| `cancelled` | The user cancelled from the portal. Start a new one if you want to retry. |
 
-## Equivalente CLI
+## CLI equivalent
 
 ```bash
 keebai whatsapp connect [--pipeline pip_01HXYZ] [--coexistence]
 ```
 
-El CLI hace exactamente este flow: crea la sesión, abre la URL en tu browser, pollee status, y al completarse imprime `Connected channel ch_xxx (phone_number_id: ...)`.
+The CLI does exactly this flow: creates the session, opens the URL in your browser, polls status, and on completion prints `Connected channel ch_xxx (phone_number_id: ...)`.
 
-## Notas operacionales
+## Operational notes
 
 <CardGroup cols={2}>
-  <Card title="No se pueden ejecutar 100% backend">
-    Meta exige interacción humana en browser para el embedded signup. Tu UI necesita un paso visible para el usuario.
+  <Card title="Cannot run 100% backend">
+    Meta requires human browser interaction for embedded signup. Your UI needs a visible step for the user.
   </Card>
-  <Card title="Suscribite a `whatsapp.channel.connected`">
-    Si no querés pollear, suscribite al [webhook](/dev/webhooks/events#whatsapp-channel-connected). Tu endpoint recibe el evento cuando el canal se completa, sin necesidad de polling.
+  <Card title="Subscribe to `whatsapp.channel.connected`">
+    If you'd rather not poll, subscribe to the [webhook](/dev/webhooks/events#whatsapp-channel-connected). Your endpoint receives the event when the channel completes, no polling needed.
   </Card>
-  <Card title="Coexistence con WABA Mobile App">
-    Si el número ya está activo en la app Business tradicional, marcá `coexistence_enabled: true`. Meta sincroniza el historial; el portal lo refleja al activar.
+  <Card title="Coexistence with WABA Mobile App">
+    If the number is already active in the traditional Business app, set `coexistence_enabled: true`. Meta syncs the history; the portal reflects it when activating.
   </Card>
-  <Card title="El PAT determina la company destino">
-    El canal queda asociado a la company del PAT que inició la sesión. No hay manera de crear el canal en otra company desde la API.
+  <Card title="The PAT determines the destination company">
+    The channel is attached to the company of the PAT that started the session. There's no way to create the channel in a different company from the API.
   </Card>
 </CardGroup>

@@ -1,24 +1,24 @@
 ---
 title: "GET /v1/channels"
 sidebarTitle: "GET channels"
-description: "Lista canales activos de la company filtrables por tipo."
+description: "List a company's active channels, filterable by type."
 openapi: "GET /v1/channels"
 ---
 
-Devuelve los canales conectados de la company asociada al PAT. Útil para descubrir qué canal usar al enviar mensajes o registrar webhooks.
+Returns the connected channels for the company tied to the PAT. Handy for discovering which channel to use when sending messages or registering webhooks.
 
 ```http
 GET /v1/channels
 GET /v1/channels?type=whatsapp
 ```
 
-**Scope requerido:** `channels:read`
+**Required scope:** `channels:read`
 
 ## Query params
 
-| Param | Tipo | Descripción |
+| Param | Type | Description |
 |---|---|---|
-| `type` | enum opcional | Filtra por tipo. Valores: `whatsapp`, `whatsapp_qr`, `instagram`, `messenger`, `tiktok`, `web`, `playground`. |
+| `type` | optional enum | Filter by type. Values: `whatsapp`, `whatsapp_qr`, `instagram`, `messenger`, `tiktok`, `web`, `playground`. |
 
 ## Request
 
@@ -46,21 +46,21 @@ curl 'https://api.keebai.com/v1/channels?type=whatsapp' \
 }
 ```
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
-| `id` | string | Channel ID. Úsalo en `POST /v1/messages` (`channel_id`) y al filtrar deliveries de webhooks. |
-| `name` | string | Nombre display del canal. |
-| `type` | enum | Tipo de canal. |
-| `is_active` | boolean | `false` solo para canales pausados o con problemas de credenciales. |
-| `phone_number` / `phone_number_id` / `business_account_id` | string | Solo para `type: whatsapp`. |
+| `id` | string | Channel ID. Use it in `POST /v1/messages` (`channel_id`) and when filtering webhook deliveries. |
+| `name` | string | Channel display name. |
+| `type` | enum | Channel type. |
+| `is_active` | boolean | `false` only for channels that are paused or have credential issues. |
+| `phone_number` / `phone_number_id` / `business_account_id` | string | Only for `type: whatsapp`. |
 
-## Obtener un canal por id
+## Fetch a channel by id
 
-`GET /v1/channels/:id` — mismo shape que un item del listado, sin filtros.
+`GET /v1/channels/:id` — same shape as a list item, no filters.
 
 ```bash
 curl https://api.keebai.com/v1/channels/ch_01HXYZ \
   -H "Authorization: Bearer kbai_pk_xxx"
 ```
 
-Si el id no existe o pertenece a otra company, devuelve `404 CHANNEL_NOT_FOUND`.
+If the id doesn't exist or belongs to another company, it returns `404 CHANNEL_NOT_FOUND`.

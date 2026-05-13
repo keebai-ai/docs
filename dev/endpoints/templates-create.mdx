@@ -1,11 +1,11 @@
 ---
 title: "POST /v1/templates"
 sidebarTitle: "POST templates"
-description: "Crea un template de WhatsApp y lo envía a Meta para aprobación."
+description: "Create a WhatsApp template and submit it to Meta for approval."
 openapi: "POST /v1/templates"
 ---
 
-Crea un template en el canal de WhatsApp indicado y lo envía a Meta para revisión. La respuesta incluye el `id` interno del template y el `status` con el que quedó. Mientras Meta no apruebe el template, no podés usarlo en [`POST /v1/messages/template`](/dev/endpoints/messages-template) — usá [`GET /v1/templates`](/dev/endpoints/templates-list) para chequear cuándo pasa a `APPROVED`.
+Creates a template on the given WhatsApp channel and submits it to Meta for review. The response includes the template's internal `id` and the `status` it landed in. Until Meta approves the template, you can't use it in [`POST /v1/messages/template`](/dev/endpoints/messages-template) — use [`GET /v1/templates`](/dev/endpoints/templates-list) to check when it becomes `APPROVED`.
 
 ## Endpoint
 
@@ -13,42 +13,42 @@ Crea un template en el canal de WhatsApp indicado y lo envía a Meta para revisi
 POST https://api.keebai.com/v1/templates
 ```
 
-## Scope requerido
+## Required scope
 
 `templates:create`
 
 ## Headers
 
-| Header | Requerido | Valor |
+| Header | Required | Value |
 |---|---|---|
-| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
-| `Content-Type` | Sí | `application/json` |
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
 
 ## Body
 
-| Campo | Tipo | Requerido | Descripción |
+| Field | Type | Required | Description |
 |---|---|---|---|
-| `channel_id` | `string` | Sí | `ObjectId` del canal WhatsApp donde se crea el template. |
-| `name` | `string` | Sí | Nombre del template. Solo minúsculas, números y guiones bajos. Máx. 512. |
-| `language` | `string` | Sí | Código de idioma (`es`, `es_CL`, `en_US`, etc.). Máx. 10. |
-| `category` | `string` | Sí | `MARKETING`, `UTILITY` o `AUTHENTICATION`. |
-| `parameter_format` | `string` | No | `NAMED` (recomendado) o `POSITIONAL`. |
-| `components` | `array` | Sí | Componentes del template. Estructura idéntica a la de Meta. |
-| `metadata` | `object` | No | Metadatos libres asociados al template. |
+| `channel_id` | `string` | Yes | `ObjectId` of the WhatsApp channel where the template is created. |
+| `name` | `string` | Yes | Template name. Lowercase letters, numbers, and underscores only. Max 512. |
+| `language` | `string` | Yes | Language code (`es`, `es_CL`, `en_US`, etc.). Max 10. |
+| `category` | `string` | Yes | `MARKETING`, `UTILITY`, or `AUTHENTICATION`. |
+| `parameter_format` | `string` | No | `NAMED` (recommended) or `POSITIONAL`. |
+| `components` | `array` | Yes | Template components. Same structure as Meta's. |
+| `metadata` | `object` | No | Free-form metadata attached to the template. |
 
-### Estructura de `components[]`
+### Structure of `components[]`
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
-| `type` | `string` | `HEADER`, `BODY`, `FOOTER` o `BUTTONS`. |
-| `format` | `string` | Solo para `HEADER`: `TEXT`, `IMAGE`, `VIDEO` o `DOCUMENT`. |
-| `text` | `string` | Texto del componente. Para `BODY` admite variables `{{nombre}}`. Máx. 1024. |
-| `buttons` | `array` | Solo para `type: BUTTONS`. Cada botón tiene `type` (`QUICK_REPLY`, `URL`, `PHONE_NUMBER`, `FLOW`, `VOICE_CALL`, `COPY_CODE`, `OTP`) y `text` (máx. 25). |
-| `example` | `object` | Ejemplos de variables que Meta exige al revisar (`body_text`, `body_text_named_params`, `header_text`, `header_handle`). |
-| `add_security_recommendation` | `boolean` | Solo para templates de autenticación. |
-| `code_expiration_minutes` | `number` | Solo para templates de autenticación. |
+| `type` | `string` | `HEADER`, `BODY`, `FOOTER`, or `BUTTONS`. |
+| `format` | `string` | Only for `HEADER`: `TEXT`, `IMAGE`, `VIDEO`, or `DOCUMENT`. |
+| `text` | `string` | Component text. `BODY` supports `{{name}}` variables. Max 1024. |
+| `buttons` | `array` | Only for `type: BUTTONS`. Each button has `type` (`QUICK_REPLY`, `URL`, `PHONE_NUMBER`, `FLOW`, `VOICE_CALL`, `COPY_CODE`, `OTP`) and `text` (max 25). |
+| `example` | `object` | Variable examples Meta requires when reviewing (`body_text`, `body_text_named_params`, `header_text`, `header_handle`). |
+| `add_security_recommendation` | `boolean` | Only for authentication templates. |
+| `code_expiration_minutes` | `number` | Only for authentication templates. |
 
-## Ejemplo de request
+## Example request
 
 <CodeGroup>
 
@@ -143,7 +143,7 @@ template = resp.json()
 
 </CodeGroup>
 
-## Respuesta
+## Response
 
 ### 201 Created
 
@@ -159,26 +159,26 @@ template = resp.json()
 }
 ```
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
-| `id` | `string` | `ObjectId` interno del template recién creado. |
-| `name` | `string` | Nombre tal como quedó registrado. |
-| `language` | `string` | Código de idioma. |
-| `status` | `string` | Estado inicial reportado por Meta (`PENDING` o `IN_REVIEW` apenas se crea). |
-| `category` | `string` | Categoría asignada. |
-| `parameter_format` | `string` | `NAMED` o `POSITIONAL`. |
-| `variables` | `string[]` | Variables nombradas detectadas en el cuerpo. |
+| `id` | `string` | Internal `ObjectId` of the newly created template. |
+| `name` | `string` | Name as it was registered. |
+| `language` | `string` | Language code. |
+| `status` | `string` | Initial status reported by Meta (`PENDING` or `IN_REVIEW` right after creation). |
+| `category` | `string` | Assigned category. |
+| `parameter_format` | `string` | `NAMED` or `POSITIONAL`. |
+| `variables` | `string[]` | Named variables detected in the body. |
 
 ### 400 / 401 / 403 / 404 / 409 / 429
 
-Errores estándar. Casos típicos:
+Standard errors. Common cases:
 
-- `400 BAD_REQUEST`: validación del body (nombre con caracteres inválidos, componentes mal formados, faltó `example` cuando Meta lo exige).
-- `403 FORBIDDEN` con `code: INSUFFICIENT_SCOPE`: el PAT no tiene `templates:create`.
-- `404 NOT_FOUND`: el `channel_id` no pertenece a tu company o no existe.
-- `409 CONFLICT`: ya existe un template con el mismo `name` + `language` en ese canal.
-- `502 UPSTREAM_ERROR`: Meta rechazó la creación. El campo `details` indica el motivo.
+- `400 BAD_REQUEST`: body validation (invalid characters in name, malformed components, missing `example` when Meta requires it).
+- `403 FORBIDDEN` with `code: INSUFFICIENT_SCOPE`: the PAT does not have `templates:create`.
+- `404 NOT_FOUND`: the `channel_id` does not belong to your tenant or does not exist.
+- `409 CONFLICT`: a template with the same `name` + `language` already exists on that channel.
+- `502 UPSTREAM_ERROR`: Meta rejected the creation. The `details` field explains why.
 
 <Tip>
-  Después de crear el template tenés que esperar la aprobación de Meta antes de enviarlo. Hacé polling sobre [`GET /v1/templates`](/dev/endpoints/templates-list) filtrando por `status` hasta que aparezca como `APPROVED`. La aprobación suele tardar minutos, pero puede demorar más en categorías sensibles como `MARKETING`.
+  After creating the template you have to wait for Meta to approve it before sending. Poll [`GET /v1/templates`](/dev/endpoints/templates-list) filtering by `status` until it shows up as `APPROVED`. Approval usually takes minutes, but can take longer for sensitive categories like `MARKETING`.
 </Tip>

@@ -1,11 +1,11 @@
 ---
 title: "GET /v1/scheduling/branches/:id"
 sidebarTitle: "GET branches/:id"
-description: "Obtiene el detalle de una sucursal por id. Devuelve 404 si no pertenece al tenant resuelto desde el PAT."
+description: "Fetch a branch by id. Returns 404 if it doesn't belong to the tenant resolved from the PAT."
 openapi: "GET /v1/scheduling/branches/{id}"
 ---
 
-Devuelve la sucursal indicada siempre que pertenezca al tenant del PAT. La consulta filtra por `company` además de `_id`, así que un id válido de otro tenant responde `404`.
+Returns the requested branch as long as it belongs to the PAT's tenant. The query filters by `company` in addition to `_id`, so a valid id from another tenant responds with `404`.
 
 ## Endpoint
 
@@ -13,17 +13,17 @@ Devuelve la sucursal indicada siempre que pertenezca al tenant del PAT. La consu
 GET https://api.keebai.com/v1/scheduling/branches/:id
 ```
 
-## Scope requerido
+## Required scope
 
 `scheduling:branches:read`
 
 ## Path params
 
-| Param | Tipo | Descripción |
+| Param | Type | Description |
 |---|---|---|
-| `id` | `string` | `ObjectId` de la sucursal. |
+| `id` | `string` | Branch `ObjectId`. |
 
-## Ejemplo de request
+## Example request
 
 <CodeGroup>
 
@@ -42,7 +42,7 @@ const branch = await response.json();
 
 </CodeGroup>
 
-## Respuesta
+## Response
 
 ### 200 OK
 
@@ -75,8 +75,8 @@ const branch = await response.json();
 }
 ```
 
-Se devuelve 404 también cuando el id existe en otra company.
+A 404 is also returned when the id exists in another company.
 
 ### 401 Unauthorized · 403 Forbidden
 
-Mismas semánticas que el resto de la API pública.
+Same semantics as the rest of the public API.

@@ -1,91 +1,83 @@
 ---
-title: "Documentación técnica de Keebai"
-sidebarTitle: "Inicio"
-description: "Referencia técnica de Keebai: API REST, SDK TypeScript, CLI y Agent Skills para integrar WhatsApp, asistentes IA, conocimiento, webhooks y agendamiento."
+title: "Keebai for developers"
+sidebarTitle: "Welcome"
+description: "Build with the Keebai API. Send WhatsApp messages, manage assistants and knowledge, receive events, and ship integrations in TypeScript, the CLI, or any HTTP client."
 ---
 
-Documentación para **desarrolladores**: contratos de la API pública, SDK oficial, CLI, Agent Skills y referencia de endpoints. Si querés aprender a usar la plataforma como producto final (CRM, embudo, atención al cliente), andá al [Keebai Academy](https://academy.keebai.com).
+Welcome. Everything you need to integrate Keebai into your product lives here — the API, the SDK, the CLI, and the Agent Skills that wire it all up.
 
 ```bash
 npm install -g @keebai/cli
 keebai login
-keebai whatsapp messages send --to +5491155555555 --text "Hola desde Keebai"
+keebai whatsapp messages send --to +15551234567 --text "Hello from Keebai"
 ```
 
-## Por dónde empezar
+## Start here
 
 <CardGroup cols={2}>
   <Card title="Quickstart" icon="rocket" href="/dev/quickstart">
-    Generá tu primer PAT y envía un mensaje vía API en menos de 5 minutos.
+    Get a token and send your first message in five minutes.
   </Card>
-  <Card title="Obtener un API Key" icon="key" href="/dev/api-keys">
-    Cómo crear, listar y revocar tokens desde el portal o vía CLI.
-  </Card>
-  <Card title="SDK TypeScript" icon="code" href="/dev/sdks/typescript">
-    `@keebai/sdk` — cliente tipado con cobertura completa: texto, media, interactive, templates y broadcasts.
-  </Card>
-  <Card title="CLI" icon="terminal" href="/dev/sdks/cli">
-    `@keebai/cli` — login, conectar WhatsApp y enviar mensajes desde la terminal.
-  </Card>
-  <Card title="Agent Skills" icon="robot" href="/dev/sdks/agent-skills">
-    Skills para Claude Code y agentes IA: `npx skills add keebai-ai/agent-skills`.
-  </Card>
-  <Card title="Visión general API" icon="book" href="/dev/overview">
-    Catálogo de endpoints, scopes y características de la API pública.
+  <Card title="Get an API key" icon="key" href="/dev/api-keys">
+    Create, list, and rotate Personal Access Tokens from the dashboard or the CLI.
   </Card>
 </CardGroup>
 
-## Superficie técnica
-
-| Producto | Descripción | Lenguaje |
-|---|---|---|
-| API REST | `api.keebai.com/v1` — REST + JSON, versionada, OpenAPI 3, auth por PAT. | HTTP |
-| SDK | [`@keebai/sdk`](/dev/sdks/typescript) — cliente oficial Keebai/Meta dual-mode. | TypeScript / Node.js / Edge |
-| CLI | [`@keebai/cli`](/dev/sdks/cli) — comandos `login`, `whoami`, `whatsapp connect`, `messages send`. | Cualquier shell |
-| Agent Skills | [`keebai-ai/agent-skills`](/dev/sdks/agent-skills) — capacidad para agentes IA. | Claude Code, Cursor, Codex, Gemini CLI… |
-| Webhooks | Eventos firmados con HMAC, retries, deduplicación por `event_id`. | Cualquier backend HTTPS |
-
-## Capacidades de la API
+## Pick your tool
 
 <CardGroup cols={3}>
-  <Card title="Messaging" icon="paper-plane">
-    Enviar y recibir mensajes WhatsApp: texto, media, interactive, templates, difusiones masivas.
+  <Card title="TypeScript SDK" icon="code" href="/dev/sdks/typescript">
+    `@keebai/sdk` — typed client for Node, edge runtimes, and browsers.
   </Card>
-  <Card title="Conocimiento" icon="book-bookmark">
-    Base de conocimiento para asistentes IA: documentos, búsqueda híbrida, asignaciones.
+  <Card title="CLI" icon="terminal" href="/dev/sdks/cli">
+    `@keebai/cli` — login, connect channels, send messages from your shell.
   </Card>
-  <Card title="Webhooks" icon="bell">
-    Eventos salientes firmados sobre conversaciones, mensajes y conexiones de canales.
-  </Card>
-  <Card title="Agendamiento" icon="calendar-check">
-    Sucursales, servicios, profesionales, disponibilidad y citas vía API.
-  </Card>
-  <Card title="Templates" icon="file-lines">
-    CRUD de templates WhatsApp aprobados por Meta.
-  </Card>
-  <Card title="Canales" icon="tower-broadcast">
-    Conectar y listar canales WhatsApp Business (Embedded Signup o QR).
+  <Card title="Agent Skills" icon="robot" href="/dev/sdks/agent-skills">
+    Drop-in skill for Claude Code, Cursor, Codex, and other AI agents.
   </Card>
 </CardGroup>
 
-## Auth en una línea
+## API surface
 
-Todas las llamadas usan un Personal Access Token como Bearer:
+<CardGroup cols={3}>
+  <Card title="Messaging" icon="paper-plane" href="/dev/endpoints/messages-template">
+    Send WhatsApp text, media, interactive messages, templates, and broadcasts.
+  </Card>
+  <Card title="Knowledge" icon="book-bookmark" href="/dev/endpoints/knowledge-tree">
+    Manage the knowledge base your AI assistants read from.
+  </Card>
+  <Card title="Webhooks" icon="bell" href="/dev/webhooks/overview">
+    Receive signed events for messages, conversations, and channels.
+  </Card>
+  <Card title="Scheduling" icon="calendar-check" href="/dev/endpoints/scheduling-branches-list">
+    Branches, services, professionals, availability, and appointments.
+  </Card>
+  <Card title="Templates" icon="file-lines" href="/dev/endpoints/templates-list">
+    CRUD over Meta-approved WhatsApp templates.
+  </Card>
+  <Card title="Channels" icon="tower-broadcast" href="/dev/endpoints/channels-list">
+    Connect and inspect WhatsApp Business channels.
+  </Card>
+</CardGroup>
+
+## One header, everywhere
+
+Every call uses your Personal Access Token as a Bearer:
 
 ```bash
 curl https://api.keebai.com/v1/me \
   -H "Authorization: Bearer kbai_pk_<hex64>"
 ```
 
-Conseguilo desde el [portal](https://app.keebai.com) (System Settings → API Keys) o desde la CLI con `keebai login`. Más detalle en [Obtener un API Key](/dev/api-keys) y [Autenticación](/dev/authentication).
+Get a token from the [dashboard](https://app.keebai.com) under **System Settings → API Keys**, or run `keebai login` from the CLI. Details in [Get an API key](/dev/api-keys).
 
-## Soporte
+## Help
 
 <CardGroup cols={2}>
-  <Card title="Email" icon="envelope" href="mailto:support@keebai.com">
-    support@keebai.com — para preguntas técnicas, bugs o feature requests.
+  <Card title="Email support" icon="envelope" href="mailto:support@keebai.com">
+    Questions, bugs, feature requests — we answer fast.
   </Card>
-  <Card title="Status" icon="signal" href="https://api.keebai.com/v1/health">
-    Health check público de la API.
+  <Card title="API status" icon="signal" href="https://api.keebai.com/v1/health">
+    Health check endpoint.
   </Card>
 </CardGroup>

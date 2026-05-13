@@ -1,19 +1,19 @@
 ---
-title: "Rate limits y errores"
+title: "Rate limits and errors"
 sidebarTitle: "Rate limits"
-description: "Límites de uso por token, formato de respuestas de error y mejores prácticas para integraciones estables con la API pública de Keebai."
+description: "Usage limits per token, error response format, and best practices for building reliable integrations against the Keebai public API."
 ---
 
 ## Rate limits
 
-Los límites se aplican **por token** (no por usuario, no por IP), así que cada integración tiene su propio cupo independiente.
+Limits apply **per token** (not per user, not per IP) — every integration gets its own independent quota.
 
-| Ventana | Límite |
+| Window | Limit |
 |---|---|
-| Por minuto | 60 requests |
-| Por hora | 1000 requests |
+| Per minute | 60 requests |
+| Per hour | 1,000 requests |
 
-Si pasás cualquiera de los dos límites, recibís:
+If you cross either limit:
 
 ```http
 HTTP/1.1 429 Too Many Requests
@@ -28,12 +28,12 @@ Content-Type: application/json
 ```
 
 <Tip>
-  Si tu caso de uso necesita throughput mayor (ej. sincronización masiva de un CRM con cientos de miles de contactos), escribinos a [support@keebai.com](mailto:support@keebai.com) con tu volumen estimado y te abrimos una excepción.
+  Need more throughput (e.g. bulk-syncing a CRM with hundreds of thousands of contacts)? Email [support@keebai.com](mailto:support@keebai.com) with your expected volume and we'll bump the cap.
 </Tip>
 
-## Manejo correcto de 429
+## How to handle 429 properly
 
-Implementá **backoff exponencial con jitter**. Ejemplo en pseudocódigo:
+Use **exponential backoff with jitter**. Pseudocode:
 
 ```ts
 async function callKeebaiWithRetry(path: string, attempt = 0): Promise<Response> {
@@ -52,50 +52,50 @@ async function callKeebaiWithRetry(path: string, attempt = 0): Promise<Response>
 }
 ```
 
-No hagas retries inmediatos en bucle: te ban-eás a vos mismo y la latencia de tu sistema se dispara.
+Don't tight-loop retries — you'll ban yourself and balloon your own latency.
 
-## Formato de errores
+## Error format
 
-Todas las respuestas de error siguen el formato estándar de NestJS:
+Every error follows the standard NestJS shape:
 
 ```json
 {
-  "message": "<descripción humana>",
-  "error": "<categoría>",
-  "statusCode": <número HTTP>
+  "message": "<human description>",
+  "error": "<category>",
+  "statusCode": <HTTP number>
 }
 ```
 
-| Status | Categoría | Cuándo |
+| Status | Category | When |
 |---|---|---|
-| `400 Bad Request` | `Bad Request` | Body inválido, query params mal formados, validación de schema falló. |
-| `401 Unauthorized` | `Unauthorized` | Token inválido, ausente, revocado o expirado. Ver [Autenticación](/dev/authentication). |
-| `403 Forbidden` | `Forbidden` | Token válido pero le falta el scope requerido. Ver [Scopes](/dev/scopes). |
-| `404 Not Found` | `Not Found` | Recurso o ruta inexistente. |
-| `429 Too Many Requests` | `Throttler` | Pasaste el rate limit. |
-| `500 Internal Server Error` | `Internal Server Error` | Error del lado de Keebai. Si persiste, [reportalo](mailto:support@keebai.com). |
-| `503 Service Unavailable` | `Service Unavailable` | Mantenimiento o degradación temporal. Reintentar con backoff. |
+| `400 Bad Request` | `Bad Request` | Invalid body, malformed query params, schema validation failed. |
+| `401 Unauthorized` | `Unauthorized` | Token invalid, missing, revoked, or expired. See [Authentication](/dev/authentication). |
+| `403 Forbidden` | `Forbidden` | Token is valid but lacks the required scope. See [Scopes](/dev/scopes). |
+| `404 Not Found` | `Not Found` | Resource or route doesn't exist. |
+| `429 Too Many Requests` | `Throttler` | You hit the rate limit. |
+| `500 Internal Server Error` | `Internal Server Error` | Server-side bug. If it persists, [report it](mailto:support@keebai.com). |
+| `503 Service Unavailable` | `Service Unavailable` | Maintenance or temporary degradation. Retry with backoff. |
 
-## Mejores prácticas
+## Best practices
 
 <CardGroup cols={2}>
-  <Card title="Idempotencia" icon="repeat">
-    Diseñá tus integraciones para que reintentar la misma operación dos veces sea seguro. Las requests `GET` y `DELETE` ya son idempotentes; en `POST/PATCH` evitá duplicados con identificadores propios.
+  <Card title="Idempotency" icon="repeat">
+    Design retries to be safe. `GET` and `DELETE` are idempotent out of the box; for `POST`/`PATCH`, dedupe on your side with stable identifiers.
   </Card>
-  <Card title="Timeouts razonables" icon="clock">
-    Configurá un timeout de cliente entre 10 y 30 segundos. Más bajo te corta requests legítimas; más alto te deja el thread bloqueado en caso de lentitud puntual.
+  <Card title="Sensible timeouts" icon="clock">
+    Set a client timeout between 10 and 30 seconds. Lower kills legitimate requests; higher locks your thread on transient slowness.
   </Card>
-  <Card title="Logging" icon="file-lines">
-    Loggeá `status`, `requestId` (si la API lo devuelve en headers) y duración de cada request. Cuando algo falle, vas a poder diagnosticar mucho más rápido.
+  <Card title="Log everything useful" icon="file-lines">
+    Log status, request id (when the API returns one in headers), and duration. Future-you will thank you.
   </Card>
   <Card title="Circuit breaker" icon="bolt-slash">
-    Si recibís 5xx repetidamente, frená nuevas requests por unos segundos. Tu sistema se mantiene funcionando para el resto de operaciones que no dependen de Keebai.
+    On repeated 5xx, pause requests for a few seconds. Your system stays up for everything else that doesn't depend on Keebai.
   </Card>
 </CardGroup>
 
-## Operación en producción
+## In production
 
-- **Monitoreo**: instrumentá métricas de latencia, error rate y código de status. Una alerta de error rate `>5%` te avisa antes que tus usuarios.
-- **Rotación de tokens**: rotá cada 90 días incluso sin incidente. Generá el nuevo, deployá, validá, revocá el viejo.
-- **Auditoría del último uso**: revisá la columna *Último uso* en la tabla de tokens cada cierto tiempo. Tokens sin uso por meses son candidatos a revocar.
-- **Status del servicio**: si sospechás que el problema es nuestro, escribinos a [support@keebai.com](mailto:support@keebai.com).
+- **Monitor** latency, error rate, and status codes. An alert on error rate `>5%` catches issues before users do.
+- **Rotate tokens** every 90 days, incident or not. Mint, deploy, validate, revoke the old.
+- **Audit *Last used*** in the tokens table periodically. Tokens unused for months are revoke candidates.
+- **Suspect us?** Email [support@keebai.com](mailto:support@keebai.com).

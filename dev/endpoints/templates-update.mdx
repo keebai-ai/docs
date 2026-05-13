@@ -1,14 +1,14 @@
 ---
 title: "PATCH /v1/templates/{id}"
 sidebarTitle: "PATCH templates"
-description: "Edita un template existente: componentes, categoría, idioma o status."
+description: "Edit an existing template: components, category, language, or status."
 openapi: "PATCH /v1/templates/{id}"
 ---
 
-Actualiza un template existente. Internamente sincroniza los cambios con Meta cuando aplica (por ejemplo al editar `components` o `category`). Solo enviás los campos que querés modificar; el resto queda como está.
+Updates an existing template. Internally syncs the changes with Meta when applicable (for example when editing `components` or `category`). Only send the fields you want to change; the rest stays as-is.
 
 <Warning>
-  Meta solo permite editar templates en ciertos estados (`APPROVED`, `REJECTED` o `PAUSED`, según el campo). Editar un template en `PENDING` o `IN_REVIEW` puede devolver `409 CONFLICT` desde el upstream. Si necesitás cambiar algo crítico antes de que Meta lo apruebe, suele ser más rápido crear un template nuevo con `POST /v1/templates`.
+  Meta only allows editing templates in certain states (`APPROVED`, `REJECTED`, or `PAUSED`, depending on the field). Editing a template in `PENDING` or `IN_REVIEW` may return `409 CONFLICT` from upstream. If you need to change something critical before Meta approves it, it's usually faster to create a new template with `POST /v1/templates`.
 </Warning>
 
 ## Endpoint
@@ -17,37 +17,37 @@ Actualiza un template existente. Internamente sincroniza los cambios con Meta cu
 PATCH https://api.keebai.com/v1/templates/{id}
 ```
 
-## Scope requerido
+## Required scope
 
 `templates:update`
 
 ## Headers
 
-| Header | Requerido | Valor |
+| Header | Required | Value |
 |---|---|---|
-| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
-| `Content-Type` | Sí | `application/json` |
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
 
 ## Path params
 
-| Param | Tipo | Descripción |
+| Param | Type | Description |
 |---|---|---|
-| `id` | `string` | `ObjectId` interno del template. Es el `id` que devuelven `GET /v1/templates` y `POST /v1/templates`. |
+| `id` | `string` | Internal `ObjectId` of the template. This is the `id` returned by `GET /v1/templates` and `POST /v1/templates`. |
 
 ## Body
 
-| Campo | Tipo | Requerido | Descripción |
+| Field | Type | Required | Description |
 |---|---|---|---|
-| `channel_id` | `string` | Sí | `ObjectId` del canal dueño del template. Lo exige el upstream para validar ownership. |
-| `name` | `string` | No | Nuevo nombre. Solo minúsculas, números y guiones bajos. Máx. 512. |
-| `language` | `string` | No | Código de idioma. Máx. 10. |
-| `category` | `string` | No | `MARKETING`, `UTILITY` o `AUTHENTICATION`. |
-| `parameter_format` | `string` | No | `NAMED` o `POSITIONAL`. |
-| `components` | `array` | No | Reemplaza la lista de componentes. Misma estructura que en `POST /v1/templates`. |
-| `status` | `string` | No | Estado a forzar localmente (`PAUSED`, `DISABLED`, etc.). Usar con cuidado. |
-| `metadata` | `object` | No | Metadatos libres. |
+| `channel_id` | `string` | Yes | `ObjectId` of the channel that owns the template. Required by upstream to validate ownership. |
+| `name` | `string` | No | New name. Lowercase letters, numbers, and underscores only. Max 512. |
+| `language` | `string` | No | Language code. Max 10. |
+| `category` | `string` | No | `MARKETING`, `UTILITY`, or `AUTHENTICATION`. |
+| `parameter_format` | `string` | No | `NAMED` or `POSITIONAL`. |
+| `components` | `array` | No | Replaces the components list. Same structure as in `POST /v1/templates`. |
+| `status` | `string` | No | Status to force locally (`PAUSED`, `DISABLED`, etc.). Use with care. |
+| `metadata` | `object` | No | Free-form metadata. |
 
-## Ejemplo de request
+## Example request
 
 <CodeGroup>
 
@@ -133,7 +133,7 @@ template = resp.json()
 
 </CodeGroup>
 
-## Respuesta
+## Response
 
 ### 200 OK
 
@@ -149,18 +149,18 @@ template = resp.json()
 }
 ```
 
-Mismo shape que `POST /v1/templates`. Si la edición disparó una nueva revisión en Meta, `status` puede quedar en `IN_REVIEW` o `PENDING` hasta que Meta vuelva a aprobar.
+Same shape as `POST /v1/templates`. If the edit triggered a fresh Meta review, `status` may sit in `IN_REVIEW` or `PENDING` until Meta approves it again.
 
 ### 400 / 401 / 403 / 404 / 409 / 429
 
-Casos típicos:
+Common cases:
 
-- `400 BAD_REQUEST`: validación del body.
-- `403 FORBIDDEN` con `code: INSUFFICIENT_SCOPE`: el PAT no tiene `templates:update`.
-- `404 NOT_FOUND`: el template no existe o no pertenece a tu company.
-- `409 CONFLICT`: Meta rechazó la edición porque el template no está en un estado editable.
-- `502 UPSTREAM_ERROR`: error genérico desde Meta. `details` describe el motivo.
+- `400 BAD_REQUEST`: body validation.
+- `403 FORBIDDEN` with `code: INSUFFICIENT_SCOPE`: the PAT does not have `templates:update`.
+- `404 NOT_FOUND`: the template does not exist or does not belong to your tenant.
+- `409 CONFLICT`: Meta rejected the edit because the template is not in an editable state.
+- `502 UPSTREAM_ERROR`: generic error from Meta. `details` describes the cause.
 
 <Tip>
-  Después de editar componentes, hacé polling sobre [`GET /v1/templates`](/dev/endpoints/templates-list) para confirmar que Meta volvió a aprobar el template antes de seguir enviándolo en producción.
+  After editing components, poll [`GET /v1/templates`](/dev/endpoints/templates-list) to confirm Meta has re-approved the template before continuing to send it in production.
 </Tip>

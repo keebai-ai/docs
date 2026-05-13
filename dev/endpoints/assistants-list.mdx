@@ -1,11 +1,11 @@
 ---
 title: "GET /v1/assistants"
 sidebarTitle: "GET assistants"
-description: "Lista los asistentes activos de tu company. Filtrable por nombre y paginado."
+description: "List the active assistants in your company. Filterable by name and paginated."
 openapi: "GET /v1/assistants"
 ---
 
-Devuelve los asistentes activos de tu company. Útil principalmente para descubrir los `assistant_id` que después usás en [`POST /v1/knowledge/assignments`](/dev/endpoints/knowledge-assign). El listado solo expone metadatos básicos — para configurar prompts, herramientas o personalidad seguí usando el portal.
+Returns the active assistants in your company. Mainly useful to discover the `assistant_id` values you'll later use in [`POST /v1/knowledge/assignments`](/dev/endpoints/knowledge-assign). The listing only exposes basic metadata — to configure prompts, tools, or personality, keep using the portal.
 
 ## Endpoint
 
@@ -13,25 +13,25 @@ Devuelve los asistentes activos de tu company. Útil principalmente para descubr
 GET https://api.keebai.com/v1/assistants
 ```
 
-## Scope requerido
+## Required scope
 
 `assistants:read`
 
 ## Headers
 
-| Header | Requerido | Valor |
+| Header | Required | Value |
 |---|---|---|
-| `Authorization` | Sí | `Bearer kbai_pk_<token>` |
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
 
 ## Query params
 
-| Param | Tipo | Default | Descripción |
+| Param | Type | Default | Description |
 |---|---|---|---|
-| `q` | `string` | — | Filtro por nombre. Búsqueda parcial, case-insensitive. |
-| `page` | `number` | `1` | Página, base 1. |
-| `limit` | `number` | `25` | Items por página, máximo `100`. |
+| `q` | `string` | — | Filter by name. Partial, case-insensitive search. |
+| `page` | `number` | `1` | Page, 1-based. |
+| `limit` | `number` | `25` | Items per page, max `100`. |
 
-## Ejemplo de request
+## Example request
 
 <CodeGroup>
 
@@ -63,7 +63,7 @@ items = resp.json()["items"]
 
 </CodeGroup>
 
-## Respuesta
+## Response
 
 ### 200 OK
 
@@ -86,16 +86,16 @@ items = resp.json()["items"]
 }
 ```
 
-| Campo | Tipo | Descripción |
+| Field | Type | Description |
 |---|---|---|
-| `items[].id` | `string` | `ObjectId` del asistente. Es lo que usás como `assistant_id` en otros endpoints. |
-| `items[].name` | `string` | Nombre. |
-| `items[].description` | `string` | Descripción corta visible en el portal. |
-| `items[].avatar_url` | `string` | URL pública del avatar, si fue cargado. |
-| `items[].model` | `string` | Modelo configurado (ej. `gpt-4o-mini`). |
-| `items[].voice_response_enabled` | `boolean` | Indica si las respuestas de voz están habilitadas. |
-| `page` / `limit` / `total` | `number` | Paginación estándar. |
+| `items[].id` | `string` | `ObjectId` of the assistant. This is what you use as `assistant_id` in other endpoints. |
+| `items[].name` | `string` | Name. |
+| `items[].description` | `string` | Short description shown in the portal. |
+| `items[].avatar_url` | `string` | Public URL of the avatar, if uploaded. |
+| `items[].model` | `string` | Configured model (e.g. `gpt-4o-mini`). |
+| `items[].voice_response_enabled` | `boolean` | Whether voice responses are enabled. |
+| `page` / `limit` / `total` | `number` | Standard pagination. |
 
 ### 401 / 403 / 429
 
-- `403 FORBIDDEN` con `code: INSUFFICIENT_SCOPE`: el PAT no tiene `assistants:read`.
+- `403 FORBIDDEN` with `code: INSUFFICIENT_SCOPE`: the PAT doesn't have `assistants:read`.
