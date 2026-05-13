@@ -1,10 +1,10 @@
 ---
-title: "Keebai for developers"
+title: "Build with Keebai"
 sidebarTitle: "Welcome"
-description: "Build with the Keebai API. Send WhatsApp messages, manage assistants and knowledge, receive events, and ship integrations in TypeScript, the CLI, or any HTTP client."
+description: "Send WhatsApp messages, manage AI assistants and knowledge, schedule appointments, and receive realtime events — all through a single API."
 ---
 
-Welcome. Everything you need to integrate Keebai into your product lives here — the API, the SDK, the CLI, and the Agent Skills that wire it all up.
+Pick the tool that fits your stack and ship.
 
 ```bash
 npm install -g @keebai/cli
@@ -37,7 +37,7 @@ keebai whatsapp messages send --to +15551234567 --text "Hello from Keebai"
   </Card>
 </CardGroup>
 
-## API surface
+## What you can do
 
 <CardGroup cols={3}>
   <Card title="Messaging" icon="paper-plane" href="/dev/endpoints/messages-template">
@@ -62,14 +62,14 @@ keebai whatsapp messages send --to +15551234567 --text "Hello from Keebai"
 
 ## One header, everywhere
 
-Every call uses your Personal Access Token as a Bearer:
+Every call uses a Personal Access Token as a Bearer:
 
 ```bash
 curl https://api.keebai.com/v1/me \
   -H "Authorization: Bearer kbai_pk_<hex64>"
 ```
 
-Get a token from the [dashboard](https://app.keebai.com) under **System Settings → API Keys**, or run `keebai login` from the CLI. Details in [Get an API key](/dev/api-keys).
+Get a token from the [dashboard](https://app.keebai.com) under **System Settings → API Keys**, or run `keebai login` from the CLI. More in [Get an API key](/dev/api-keys).
 
 ## Help
 
