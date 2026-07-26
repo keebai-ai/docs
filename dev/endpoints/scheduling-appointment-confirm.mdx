@@ -2,7 +2,7 @@
 title: "POST /v1/scheduling/appointments/:id/confirm"
 sidebarTitle: "POST appointments/:id/confirm"
 description: "Confirm an appointment, moving it from pending to confirmed. Returns 409 if the appointment isn't in pending."
-openapi: "https://api.keebai.com/v1/docs-json POST /v1/scheduling/appointments/{id}/confirm"
+openapi: "POST /v1/scheduling/appointments/{id}/confirm"
 ---
 
 Moves the appointment from `pending` to `confirmed`. The call reads the current appointment first and rejects with `409` if the state isn't `pending` (you can't confirm an appointment that's already confirmed, completed, or cancelled).

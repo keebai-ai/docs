@@ -2,7 +2,7 @@
 title: "POST /v1/messages/bulk"
 sidebarTitle: "POST messages/bulk"
 description: "Send an approved template to multiple recipients in a single request. Up to 5000 recipients per call. Returns a broadcast id for tracking."
-openapi: "https://api.keebai.com/v1/docs-json POST /v1/messages/bulk"
+openapi: "POST /v1/messages/bulk"
 ---
 
 Send the same template to multiple recipients, with potentially different variables per recipient. Creates a broadcast in the database that you can track via [`GET /v1/messages/bulk/:broadcastId`](/dev/endpoints/messages-bulk-status).

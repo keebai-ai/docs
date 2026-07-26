@@ -2,7 +2,7 @@
 title: "POST /v1/templates"
 sidebarTitle: "POST templates"
 description: "Create a WhatsApp template and submit it to Meta for approval."
-openapi: "https://api.keebai.com/v1/docs-json POST /v1/templates"
+openapi: "POST /v1/templates"
 ---
 
 Creates a template on the given WhatsApp channel and submits it to Meta for review. The response includes the template's internal `id` and the `status` it landed in. Until Meta approves the template, you can't use it in [`POST /v1/messages/template`](/dev/endpoints/messages-template) — use [`GET /v1/templates`](/dev/endpoints/templates-list) to check when it becomes `APPROVED`.

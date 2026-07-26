@@ -2,7 +2,7 @@
 title: "GET /v1/scheduling/availability/range"
 sidebarTitle: "GET availability/range"
 description: "Availability grouped day by day between two dates. Useful for powering a weekly or biweekly calendar."
-openapi: "https://api.keebai.com/v1/docs-json GET /v1/scheduling/availability/range"
+openapi: "GET /v1/scheduling/availability/range"
 ---
 
 Returns free slots for each day between `from` and `to` (both inclusive). Internally expands the range and queries each date in parallel. The range is capped at **14 days** to bound per-request cost.

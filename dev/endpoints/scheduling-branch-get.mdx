@@ -2,7 +2,7 @@
 title: "GET /v1/scheduling/branches/:id"
 sidebarTitle: "GET branches/:id"
 description: "Fetch a branch by id. Returns 404 if it doesn't belong to the tenant resolved from the PAT."
-openapi: "https://api.keebai.com/v1/docs-json GET /v1/scheduling/branches/{id}"
+openapi: "GET /v1/scheduling/branches/{id}"
 ---
 
 Returns the requested branch as long as it belongs to the PAT's tenant. The query filters by `company` in addition to `_id`, so a valid id from another tenant responds with `404`.

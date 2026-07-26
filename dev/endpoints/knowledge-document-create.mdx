@@ -2,7 +2,7 @@
 title: "POST /v1/knowledge/documents"
 sidebarTitle: "POST document"
 description: "Create a document from Markdown. The content is converted to BlockNote and reindexed for search."
-openapi: "https://api.keebai.com/v1/docs-json POST /v1/knowledge/documents"
+openapi: "POST /v1/knowledge/documents"
 ---
 
 Creates a document in the knowledge base from Markdown. The API converts the Markdown to BlockNote (the editor format used by the portal) and triggers a reindex of the vector store and the full-text index so the document becomes immediately available in [`POST /v1/knowledge/search`](/dev/endpoints/knowledge-search).

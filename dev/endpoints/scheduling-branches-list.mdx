@@ -2,7 +2,7 @@
 title: "GET /v1/scheduling/branches"
 sidebarTitle: "GET branches"
 description: "List the tenant's active branches. Supports full-text search over name and display_name (Spanish text index)."
-openapi: "https://api.keebai.com/v1/docs-json GET /v1/scheduling/branches"
+openapi: "GET /v1/scheduling/branches"
 ---
 
 Returns branches with `status: active` for the tenant resolved from the PAT. Search uses the `branch_text_search` text index (language `spanish`), so it tolerates plurals and accents.

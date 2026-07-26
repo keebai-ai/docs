@@ -2,7 +2,7 @@
 title: "GET /v1/scheduling/availability"
 sidebarTitle: "GET availability"
 description: "Availability for a specific date. Returns free slots per professional for a given service."
-openapi: "https://api.keebai.com/v1/docs-json GET /v1/scheduling/availability"
+openapi: "GET /v1/scheduling/availability"
 ---
 
 Computes the free slots for a service on a single date. The engine takes into account professional schedules, existing appointments, service buffers (`bufferBefore`, `bufferAfter`), and time restrictions (`time_rules.earliest_start`, `time_rules.latest_end`). If no `branchId` is provided, the tenant's first branch is used.

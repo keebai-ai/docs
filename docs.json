@@ -11,6 +11,9 @@
     "default": "light"
   },
   "favicon": "/favicon.svg",
+  "api": {
+    "openapi": "https://api.keebai.com/v1/docs-json"
+  },
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"

@@ -2,7 +2,7 @@
 title: "DELETE /v1/knowledge/nodes/:id"
 sidebarTitle: "DELETE node"
 description: "Delete a node (folder or document). If it's a folder, all of its descendants are deleted too."
-openapi: "https://api.keebai.com/v1/docs-json DELETE /v1/knowledge/nodes/{id}"
+openapi: "DELETE /v1/knowledge/nodes/{id}"
 ---
 
 Deletes a node from the knowledge base. If the node is a folder, all of its descendants (subfolders and documents) are deactivated along with it. The delete is logical (`is_active: false`); data stays in the database in case the support team needs to restore it, but it stops appearing in [`GET /v1/knowledge/tree`](/dev/endpoints/knowledge-tree) and is no longer eligible for [`POST /v1/knowledge/search`](/dev/endpoints/knowledge-search).

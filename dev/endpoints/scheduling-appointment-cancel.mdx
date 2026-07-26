@@ -2,7 +2,7 @@
 title: "POST /v1/scheduling/appointments/:id/cancel"
 sidebarTitle: "POST appointments/:id/cancel"
 description: "Cancel an appointment with an optional reason. Marks status as cancelled and records cancelled_at."
-openapi: "https://api.keebai.com/v1/docs-json POST /v1/scheduling/appointments/{id}/cancel"
+openapi: "POST /v1/scheduling/appointments/{id}/cancel"
 ---
 
 Marks the appointment as cancelled. Persists `cancelled_at: <now>` and `cancellation_reason` if provided. Freeing the calendar slot is automatic: from this point on the time slot shows up as available again.
