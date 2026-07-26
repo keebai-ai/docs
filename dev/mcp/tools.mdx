@@ -1,7 +1,7 @@
 ---
 title: "Tool catalogue"
 sidebarTitle: "Tools"
-description: "All 52 MCP tools, grouped by domain, with the scope each one requires."
+description: "All 58 MCP tools, grouped by domain, with the scope each one requires."
 ---
 
 Every tool below is exposed by [`POST /v1/mcp`](/dev/mcp/overview) and delegates to the same service as its REST counterpart, so the behaviour, validation, and tenancy rules documented across these pages apply unchanged.
@@ -118,6 +118,23 @@ Everything under [`/v1/messages`](/dev/messaging/overview). Free-form sends only
 
 <Note>
   Uploading and downloading the binary itself is REST-only — `POST /v1/media/upload` is multipart and `GET /v1/media/{id}/download` returns raw bytes, and neither fits a JSON tool call.
+</Note>
+
+## Ecommerce
+
+Read-only access to the catalog, carts, and sales. See the [ecommerce overview](/dev/ecommerce/overview) for how the records relate — a cart is not a draft sale.
+
+| Tool | Scope | What it does |
+|---|---|---|
+| `keebai_ecommerce_products_list` | `ecommerce:products:read` | List the catalog with full-text search. Covers products created in Keebai and those synced from an integration. |
+| `keebai_ecommerce_product_get` | `ecommerce:products:read` | Get one product with its variants, images, and stock. |
+| `keebai_ecommerce_carts_list` | `ecommerce:carts:read` | List carts, including abandoned ones. Filter by recovery status to find the ones worth following up on. |
+| `keebai_ecommerce_cart_get` | `ecommerce:carts:read` | Get one cart with its line items and the customer's contact details. |
+| `keebai_ecommerce_sales_list` | `ecommerce:sales:read` | List sales by status, payment status, contact, or date range. |
+| `keebai_ecommerce_sale_get` | `ecommerce:sales:read` | Get one sale with its items, amount breakdown, and payment state. |
+
+<Note>
+  There are no write tools here. Creating a sale or pushing a product goes through the platform integration, not the API.
 </Note>
 
 ## Not exposed as tools

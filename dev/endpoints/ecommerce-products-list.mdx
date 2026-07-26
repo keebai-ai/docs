@@ -1,0 +1,131 @@
+---
+title: "GET /v1/ecommerce/products"
+sidebarTitle: "GET ecommerce/products"
+description: "List the product catalog, with full-text search and filters by origin and category."
+openapi: "GET /v1/ecommerce/products"
+---
+
+Returns a paginated list of products sorted by name. Covers both products created in the Keebai portal and those synced from an integration.
+
+Results cover the whole **company**, not just the project your token belongs to.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/ecommerce/products
+```
+
+## Required scope
+
+`ecommerce:products:read`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+
+## Query parameters
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `search` | `string` | No | Full-text search across the catalog. |
+| `type` | `string` | No | Product origin: internal, or the identifier of an integration. |
+| `category` | `string` | No | `ObjectId` of the category. |
+| `limit` | `integer` | No | Page size, `1`–`200`. Defaults to 50. |
+| `offset` | `integer` | No | Records to skip. Defaults to 0. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -G https://api.keebai.com/v1/ecommerce/products \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  --data-urlencode "search=zapatilla" \
+  --data-urlencode "limit=50"
+```
+
+```js JavaScript
+const params = new URLSearchParams({ search: "zapatilla", limit: "50" });
+
+const response = await fetch(
+  `https://api.keebai.com/v1/ecommerce/products?${params}`,
+  { headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` } },
+);
+const { data, total } = await response.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.get(
+    "https://api.keebai.com/v1/ecommerce/products",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    params={"search": "zapatilla", "limit": 50},
+    timeout=10,
+)
+resp.raise_for_status()
+products = resp.json()["data"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "data": [
+    {
+      "_id": "65a1f2b3c4d5e6f7a8b9c0d1",
+      "name": "Zapatilla Runner Pro",
+      "slug": "zapatilla-runner-pro",
+      "description": "Zapatilla de running con amortiguación reactiva",
+      "sku": "SKU-1234",
+      "price": 5990000,
+      "base_price": 5990000,
+      "currency": "CLP",
+      "stock": 24,
+      "stock_managed": true,
+      "type": "internal",
+      "category_id": "65b1c2d3e4f5a6b7c8d9e0f1",
+      "variants": [
+        { "external_id": "42", "name": "Talla 42", "price": 5990000, "is_available": true }
+      ],
+      "image_urls": ["https://cdn.example.com/products/runner-pro.jpg"],
+      "landing_url": "https://tienda.example.com/zapatilla-runner-pro",
+      "is_active": true,
+      "created_at": "2026-04-18T09:12:44.010Z",
+      "updated_at": "2026-05-02T14:31:07.221Z"
+    }
+  ],
+  "total": 1,
+  "limit": 50,
+  "offset": 0
+}
+```
+
+### 400 Bad Request
+
+`limit` above 200, negative `offset`, or an unknown query parameter.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `ecommerce:products:read` scope.
+
+### 502 Bad Gateway
+
+The ecommerce service could not answer.
+
+## Operational notes
+
+- **Prices are integers in the currency's minor unit.** `5990000` with `"currency": "CLP"` is $59,900 — Chilean pesos have no decimals, so the value is already whole pesos scaled by the platform's factor. Read `currency` before formatting, and never hardcode two decimals.
+- **`stock` only means something when `stock_managed` is `true`.** On products synced from an integration it reflects the last sync, not a live read of the platform.
+- **`offset` is rounded down to a page boundary.** The catalog paginates by page upstream, so keep `offset` a multiple of `limit`; the usual `offset += limit` loop is always correct.
+- **Inactive products are included.** Filter on `is_active` yourself if you only want what is sellable.

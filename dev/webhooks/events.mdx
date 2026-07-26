@@ -1,7 +1,7 @@
 ---
 title: "Event catalog"
 sidebarTitle: "Events"
-description: "The 32 events you can subscribe to, across messaging, conversations, CRM, and scheduling. Each event has its own `data` shape."
+description: "The 35 events you can subscribe to, across messaging, conversations, CRM, scheduling, and ecommerce. Each event has its own `data` shape."
 ---
 
 Every event is identified by a `type` in the form `<domain>.<entity>.<action>`. The envelope's `data` field changes based on the `type`.
@@ -17,6 +17,7 @@ Every event is identified by a `type` in the form `<domain>.<entity>.<action>`. 
 | [Conversations](#conversations) | 2 | A conversation opening, and escalation to a human. |
 | [CRM](#crm) | 15 | Customers, tickets, tasks, and notes. |
 | [Scheduling](#scheduling) | 6 | The appointment lifecycle. |
+| [Ecommerce](#ecommerce) | 3 | A sale being created, paid, or cancelled. |
 
 <Note>
   Subscribe to what you actually process. Every subscription costs you a delivery your endpoint has to answer, and the high-volume ones — `whatsapp.message.delivered` and `whatsapp.message.read` — fire once per recipient per message.
@@ -563,6 +564,105 @@ The appointment was cancelled. `data.cancellation_reason` is present when the ca
 ### `scheduling.appointment.no_show`
 
 The appointment was marked as a no-show. Fires alongside `scheduling.appointment.updated`, with `data.previous_status`.
+
+## Ecommerce
+
+Three events on the sale lifecycle. The payload carries the customer, the line items, and the full amount breakdown, so a subscriber can post to an accounting system without a follow-up call. See the [ecommerce overview](/dev/ecommerce/overview) for how the records relate.
+
+### `ecommerce.sale.created`
+
+A sale was closed — from the portal, the point of sale, or the assistant.
+
+```json
+{
+  "type": "ecommerce.sale.created",
+  "occurred_at": "2026-05-02T14:31:07.221Z",
+  "company_id": "comp_xxx",
+  "data": {
+    "sale": {
+      "id": "65e4f5a6b7c8d9e0f1a2b3c4",
+      "sale_number": 1042,
+      "status": "completed",
+      "payment_status": "paid",
+      "currency": "CLP",
+      "customer": {
+        "name": "Juan Pérez",
+        "email": "juan@example.com",
+        "phone": "+56912345678",
+        "chat_user_id": "65a1f2b3c4d5e6f7a8b9c0d1"
+      },
+      "items": [
+        {
+          "kind": "product",
+          "name": "Zapatilla Runner Pro",
+          "quantity": 1,
+          "unit_price": 5990000,
+          "subtotal": 5990000
+        }
+      ],
+      "amounts": {
+        "service_subtotal": 0,
+        "products_subtotal": 5990000,
+        "custom_subtotal": 0,
+        "net_subtotal": 5990000,
+        "tax_amount": 0,
+        "tip": 0,
+        "total": 5990000
+      },
+      "payment_method": "card",
+      "branch_id": "br_01",
+      "paid_at": "2026-05-02T14:31:07.221Z",
+      "created_at": "2026-05-02T14:31:07.221Z",
+      "updated_at": "2026-05-02T14:31:07.221Z"
+    }
+  }
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | string | `ObjectId` of the sale. Pass it to [`GET /v1/ecommerce/sales/:id`](/dev/endpoints/ecommerce-sale-get). |
+| `sale_number` | number | Human-readable correlative, unique per company. What appears on the receipt. |
+| `status` | enum | `completed` \| `cancelled` \| `refunded`. |
+| `payment_status` | enum | `pending` \| `paid` \| `partially_paid` \| `refunded`. Independent of `status`. |
+| `items[].kind` | enum | `product` \| `service` \| `custom`. |
+| `amounts` | object | Integers in the currency's minor unit. `net_subtotal` is after discounts, before tax. |
+
+### `ecommerce.sale.paid`
+
+The sale reached `payment_status: "paid"`. This is the one to subscribe to for accounting and fulfilment.
+
+It fires in two situations, and both deliver the same payload:
+
+- **Alongside `ecommerce.sale.created`**, when the sale was already fully paid at the moment it was rung up. Expect two deliveries for one sale.
+- **On its own**, when a later payment settles a sale that was `pending` or `partially_paid`.
+
+<Note>
+  A sale that goes straight from `pending` to `paid` in several instalments only fires this once — on the payment that completes it. Partial payments do not emit an event.
+</Note>
+
+### `ecommerce.sale.cancelled`
+
+The sale was cancelled. Stock that had been discounted is returned and commissions are zeroed before the event fires, so the payload already reflects the reversal.
+
+```json
+{
+  "type": "ecommerce.sale.cancelled",
+  "data": {
+    "sale": {
+      "id": "65e4f5a6b7c8d9e0f1a2b3c4",
+      "sale_number": 1042,
+      "status": "cancelled",
+      "payment_status": "paid",
+      "cancelled_at": "2026-05-02T16:10:44.300Z"
+    }
+  }
+}
+```
+
+<Warning>
+  **Cancelling does not refund.** `payment_status` keeps whatever it was, so a cancelled sale can still read `paid`. If money needs to go back to the customer, that happens in your payment provider, not here.
+</Warning>
 
 ## Synthetic events (`_test: true`)
 

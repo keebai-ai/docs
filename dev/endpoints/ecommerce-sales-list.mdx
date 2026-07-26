@@ -1,0 +1,158 @@
+---
+title: "GET /v1/ecommerce/sales"
+sidebarTitle: "GET ecommerce/sales"
+description: "List sales, filtered by status, payment status, contact, or date range."
+openapi: "GET /v1/ecommerce/sales"
+---
+
+Returns a paginated list of sales. Each one carries its line items and the full amount breakdown, so a reporting job rarely needs a second call.
+
+Results cover the whole **company**, not just the project your token belongs to.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/ecommerce/sales
+```
+
+## Required scope
+
+`ecommerce:sales:read`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+
+## Query parameters
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `status` | `string` | No | `completed`, `cancelled`, or `refunded`. |
+| `payment_status` | `string` | No | `pending`, `paid`, `partially_paid`, or `refunded`. |
+| `chat_user_id` | `string` | No | `ObjectId` of the contact the sale belongs to. |
+| `from` | `string` | No | ISO 8601, inclusive. |
+| `to` | `string` | No | ISO 8601, inclusive. |
+| `search` | `string` | No | Free-text search over the sale. |
+| `limit` | `integer` | No | Page size, `1`–`200`. Defaults to 50. |
+| `offset` | `integer` | No | Records to skip. Defaults to 0. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -G https://api.keebai.com/v1/ecommerce/sales \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  --data-urlencode "payment_status=paid" \
+  --data-urlencode "from=2026-05-01T00:00:00Z" \
+  --data-urlencode "limit=50"
+```
+
+```js JavaScript
+const params = new URLSearchParams({
+  payment_status: "paid",
+  from: "2026-05-01T00:00:00Z",
+  limit: "50",
+});
+
+const response = await fetch(
+  `https://api.keebai.com/v1/ecommerce/sales?${params}`,
+  { headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` } },
+);
+const { data, total } = await response.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.get(
+    "https://api.keebai.com/v1/ecommerce/sales",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    params={
+        "payment_status": "paid",
+        "from": "2026-05-01T00:00:00Z",
+        "limit": 50,
+    },
+    timeout=10,
+)
+resp.raise_for_status()
+sales = resp.json()["data"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "data": [
+    {
+      "_id": "65e4f5a6b7c8d9e0f1a2b3c4",
+      "sale_number": 1042,
+      "status": "completed",
+      "payment_status": "paid",
+      "currency": "CLP",
+      "customer": {
+        "name": "Juan Pérez",
+        "email": "juan@example.com",
+        "phone": "+56912345678",
+        "chat_user_id": "65a1f2b3c4d5e6f7a8b9c0d1"
+      },
+      "items": [
+        {
+          "kind": "product",
+          "name": "Zapatilla Runner Pro",
+          "quantity": 1,
+          "unit_price": 5990000,
+          "subtotal": 5990000
+        }
+      ],
+      "amounts": {
+        "service_subtotal": 0,
+        "products_subtotal": 5990000,
+        "custom_subtotal": 0,
+        "net_subtotal": 5990000,
+        "tax_amount": 0,
+        "tip": 0,
+        "total": 5990000
+      },
+      "payment_method": "card",
+      "branch_id": "br_01",
+      "paid_at": "2026-05-02T14:31:07.221Z",
+      "created_at": "2026-05-02T14:31:07.221Z",
+      "updated_at": "2026-05-02T14:31:07.221Z"
+    }
+  ],
+  "total": 1,
+  "limit": 50,
+  "offset": 0
+}
+```
+
+### 400 Bad Request
+
+A `status` or `payment_status` outside the allowed set, a malformed date, `limit` above 200, or an unknown query parameter.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `ecommerce:sales:read` scope.
+
+### 502 Bad Gateway
+
+The ecommerce service could not answer.
+
+## Operational notes
+
+- **`status` and `payment_status` are independent.** A `completed` sale can be `partially_paid`, and a `cancelled` one can still be `paid` if the money arrived before the cancellation. Filter on the one you actually mean.
+- **`sale_number` is the human-readable correlative**, unique and sequential per company. It is what appears on receipts — use it when talking to the customer, and `_id` when talking to the API.
+- **Amounts are integers in the currency's minor unit**, and `net_subtotal` is after discounts but before tax. `total` is the number the customer paid.
+- **`chat_user_id` links the sale to a [contact](/dev/endpoints/contacts-get)**, present when the sale came from a conversation. Sales rung up at the counter usually have only the embedded customer details.
+- **Polling this endpoint is the wrong shape for reacting to sales.** Subscribe to [`ecommerce.sale.paid`](/dev/webhooks/events#ecommerce) instead — same data, no daily quota burned.

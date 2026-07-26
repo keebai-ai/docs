@@ -1,0 +1,103 @@
+---
+title: "Ecommerce overview"
+sidebarTitle: "Overview"
+description: "Read your catalog, carts, and sales — the data behind what the assistant sells, and the events that fire when it does."
+---
+
+The ecommerce surface is read-only. It exposes what Keebai knows about your **catalog**, the **carts** your customers built (including the ones they abandoned), and the **sales** that closed — everything under the `/v1/ecommerce` prefix, authenticated with a [PAT](/dev/api-keys) and gated by [scope](/dev/scopes).
+
+Writes stay in the portal and in the integrations. If you need to create a sale or push a product from your own system, that goes through the platform integration, not this API.
+
+## Data model
+
+<CardGroup cols={2}>
+  <Card title="Products" icon="box" href="/dev/endpoints/ecommerce-products-list">
+    The catalog: price, stock, variants, images. Includes both products created in Keebai and those synced from an integration.
+  </Card>
+  <Card title="Carts" icon="cart-shopping" href="/dev/endpoints/ecommerce-carts-list">
+    What a customer put together, whether or not they finished. Abandoned carts carry a recovery status and a link back to checkout.
+  </Card>
+  <Card title="Sales" icon="receipt" href="/dev/endpoints/ecommerce-sales-list">
+    Closed transactions with their line items, amount breakdown, and payment state.
+  </Card>
+  <Card title="Sale events" icon="bell" href="/dev/webhooks/events#ecommerce">
+    Three webhooks fire as a sale is created, paid, and cancelled.
+  </Card>
+</CardGroup>
+
+A cart is **not** the draft of a sale. They are separate records with no foreign key between them: a cart is what a customer assembled on a storefront, a sale is what your team or the assistant closed. Correlate on the customer's phone or email, or on `customer_id`, which both carry when Keebai could resolve the contact.
+
+## Scopes
+
+| Scope | Grants |
+|---|---|
+| `ecommerce:products:read` | [List](/dev/endpoints/ecommerce-products-list) and [read](/dev/endpoints/ecommerce-product-get) the catalog. |
+| `ecommerce:carts:read` | [List](/dev/endpoints/ecommerce-carts-list) and [read](/dev/endpoints/ecommerce-cart-get) carts, including abandoned ones. |
+| `ecommerce:sales:read` | [List](/dev/endpoints/ecommerce-sales-list) and [read](/dev/endpoints/ecommerce-sale-get) sales. |
+
+The three are separate because they leak different things. Carts and sales carry customer contact details and money; the catalog carries neither. A pricing widget on your website needs `ecommerce:products:read` and nothing else.
+
+<Warning>
+  **Reads are company-wide.** Like [CRM](/dev/crm/overview#tenancy-is-implicit), these endpoints return records from every project in your company, not just the project your token belongs to.
+</Warning>
+
+## Products come from two places
+
+| `type` | Where it comes from |
+|---|---|
+| Internal | Created in the Keebai portal. `external_id` is absent. |
+| Integration | Synced from Shopify, WooCommerce, Justo, and the like. `external_id` and `integration_id` are set, and edits made in Keebai are overwritten on the next sync. |
+
+`stock` is only meaningful when `stock_managed` is `true`. On integration products, stock is whatever the last sync brought over — not a live read of the platform.
+
+## Abandoned carts
+
+A cart with `abandoned_at` set and `completed_at` absent is the recoverable case. `recovery_status` tracks what has been done about it:
+
+| Status | Meaning |
+|---|---|
+| `pending` | Nobody has followed up. |
+| `contacted` | Someone reached out — a person or the assistant. |
+| `recovered` | The customer came back and completed. |
+| `discarded` | Written off. |
+
+`recovery_url` is the link that puts the customer back in checkout with the cart intact. Sending it over WhatsApp with [`POST /v1/messages/interactive/cta-url`](/dev/endpoints/messages-interactive-cta-url) is the intended pairing.
+
+## Money is stored in minor units
+
+Every amount — `price`, `unit_price`, `subtotal`, `total`, and the whole `amounts` block on a sale — is an integer in the currency's smallest unit. Read `currency` alongside it, and never assume two decimals: `JPY` and `CLP` have none.
+
+## Pagination
+
+List endpoints take `limit` and `offset` and return the same envelope as the rest of the API:
+
+```json
+{ "data": [], "total": 0, "limit": 50, "offset": 0 }
+```
+
+`limit` defaults to 50 and caps at 200.
+
+<Note>
+  The catalog paginates by page internally, so an `offset` that is not a multiple of `limit` is rounded down to the page containing it. Keep `offset` a multiple of `limit` — the standard `offset += limit` loop is always correct.
+</Note>
+
+## Errors
+
+| Status | When |
+|---|---|
+| `400` | An invalid query parameter, or one the endpoint does not accept. |
+| `401` | Missing, invalid, revoked, or expired token. |
+| `403` | The token lacks the scope the endpoint requires. |
+| `404` | No record with that id, or it belongs to a different company. |
+| `502` | The ecommerce service could not answer. |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Browse the catalog" icon="box" href="/dev/endpoints/ecommerce-products-list">
+    Start with products — the simplest of the three.
+  </Card>
+  <Card title="React to sales" icon="bell" href="/dev/webhooks/events#ecommerce">
+    Subscribe to `ecommerce.sale.paid` and push it into your accounting system.
+  </Card>
+</CardGroup>

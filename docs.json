@@ -281,6 +281,39 @@
         ]
       },
       {
+        "tab": "Ecommerce",
+        "icon": "cart-shopping",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": [
+              "dev/ecommerce/overview"
+            ]
+          },
+          {
+            "group": "Products",
+            "pages": [
+              "dev/endpoints/ecommerce-products-list",
+              "dev/endpoints/ecommerce-product-get"
+            ]
+          },
+          {
+            "group": "Carts",
+            "pages": [
+              "dev/endpoints/ecommerce-carts-list",
+              "dev/endpoints/ecommerce-cart-get"
+            ]
+          },
+          {
+            "group": "Sales",
+            "pages": [
+              "dev/endpoints/ecommerce-sales-list",
+              "dev/endpoints/ecommerce-sale-get"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "Webhooks",
         "icon": "bell",
         "groups": [
