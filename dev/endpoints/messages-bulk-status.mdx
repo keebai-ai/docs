@@ -118,5 +118,5 @@ def wait_broadcast(broadcast_id: str, timeout: int = 600) -> dict:
 ```
 
 <Tip>
-  Use a reasonable sleep (≥5s) between polls to avoid burning through your rate limit. For large campaigns (>1000 recipients), poll every 30s.
+  Every poll costs one request against your **1,000/day** quota, so polling every 5s for an hour would spend 720 of it. Poll every 30s for large campaigns, and stop as soon as the status is terminal.
 </Tip>
