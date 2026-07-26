@@ -79,13 +79,13 @@
       {
         "tab": "Messaging",
         "icon": "paper-plane",
-        "openapi": {
-          "source": "https://api.keebai.com/v1/docs-json",
-          "directory": "_openapi/messaging"
-        },
         "groups": [
           {
             "group": "WhatsApp",
+            "openapi": {
+              "source": "https://api.keebai.com/v1/docs-json",
+              "directory": "_openapi/messaging"
+            },
             "pages": [
               "dev/endpoints/messages-template",
               "dev/endpoints/messages-text",
@@ -95,6 +95,10 @@
           },
           {
             "group": "Templates",
+            "openapi": {
+              "source": "https://api.keebai.com/v1/docs-json",
+              "directory": "_openapi/messaging"
+            },
             "pages": [
               "dev/endpoints/templates-list",
               "dev/endpoints/templates-create",
@@ -103,6 +107,10 @@
           },
           {
             "group": "Channels",
+            "openapi": {
+              "source": "https://api.keebai.com/v1/docs-json",
+              "directory": "_openapi/messaging"
+            },
             "pages": [
               "dev/endpoints/channels-list",
               "dev/endpoints/whatsapp-numbers",
@@ -115,13 +123,13 @@
       {
         "tab": "Knowledge",
         "icon": "book-bookmark",
-        "openapi": {
-          "source": "https://api.keebai.com/v1/docs-json",
-          "directory": "_openapi/knowledge"
-        },
         "groups": [
           {
             "group": "Knowledge base",
+            "openapi": {
+              "source": "https://api.keebai.com/v1/docs-json",
+              "directory": "_openapi/knowledge"
+            },
             "pages": [
               "dev/endpoints/knowledge-tree",
               "dev/endpoints/knowledge-folder-create",
@@ -133,6 +141,10 @@
           },
           {
             "group": "Assistants",
+            "openapi": {
+              "source": "https://api.keebai.com/v1/docs-json",
+              "directory": "_openapi/knowledge"
+            },
             "pages": [
               "dev/endpoints/assistants-list"
             ]
@@ -142,10 +154,6 @@
       {
         "tab": "Webhooks",
         "icon": "bell",
-        "openapi": {
-          "source": "https://api.keebai.com/v1/docs-json",
-          "directory": "_openapi/webhooks"
-        },
         "groups": [
           {
             "group": "Get started",
@@ -167,13 +175,13 @@
       {
         "tab": "Scheduling",
         "icon": "calendar-check",
-        "openapi": {
-          "source": "https://api.keebai.com/v1/docs-json",
-          "directory": "_openapi/scheduling"
-        },
         "groups": [
           {
             "group": "Resources",
+            "openapi": {
+              "source": "https://api.keebai.com/v1/docs-json",
+              "directory": "_openapi/scheduling"
+            },
             "pages": [
               "dev/endpoints/scheduling-branches-list",
               "dev/endpoints/scheduling-branch-get",
@@ -185,6 +193,10 @@
           },
           {
             "group": "Availability",
+            "openapi": {
+              "source": "https://api.keebai.com/v1/docs-json",
+              "directory": "_openapi/scheduling"
+            },
             "pages": [
               "dev/endpoints/scheduling-availability",
               "dev/endpoints/scheduling-availability-range",
@@ -193,6 +205,10 @@
           },
           {
             "group": "Appointments",
+            "openapi": {
+              "source": "https://api.keebai.com/v1/docs-json",
+              "directory": "_openapi/scheduling"
+            },
             "pages": [
               "dev/endpoints/scheduling-appointment-get",
               "dev/endpoints/scheduling-appointment-create",
@@ -205,10 +221,6 @@
       {
         "tab": "CRM",
         "icon": "address-book",
-        "openapi": {
-          "source": "https://api.keebai.com/v1/docs-json",
-          "directory": "_openapi/crm"
-        },
         "groups": [
           {
             "group": "Get started",
@@ -218,6 +230,10 @@
           },
           {
             "group": "Customers",
+            "openapi": {
+              "source": "https://api.keebai.com/v1/docs-json",
+              "directory": "_openapi/crm"
+            },
             "pages": [
               "dev/endpoints/crm-customers-list",
               "dev/endpoints/crm-customer-get",
@@ -228,6 +244,10 @@
           },
           {
             "group": "Tickets",
+            "openapi": {
+              "source": "https://api.keebai.com/v1/docs-json",
+              "directory": "_openapi/crm"
+            },
             "pages": [
               "dev/endpoints/crm-tickets-list",
               "dev/endpoints/crm-ticket-get",
@@ -239,6 +259,10 @@
           },
           {
             "group": "Tasks",
+            "openapi": {
+              "source": "https://api.keebai.com/v1/docs-json",
+              "directory": "_openapi/crm"
+            },
             "pages": [
               "dev/endpoints/crm-tasks-list",
               "dev/endpoints/crm-task-get",
@@ -249,6 +273,10 @@
           },
           {
             "group": "Notes",
+            "openapi": {
+              "source": "https://api.keebai.com/v1/docs-json",
+              "directory": "_openapi/crm"
+            },
             "pages": [
               "dev/endpoints/crm-notes-list",
               "dev/endpoints/crm-note-get",
