@@ -1,0 +1,79 @@
+---
+title: "DELETE /v1/crm/tasks/:id"
+sidebarTitle: "DELETE crm/tasks/{id}"
+description: "Permanently delete a task. There is no undo."
+---
+
+Deletes a task. The deletion is permanent — there is no soft-delete flag and no restore endpoint.
+
+To take a task off someone's list while keeping the record, set its status to `cancelled` or `completed` with [`PATCH /v1/crm/tasks/:id`](/dev/endpoints/crm-task-update) instead.
+
+## Endpoint
+
+```
+DELETE https://api.keebai.com/v1/crm/tasks/{id}
+```
+
+## Required scope
+
+`crm:tasks:delete`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+
+## Path parameters
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `id` | `string` | Yes | `ObjectId` of the task. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X DELETE https://api.keebai.com/v1/crm/tasks/65a1f2b3c4d5e6f7a8b9c0d1 \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+```js JavaScript
+const response = await fetch(`https://api.keebai.com/v1/crm/tasks/${taskId}`, {
+  method: "DELETE",
+  headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` },
+});
+// 204 No Content — response.body is empty
+```
+
+```python Python
+import os, requests
+
+resp = requests.delete(
+    f"https://api.keebai.com/v1/crm/tasks/{task_id}",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    timeout=10,
+)
+resp.raise_for_status()
+```
+
+</CodeGroup>
+
+## Response
+
+### 204 No Content
+
+The task was deleted. The response body is empty.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `crm:tasks:delete` scope.
+
+### 404 Not Found
+
+No task with that id, or the task belongs to a different company.

@@ -94,6 +94,34 @@ All public-API routes live under this prefix. The browsable Swagger UI is at [ap
 
 Full details in [Webhooks → Overview](/dev/webhooks/overview).
 
+### CRM
+
+| Method | Path | Scope | Description |
+|---|---|---|---|
+| `GET` | `/v1/crm/customers` | `crm:customers:read` | [List customers](/dev/endpoints/crm-customers-list) with search and phone lookup. |
+| `GET` | `/v1/crm/customers/:id` | `crm:customers:read` | Get a single customer. |
+| `POST` | `/v1/crm/customers` | `crm:customers:write` | [Create a customer](/dev/endpoints/crm-customer-create). |
+| `PATCH` | `/v1/crm/customers/:id` | `crm:customers:write` | Partially update a customer. |
+| `DELETE` | `/v1/crm/customers/:id` | `crm:customers:delete` | Delete a customer. |
+| `GET` | `/v1/crm/tickets` | `crm:tickets:read` | [List tickets](/dev/endpoints/crm-tickets-list) by pipeline, stage, owner, tag, or date. |
+| `GET` | `/v1/crm/tickets/:id` | `crm:tickets:read` | Get a single ticket. |
+| `POST` | `/v1/crm/tickets` | `crm:tickets:write` | [Open a ticket](/dev/endpoints/crm-ticket-create) for a contact. |
+| `PATCH` | `/v1/crm/tickets/:id` | `crm:tickets:write` | Update, close, reassign, or retag a ticket. |
+| `POST` | `/v1/crm/tickets/:id/stage` | `crm:tickets:write` | [Move a ticket](/dev/endpoints/crm-ticket-stage) to another pipeline stage. |
+| `DELETE` | `/v1/crm/tickets/:id` | `crm:tickets:delete` | Delete a ticket. |
+| `GET` | `/v1/crm/tasks` | `crm:tasks:read` | [List tasks](/dev/endpoints/crm-tasks-list), filterable by status. |
+| `GET` | `/v1/crm/tasks/:id` | `crm:tasks:read` | Get a single task. |
+| `POST` | `/v1/crm/tasks` | `crm:tasks:write` | [Create a task](/dev/endpoints/crm-task-create). |
+| `PATCH` | `/v1/crm/tasks/:id` | `crm:tasks:write` | Update a task's status, assignee, or due date. |
+| `DELETE` | `/v1/crm/tasks/:id` | `crm:tasks:delete` | Delete a task. |
+| `GET` | `/v1/crm/notes` | `crm:notes:read` | [List notes](/dev/endpoints/crm-notes-list) by contact, ticket, or type. |
+| `GET` | `/v1/crm/notes/:id` | `crm:notes:read` | Get a single note. |
+| `POST` | `/v1/crm/notes` | `crm:notes:write` | [Log a note](/dev/endpoints/crm-note-create), call, email, or meeting. |
+| `PATCH` | `/v1/crm/notes/:id` | `crm:notes:write` | Edit a note's text or type. |
+| `DELETE` | `/v1/crm/notes/:id` | `crm:notes:delete` | Delete a note. |
+
+Full details in [CRM → Overview](/dev/crm/overview). Note that CRM reads span the whole company while writes stay scoped to the token's project.
+
 ## Next steps
 
 <CardGroup cols={2}>
@@ -120,6 +148,9 @@ Full details in [Webhooks → Overview](/dev/webhooks/overview).
   </Card>
   <Card title="Connect WhatsApp" icon="plug" href="/dev/endpoints/channels-whatsapp-connect">
     Onboard a new WhatsApp Business channel without the portal.
+  </Card>
+  <Card title="CRM" icon="address-book" href="/dev/crm/overview">
+    Customers, tickets, tasks, and notes over REST.
   </Card>
 </CardGroup>
 

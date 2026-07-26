@@ -59,6 +59,18 @@ The catalog lives in the `api_scopes` MongoDB collection. The portal pulls it vi
 | `scheduling:appointments:create` | scheduling | [Create appointments](/dev/endpoints/scheduling-appointment-create) with embedded customer data. |
 | `scheduling:appointments:confirm` | scheduling | [Confirm appointments](/dev/endpoints/scheduling-appointment-confirm) (`pending` → `confirmed`). |
 | `scheduling:appointments:cancel` | scheduling | [Cancel appointments](/dev/endpoints/scheduling-appointment-cancel) with an optional reason. |
+| `crm:customers:read` | crm | [List](/dev/endpoints/crm-customers-list) and [read](/dev/endpoints/crm-customer-get) CRM customers. |
+| `crm:customers:write` | crm | [Create](/dev/endpoints/crm-customer-create) and [update](/dev/endpoints/crm-customer-update) customers, including custom fields and tags. |
+| `crm:customers:delete` | crm | [Delete customers](/dev/endpoints/crm-customer-delete). Permanent. |
+| `crm:tickets:read` | crm | [List with filters](/dev/endpoints/crm-tickets-list) and [read](/dev/endpoints/crm-ticket-get) CRM tickets. |
+| `crm:tickets:write` | crm | [Create](/dev/endpoints/crm-ticket-create), [update](/dev/endpoints/crm-ticket-update), and [move between pipeline stages](/dev/endpoints/crm-ticket-stage). |
+| `crm:tickets:delete` | crm | [Delete tickets](/dev/endpoints/crm-ticket-delete). Permanent. |
+| `crm:tasks:read` | crm | [List](/dev/endpoints/crm-tasks-list) and [read](/dev/endpoints/crm-task-get) CRM tasks. |
+| `crm:tasks:write` | crm | [Create](/dev/endpoints/crm-task-create) and [update](/dev/endpoints/crm-task-update) tasks (status, priority, assignee, due date). |
+| `crm:tasks:delete` | crm | [Delete tasks](/dev/endpoints/crm-task-delete). Permanent. |
+| `crm:notes:read` | crm | [List](/dev/endpoints/crm-notes-list) and [read](/dev/endpoints/crm-note-get) CRM notes. |
+| `crm:notes:write` | crm | [Create](/dev/endpoints/crm-note-create) and [update](/dev/endpoints/crm-note-update) notes. The author is the token's owner. |
+| `crm:notes:delete` | crm | [Delete notes](/dev/endpoints/crm-note-delete). Permanent. |
 
 <Tip>
   The checkboxes in the **Create API Key** modal load live from the backend. A missing scope means it's flagged `is_active: false` in the database.
@@ -138,7 +150,26 @@ Pick the smallest scope set that does the job. Splitting `messages:send` and `me
 
     `scheduling:branches:read`, `scheduling:services:read`, `scheduling:professionals:read`, `scheduling:availability:read`, `scheduling:appointments:read`, `scheduling:appointments:create`, `scheduling:appointments:confirm`, `scheduling:appointments:cancel`.
   </Card>
+  <Card title="CRM — reporting and dashboards">
+    A BI tool or dashboard reads the pipeline without ever writing to it.
+
+    `crm:customers:read`, `crm:tickets:read`, `crm:tasks:read`, `crm:notes:read`.
+  </Card>
+  <Card title="CRM — two-way sync, no deletes">
+    Your external CRM or ERP keeps records in step with Keebai. Deletes stay out so a sync bug cannot erase history.
+
+    `crm:customers:read`, `crm:customers:write`, `crm:tickets:read`, `crm:tickets:write`, `crm:tasks:read`, `crm:tasks:write`, `crm:notes:read`, `crm:notes:write`.
+  </Card>
+  <Card title="CRM — activity logger">
+    A dialer or email tool writes call and email records onto the right ticket, and nothing else.
+
+    `crm:tickets:read`, `crm:notes:write`.
+  </Card>
 </CardGroup>
+
+<Warning>
+  **CRM reads are company-wide.** A `crm:*:read` scope returns records from every project in your company, not just the project the token was minted for. Writes stay scoped to the token's project. See the [CRM overview](/dev/crm/overview#tenancy-is-implicit) before handing a CRM token to a third party.
+</Warning>
 
 ## Change a token's scopes
 

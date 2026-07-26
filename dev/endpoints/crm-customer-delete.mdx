@@ -1,0 +1,90 @@
+---
+title: "DELETE /v1/crm/customers/:id"
+sidebarTitle: "DELETE crm/customers/{id}"
+description: "Permanently delete a customer. There is no undo."
+---
+
+Deletes a customer from your CRM. The deletion is permanent — there is no soft-delete flag and no restore endpoint.
+
+<Warning>
+  This is not reversible. If you only want to stop contacting someone, set `accepts_marketing` to `false` with [`PATCH /v1/crm/customers/:id`](/dev/endpoints/crm-customer-update) instead of deleting the record.
+</Warning>
+
+## Endpoint
+
+```
+DELETE https://api.keebai.com/v1/crm/customers/{id}
+```
+
+## Required scope
+
+`crm:customers:delete`
+
+This is a separate scope from `crm:customers:write` on purpose — an integration that keeps customer data in sync should be able to create and update without being able to destroy.
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+
+## Path parameters
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `id` | `string` | Yes | `ObjectId` of the customer. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X DELETE https://api.keebai.com/v1/crm/customers/65a1f2b3c4d5e6f7a8b9c0d1 \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+```js JavaScript
+const response = await fetch(
+  `https://api.keebai.com/v1/crm/customers/${customerId}`,
+  {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` },
+  },
+);
+// 204 No Content — response.body is empty
+```
+
+```python Python
+import os, requests
+
+resp = requests.delete(
+    f"https://api.keebai.com/v1/crm/customers/{customer_id}",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    timeout=10,
+)
+resp.raise_for_status()
+```
+
+</CodeGroup>
+
+## Response
+
+### 204 No Content
+
+The customer was deleted. The response body is empty.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `crm:customers:delete` scope.
+
+### 404 Not Found
+
+No customer with that id, or the customer belongs to a different company.
+
+## Operational notes
+
+- **Tickets and notes are not cascaded.** Deleting a customer leaves any related tickets and notes in place, since they are attached to the chat user rather than to the customer record.

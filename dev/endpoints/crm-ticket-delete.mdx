@@ -1,0 +1,90 @@
+---
+title: "DELETE /v1/crm/tickets/:id"
+sidebarTitle: "DELETE crm/tickets/{id}"
+description: "Permanently delete a ticket. There is no undo."
+---
+
+Deletes a ticket from your CRM. The deletion is permanent — there is no soft-delete flag and no restore endpoint.
+
+<Warning>
+  This is not reversible, and it removes the ticket from your pipeline reporting history. To take a ticket out of the active board without losing the record, close it with `{"is_closed": true}` through [`PATCH /v1/crm/tickets/:id`](/dev/endpoints/crm-ticket-update) instead.
+</Warning>
+
+## Endpoint
+
+```
+DELETE https://api.keebai.com/v1/crm/tickets/{id}
+```
+
+## Required scope
+
+`crm:tickets:delete`
+
+This is a separate scope from `crm:tickets:write` on purpose — an integration that opens and closes tickets should not be able to erase them.
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+
+## Path parameters
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `id` | `string` | Yes | `ObjectId` of the ticket. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X DELETE https://api.keebai.com/v1/crm/tickets/65f4b5c6d7e8f9a0b1c2d3e4 \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+```js JavaScript
+const response = await fetch(
+  `https://api.keebai.com/v1/crm/tickets/${ticketId}`,
+  {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` },
+  },
+);
+// 204 No Content — response.body is empty
+```
+
+```python Python
+import os, requests
+
+resp = requests.delete(
+    f"https://api.keebai.com/v1/crm/tickets/{ticket_id}",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    timeout=10,
+)
+resp.raise_for_status()
+```
+
+</CodeGroup>
+
+## Response
+
+### 204 No Content
+
+The ticket was deleted. The response body is empty.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `crm:tickets:delete` scope.
+
+### 404 Not Found
+
+No ticket with that id, or the ticket belongs to a different company.
+
+## Operational notes
+
+- **Notes are not cascaded.** Notes attached to the ticket through `ticket_id` survive the deletion and end up pointing at an id that no longer resolves. Delete them first with [`DELETE /v1/crm/notes/:id`](/dev/endpoints/crm-note-delete) if that matters to your integration.

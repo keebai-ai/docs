@@ -1,0 +1,155 @@
+---
+title: "POST /v1/crm/tickets"
+sidebarTitle: "POST crm/tickets"
+description: "Open a ticket for a contact. Company and project come from the token; Keebai generates the id."
+---
+
+Creates a ticket — a case, deal, or conversation you want to track through a pipeline. The only mandatory field is `chat_user`: the contact the ticket belongs to.
+
+The `company` and `project` are taken from your token and must **not** appear in the body. Sending them returns `400`.
+
+<Tip>
+  A ticket is anchored to a **chat user**, not to a [customer](/dev/endpoints/crm-customer-create). The chat user is the contact record Keebai creates when someone writes to one of your channels. Get its id from an [inbound message webhook](/dev/webhooks/events) or from the portal.
+</Tip>
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/crm/tickets
+```
+
+## Required scope
+
+`crm:tickets:write`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `chat_user` | `string` | Yes | `ObjectId` of the contact the ticket belongs to. |
+| `chat_user_name` | `string` | No | Display name, denormalized onto the ticket. |
+| `chat_user_avatar` | `string` | No | Avatar URL, denormalized onto the ticket. |
+| `chat_user_channel` | `string` | No | Origin channel, e.g. `whatsapp`, `instagram`. |
+| `chat_user_channel_id` | `string` | No | `ObjectId` of the specific channel. |
+| `stage` | `string` | No | `ObjectId` of the pipeline stage to open the ticket in. |
+| `priority` | `string` | No | One of `low`, `medium`, `high`, `urgent`. Defaults to `medium`. |
+| `category` | `string` | No | Free-text category. |
+| `assigned_to` | `string` | No | `ObjectId` of the user who owns the ticket. |
+| `custom_fields` | `object` | No | Free-form object matching your company's custom fields. |
+| `amount` | `number` | No | Monetary value of the opportunity. |
+| `amount_currency` | `string` | No | ISO 4217 currency, e.g. `CLP`, `USD`. |
+| `amount_status` | `string` | No | `estimated` or `confirmed`. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/crm/tickets \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "chat_user": "66c1d2e3f4a5b6c7d8e9f0a1",
+    "chat_user_name": "Juan Pérez",
+    "chat_user_channel": "whatsapp",
+    "stage": "67d1e2f3a4b5c6d7e8f9a0b1",
+    "priority": "high",
+    "category": "soporte",
+    "amount": 150000,
+    "amount_currency": "CLP",
+    "amount_status": "estimated"
+  }'
+```
+
+```js JavaScript
+const response = await fetch("https://api.keebai.com/v1/crm/tickets", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    chat_user: chatUserId,
+    chat_user_name: "Juan Pérez",
+    chat_user_channel: "whatsapp",
+    stage: stageId,
+    priority: "high",
+  }),
+});
+const { ticket } = await response.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/crm/tickets",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={
+        "chat_user": chat_user_id,
+        "chat_user_name": "Juan Pérez",
+        "chat_user_channel": "whatsapp",
+        "stage": stage_id,
+        "priority": "high",
+    },
+    timeout=10,
+)
+resp.raise_for_status()
+ticket = resp.json()["ticket"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 201 Created
+
+```json
+{
+  "ticket": {
+    "_id": "65f4b5c6d7e8f9a0b1c2d3e4",
+    "project": "65b1c2d3e4f5a6b7c8d9e0f1",
+    "chat_user": "66c1d2e3f4a5b6c7d8e9f0a1",
+    "chat_user_name": "Juan Pérez",
+    "chat_user_channel": "whatsapp",
+    "stage": "67d1e2f3a4b5c6d7e8f9a0b1",
+    "is_closed": false,
+    "priority": "high",
+    "category": "soporte",
+    "custom_fields": {},
+    "amount": 150000,
+    "amount_currency": "CLP",
+    "amount_status": "estimated",
+    "created_at": "2026-05-02T14:31:07.221Z",
+    "updated_at": "2026-05-02T14:31:07.221Z"
+  },
+  "stage_requested": "67d1e2f3a4b5c6d7e8f9a0b1"
+}
+```
+
+`stage_requested` echoes back the stage you asked for, and is present only when you sent one.
+
+### 400 Bad Request
+
+Missing `chat_user`, an id that is not a valid `ObjectId`, a `priority` outside the allowed set, or a property the endpoint does not accept — including `company` and `project`, which are derived from the token.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `crm:tickets:write` scope.
+
+## Operational notes
+
+- **No stage is assigned by default.** If you omit `stage`, the ticket is created without one and will not appear in a pipeline board until you move it with [`POST /v1/crm/tickets/:id/stage`](/dev/endpoints/crm-ticket-stage).
+- **Tickets open as `is_closed: false`.** Close one by sending `{"is_closed": true, "resolution": "won"}` to [`PATCH /v1/crm/tickets/:id`](/dev/endpoints/crm-ticket-update).
+- **Nothing deduplicates by contact.** Two `POST`s for the same `chat_user` create two tickets. Check for an existing open ticket first if that is not what you want.

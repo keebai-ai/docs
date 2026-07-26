@@ -201,6 +201,59 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "CRM",
+        "icon": "address-book",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": [
+              "dev/crm/overview"
+            ]
+          },
+          {
+            "group": "Customers",
+            "pages": [
+              "dev/endpoints/crm-customers-list",
+              "dev/endpoints/crm-customer-get",
+              "dev/endpoints/crm-customer-create",
+              "dev/endpoints/crm-customer-update",
+              "dev/endpoints/crm-customer-delete"
+            ]
+          },
+          {
+            "group": "Tickets",
+            "pages": [
+              "dev/endpoints/crm-tickets-list",
+              "dev/endpoints/crm-ticket-get",
+              "dev/endpoints/crm-ticket-create",
+              "dev/endpoints/crm-ticket-update",
+              "dev/endpoints/crm-ticket-stage",
+              "dev/endpoints/crm-ticket-delete"
+            ]
+          },
+          {
+            "group": "Tasks",
+            "pages": [
+              "dev/endpoints/crm-tasks-list",
+              "dev/endpoints/crm-task-get",
+              "dev/endpoints/crm-task-create",
+              "dev/endpoints/crm-task-update",
+              "dev/endpoints/crm-task-delete"
+            ]
+          },
+          {
+            "group": "Notes",
+            "pages": [
+              "dev/endpoints/crm-notes-list",
+              "dev/endpoints/crm-note-get",
+              "dev/endpoints/crm-note-create",
+              "dev/endpoints/crm-note-update",
+              "dev/endpoints/crm-note-delete"
+            ]
+          }
+        ]
       }
     ],
     "global": {

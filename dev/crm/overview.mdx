@@ -1,0 +1,114 @@
+---
+title: "CRM overview"
+sidebarTitle: "Overview"
+description: "Customers, tickets, tasks, and notes over the Keebai public API — data model, implicit tenancy, and pagination."
+---
+
+The CRM surface exposes the four core entities of Keebai's customer relationship data — **customers**, **tickets**, **tasks**, and **notes** — as a plain REST API under `/v1/crm`. Every endpoint authenticates with a [Personal Access Token](/dev/api-keys) and is gated by its own [scope](/dev/scopes).
+
+## Data model
+
+<CardGroup cols={2}>
+  <Card title="Customers" icon="user" href="/dev/endpoints/crm-customers-list">
+    A person or organization you do business with. Identified by name plus optional email, phone, and a national identification number that is unique within your company.
+  </Card>
+  <Card title="Tickets" icon="ticket" href="/dev/endpoints/crm-tickets-list">
+    A conversation, deal, or case moving through a pipeline. Always attached to a chat user (the contact behind a messaging conversation), and optionally to a stage, an owner, tags, and a monetary amount.
+  </Card>
+  <Card title="Tasks" icon="list-check" href="/dev/endpoints/crm-tasks-list">
+    A unit of work with a title, an optional assignee, a status, a priority, and a due date. Tasks stand on their own — they are not attached to a ticket or a customer.
+  </Card>
+  <Card title="Notes" icon="note-sticky" href="/dev/endpoints/crm-notes-list">
+    A free-text annotation, optionally typed as a call, email, or meeting, and optionally attached to a chat user or a ticket.
+  </Card>
+</CardGroup>
+
+Customers and tickets are separate records that are not linked by a foreign key. A customer is the commercial identity; a ticket is a unit of work tied to a **chat user**, which is the contact record created when someone writes to one of your channels. If you need to correlate the two, match on phone or email, or store the customer id in the ticket's `custom_fields`.
+
+## Tenancy is implicit
+
+Every CRM record belongs to a company, and most also belong to a project. **You never send either one.** Keebai derives them from the token on each request:
+
+| Field | Source | Applies to |
+|---|---|---|
+| `company` | The company that owns the token | Every CRM record |
+| `project` | The project the token was minted for | Customers, tickets, notes |
+| `created_by` | The user who owns the token | Notes |
+
+Sending any of these in the request body returns `400 Bad Request` — the public API rejects unknown properties rather than silently ignoring them. This is deliberate: it makes an attempt to write into another tenant fail loudly instead of quietly doing nothing.
+
+<Warning>
+  **Reads are company-wide, writes are project-scoped.**
+
+  Records you create are stamped with the project your token belongs to. List endpoints, however, return every record in the **company**, including records that belong to other projects. A token minted for project A will see tickets, customers, notes, and tasks created under project B.
+
+  If your company uses more than one project and you need per-project separation in the results, filter client-side on the `project` field of each record. Tasks have no `project` field at all — they are company-level by design.
+</Warning>
+
+## Identifiers
+
+All ids are MongoDB ObjectIds: 24 lowercase hexadecimal characters, for example `65a1f2b3c4d5e6f7a8b9c0d1`. That includes the ids you pass in request bodies — `chat_user`, `assigned_to`, `stage_id`, `ticket_id`, and the entries of `tags` / `tag_ids`.
+
+There is no public endpoint yet for discovering pipelines, stages, tags, users, or chat users. Read those ids from the Keebai portal, or capture them from the payloads of the [outbound webhooks](/dev/webhooks/overview) your integration already receives.
+
+## Pagination
+
+List endpoints take `limit` and `offset` and return a consistent envelope:
+
+```json
+{
+  "data": [],
+  "total": 0,
+  "limit": 50,
+  "offset": 0
+}
+```
+
+`limit` caps at 200 on every list endpoint, and a value above it returns `400` — page with `offset` rather than trying to raise the ceiling. The default page size is 50 everywhere except notes, which defaults to 100.
+
+## Updates are partial
+
+Every update endpoint is a `PATCH` and applies only the fields you send. Omitted fields keep their current value; there is no `PUT`-style full replacement.
+
+Two fields on tickets are worth calling out, because they behave differently from the rest:
+
+- `tag_ids` **replaces** the entire tag list.
+- `add_tag_ids` and `remove_tag_ids` modify the list incrementally, leaving the tags you did not mention alone.
+
+Use the incremental pair whenever more than one system writes tags to the same ticket.
+
+## Errors
+
+The CRM surface uses the same error envelope as the rest of the public API:
+
+```json
+{
+  "error": {
+    "code": "INSUFFICIENT_SCOPE",
+    "message": "Forbidden",
+    "details": {
+      "required": ["crm:tickets:write"],
+      "missing": ["crm:tickets:write"]
+    }
+  }
+}
+```
+
+| Status | When |
+|---|---|
+| `400` | Invalid body or query, or a property the endpoint does not accept (including `company` and `project`). |
+| `401` | Missing, invalid, revoked, or expired token. |
+| `403` | The token lacks the scope the endpoint requires. |
+| `404` | The record does not exist, or belongs to another company. |
+| `502` | The CRM service is unreachable. Retry with backoff. |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Create a customer" icon="user-plus" href="/dev/endpoints/crm-customer-create">
+    Register the commercial identity you will bill and contact.
+  </Card>
+  <Card title="Open a ticket" icon="ticket" href="/dev/endpoints/crm-ticket-create">
+    Start a case in a pipeline and move it through its stages.
+  </Card>
+</CardGroup>

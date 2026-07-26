@@ -1,0 +1,145 @@
+---
+title: "POST /v1/crm/customers"
+sidebarTitle: "POST crm/customers"
+description: "Create a customer. Company and project come from the token; Keebai generates the id."
+---
+
+Creates a customer in your CRM. Only `name` is mandatory — everything else can be filled in later with [`PATCH /v1/crm/customers/:id`](/dev/endpoints/crm-customer-update).
+
+The `company` and `project` are taken from your token and must **not** appear in the body. Sending them returns `400`.
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/crm/customers
+```
+
+## Required scope
+
+`crm:customers:write`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `name` | `string` | Yes | First name or company name. Up to 200 characters. |
+| `last_name` | `string` | No | Last name. Up to 200 characters. |
+| `email` | `string` | No | Valid email address. |
+| `phone` | `string` | No | Phone number. Store it in E.164 to make it findable later. |
+| `identification_number` | `string` | No | National id. Unique within your company when present. |
+| `identification_type` | `string` | No | One of `rut`, `dni`, `passport`, `other`. |
+| `identification_country` | `string` | No | ISO 3166-1 alpha-2 country code. |
+| `external_ids` | `array` | No | Cross-references to other systems: `[{ "provider": "shopify", "external_id": "1234" }]`. |
+| `custom_fields` | `object` | No | Free-form object matching the custom fields configured for your company. |
+| `tags` | `string[]` | No | `ObjectId`s of CRM tags. |
+| `accepts_marketing` | `boolean` | No | Marketing consent flag. Defaults to `false`. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/crm/customers \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Juan",
+    "last_name": "Pérez",
+    "email": "juan@example.com",
+    "phone": "+56912345678",
+    "identification_number": "12345678-9",
+    "identification_type": "rut",
+    "identification_country": "CL",
+    "accepts_marketing": true
+  }'
+```
+
+```js JavaScript
+const response = await fetch("https://api.keebai.com/v1/crm/customers", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    name: "Juan",
+    last_name: "Pérez",
+    email: "juan@example.com",
+    phone: "+56912345678",
+    accepts_marketing: true,
+  }),
+});
+const { customer } = await response.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/crm/customers",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={
+        "name": "Juan",
+        "last_name": "Pérez",
+        "email": "juan@example.com",
+        "phone": "+56912345678",
+        "accepts_marketing": True,
+    },
+    timeout=10,
+)
+resp.raise_for_status()
+customer = resp.json()["customer"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 201 Created
+
+```json
+{
+  "customer": {
+    "_id": "65a1f2b3c4d5e6f7a8b9c0d1",
+    "project": "65b1c2d3e4f5a6b7c8d9e0f1",
+    "name": "Juan",
+    "last_name": "Pérez",
+    "email": "juan@example.com",
+    "phone": "+56912345678",
+    "external_ids": [],
+    "custom_fields": {},
+    "tags": [],
+    "accepts_marketing": true,
+    "created_at": "2026-05-02T14:31:07.221Z",
+    "updated_at": "2026-05-02T14:31:07.221Z"
+  }
+}
+```
+
+### 400 Bad Request
+
+Missing `name`, malformed `email`, an `identification_type` outside the allowed set, or a property the endpoint does not accept — including `company` and `project`, which are derived from the token.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `crm:customers:write` scope.
+
+### 502 Bad Gateway
+
+The CRM service could not complete the write. The most common cause is a duplicate `identification_number` — see the note below.
+
+## Operational notes
+
+- **`identification_number` is unique per company, and the collision is not handled gracefully.** Creating a second customer with an `identification_number` that already exists in your company fails with `502`, not a `409`. Check with [`GET /v1/crm/customers`](/dev/endpoints/crm-customers-list) before creating, or leave the field empty. Email and phone have no uniqueness constraint and can repeat freely.
+- **No implicit deduplication.** Two `POST`s with the same name and phone create two customers. If you are syncing from an external system, put its id in `external_ids` and look the customer up by phone before creating.
