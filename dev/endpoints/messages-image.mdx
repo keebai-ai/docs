@@ -1,0 +1,119 @@
+---
+title: "POST /v1/messages/image"
+sidebarTitle: "POST messages/image"
+description: "Send an image by public URL or by a previously uploaded media_id."
+openapi: "POST /v1/messages/image"
+---
+
+Sends an image to a recipient. Supply exactly one source: a public `link`, or a `media_id` you got from [`POST /v1/media/upload`](/dev/messaging/overview).
+
+Like every free-form message, this only works inside the **24-hour window** since the recipient's last inbound message. Outside it, use [`POST /v1/messages/template`](/dev/endpoints/messages-template).
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/messages/image
+```
+
+## Required scope
+
+`messages:send`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `to` | `string` | Yes | Recipient phone number in E.164 format. |
+| `phone_number_id` | `string` | Yes | WhatsApp Business `phone_number_id` of the sending number. List yours with [`GET /v1/whatsapp/numbers`](/dev/endpoints/whatsapp-numbers). |
+| `link` | `string` | No | Public HTTPS URL of the image. Mutually exclusive with `media_id`. |
+| `media_id` | `string` | No | Id of a previously uploaded media. Mutually exclusive with `link`. |
+| `caption` | `string` | No | Text under the image. Up to 1024 characters. |
+| `meta_data` | `object` | No | Free-form metadata persisted with the message and echoed on webhooks. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/messages/image \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "+5491155555555",
+    "phone_number_id": "109876543210987",
+    "link": "https://cdn.example.com/catalog/shoe.png",
+    "caption": "El modelo que consultaste"
+  }'
+```
+
+```js JavaScript
+await fetch("https://api.keebai.com/v1/messages/image", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    to: "+5491155555555",
+    phone_number_id: "109876543210987",
+    link: "https://cdn.example.com/catalog/shoe.png",
+    caption: "El modelo que consultaste",
+  }),
+});
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/messages/image",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={
+        "to": "+5491155555555",
+        "phone_number_id": "109876543210987",
+        "link": "https://cdn.example.com/catalog/shoe.png",
+        "caption": "El modelo que consultaste",
+    },
+    timeout=10,
+)
+resp.raise_for_status()
+```
+
+</CodeGroup>
+
+## Response
+
+### 202 Accepted
+
+```json
+{
+  "message_id": "wamid.HBgLNTQ5MTE1NTU1NTU1FQIAERgSN0EyRjc4...",
+  "status": "sent",
+  "sent_at": "2026-05-02T14:31:07.221Z"
+}
+```
+
+### 400 Bad Request
+
+A malformed phone number, a `link` that is not a valid HTTPS URL, a caption over 1024 characters, or an unknown property.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `messages:send` scope.
+
+## Operational notes
+
+- **`link` must be publicly reachable from Meta's servers.** A signed URL that expires, or one behind your VPN, fails at Meta rather than at Keebai. If in doubt, upload the file and use `media_id`.
+- **Supported formats are Meta's**: JPEG and PNG, up to 5 MB. Anything else is rejected upstream.
+- **`media_id` is per sending number.** A media uploaded against one `phone_number_id` cannot be sent from another.

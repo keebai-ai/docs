@@ -136,7 +136,7 @@ if template is None:
     raise SystemExit("Template not approved yet")
 
 required_vars = set(template["variables"])
-provided = {"nombre": "Lucio", "monto": "1500"}
+provided = {"nombre": "Juan", "monto": "1500"}
 if not required_vars.issubset(provided):
     raise ValueError(f"Missing variables: {required_vars - set(provided)}")
 ```

@@ -41,6 +41,9 @@ The catalog lives in the `api_scopes` MongoDB collection. The portal pulls it vi
 | `templates:read` | templates | Read the company's approved template catalog. |
 | `templates:create` | templates | Create WhatsApp templates and submit them to Meta. |
 | `templates:update` | templates | Edit an existing template (components, category, language, status). |
+| `contacts:read` | contacts | [List](/dev/endpoints/contacts-list) and [read](/dev/endpoints/contacts-get) the messaging contacts of your company. |
+| `contacts:write` | contacts | [Create](/dev/endpoints/contacts-create) and [update](/dev/endpoints/contacts-update) contacts, including custom fields. |
+| `contacts:delete` | contacts | [Delete contacts](/dev/endpoints/contacts-delete) and their change history. Permanent. |
 | `channels:read` | channels | List channels (`/v1/channels`) and WhatsApp numbers (`/v1/whatsapp/numbers`). |
 | `channels:connect` | channels | Start and poll [WhatsApp Business connect sessions](/dev/endpoints/channels-whatsapp-connect) from the CLI or your backend. |
 | `webhooks:read` | webhooks | List [outbound webhook](/dev/webhooks/overview) subscriptions and read delivery history. |
@@ -71,10 +74,17 @@ The catalog lives in the `api_scopes` MongoDB collection. The portal pulls it vi
 | `crm:notes:read` | crm | [List](/dev/endpoints/crm-notes-list) and [read](/dev/endpoints/crm-note-get) CRM notes. |
 | `crm:notes:write` | crm | [Create](/dev/endpoints/crm-note-create) and [update](/dev/endpoints/crm-note-update) notes. The author is the token's owner. |
 | `crm:notes:delete` | crm | [Delete notes](/dev/endpoints/crm-note-delete). Permanent. |
+| `projects:read` | projects | [List the projects](/dev/endpoints/me) of your company the token can reach. |
 
 <Tip>
   The checkboxes in the **Create API Key** modal load live from the backend. A missing scope means it's flagged `is_active: false` in the database.
 </Tip>
+
+## The MCP server uses the same scopes
+
+The [MCP server](/dev/mcp/overview) does not have a scope system of its own. Each of its 52 tools requires exactly the scope its REST counterpart does — `keebai_crm_ticket_create` needs `crm:tickets:write`, `keebai_contacts_list` needs `contacts:read`, and so on. The [tool catalogue](/dev/mcp/tools) lists the mapping.
+
+One difference matters when you hand a token to an agent: **a missing scope is not a `403`**. Every tool stays visible in `tools/list` regardless of your scopes, and the call comes back as a tool error carrying `INSUFFICIENT_SCOPE`. An agent will happily try something it cannot do and discover the limit afterwards, so pick the scope set deliberately rather than relying on the agent not to reach for a tool.
 
 ## Scopes are independent from role permissions
 
@@ -164,6 +174,16 @@ Pick the smallest scope set that does the job. Splitting `messages:send` and `me
     A dialer or email tool writes call and email records onto the right ticket, and nothing else.
 
     `crm:tickets:read`, `crm:notes:write`.
+  </Card>
+  <Card title="Contact sync">
+    Your CRM or ERP keeps the contact directory in step with Keebai. Deletes stay out so a sync bug cannot erase people.
+
+    `contacts:read`, `contacts:write`.
+  </Card>
+  <Card title="AI agent over MCP">
+    An agent that answers with your knowledge base, replies on WhatsApp, and logs what it did — without being able to destroy anything.
+
+    `knowledge:query`, `contacts:read`, `messages:send`, `crm:tickets:read`, `crm:tickets:write`, `crm:notes:write`.
   </Card>
 </CardGroup>
 

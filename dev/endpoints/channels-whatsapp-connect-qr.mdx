@@ -83,7 +83,7 @@ curl -X POST https://api.keebai.com/v1/channels/whatsapp/connect \
 |---|---|---|
 | `qr` | A QR code is ready to scan. Re-emitted when the code expires and refreshes. | string (QR payload) or `{ "data": "<qr-string>", "expires_at": "<iso>" }` |
 | `connecting` | Mobile scanned the QR; WhatsApp is establishing the session. | empty object or state |
-| `connected` | Pairing complete, channel created. | `{ "channel_id": "ch_...", "phone_number": "+56...", "push_name": "Lucio" }` |
+| `connected` | Pairing complete, channel created. | `{ "channel_id": "ch_...", "phone_number": "+56...", "push_name": "Juan" }` |
 | `failed` | Pairing error (timeout, invalid code, linked-device limit, etc.). | `{ "reason": "<description>" }` |
 | `disconnected` | The device was unlinked during pairing. | `{ "reason": "<description>" }` |
 
@@ -109,7 +109,7 @@ event: connecting
 data: {}
 
 event: connected
-data: {"channel_id":"ch_01HXYZ...","phone_number":"+56987654321","push_name":"Lucio"}
+data: {"channel_id":"ch_01HXYZ...","phone_number":"+56987654321","push_name":"Juan"}
 ```
 
 ### Rendering the QR
@@ -134,7 +134,7 @@ QRCode.toCanvas(canvasEl, payload);
 keebai whatsapp connect --qr [--name "WhatsApp Soporte"]
 ```
 
-The CLI creates the session, opens the stream, draws the QR in the terminal, refreshes it automatically, and on scan prints `Channel ch_xxx connected (phone +56…, as Lucio)`.
+The CLI creates the session, opens the stream, draws the QR in the terminal, refreshes it automatically, and on scan prints `Channel ch_xxx connected (phone +56…, as Juan)`.
 
 ## Troubleshooting
 

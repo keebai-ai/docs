@@ -1,0 +1,135 @@
+---
+title: "GET /v1/contacts"
+sidebarTitle: "GET contacts"
+description: "List the messaging contacts of your company, with full-text search and channel filters."
+openapi: "GET /v1/contacts"
+---
+
+Returns a paginated list of contacts — the people on the other side of your channels. This is how you find the `_id` you need to open a [CRM ticket](/dev/endpoints/crm-ticket-create) or attach a [note](/dev/endpoints/crm-note-create).
+
+Results cover the whole **company**, not just the project your token belongs to. Merged contacts and the internal `playground` channel are never returned.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/contacts
+```
+
+## Required scope
+
+`contacts:read`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+
+## Query parameters
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `search` | `string` | No | Full-text match over first name, last name, username, phone, and email. |
+| `phone` | `string` | No | Exact phone match. |
+| `channel_id` | `string` | No | `ObjectId` of a specific channel. |
+| `channel_type` | `string` | No | One of `web`, `whatsapp`, `whatsapp_qr`, `facebook`, `messenger`, `instagram`, `tiktok`, `telegram`, `email`, `phone`. |
+| `date_from` | `string` | No | ISO 8601. Filters on the contact's last activity. |
+| `date_to` | `string` | No | ISO 8601. |
+| `limit` | `integer` | No | Page size, `1`–`200`. Defaults to 50. |
+| `offset` | `integer` | No | Records to skip. Defaults to 0. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -G https://api.keebai.com/v1/contacts \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  --data-urlencode "search=perez" \
+  --data-urlencode "channel_type=whatsapp" \
+  --data-urlencode "limit=50"
+```
+
+```js JavaScript
+const params = new URLSearchParams({
+  search: "perez",
+  channel_type: "whatsapp",
+  limit: "50",
+});
+
+const response = await fetch(`https://api.keebai.com/v1/contacts?${params}`, {
+  headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` },
+});
+const { data, total } = await response.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.get(
+    "https://api.keebai.com/v1/contacts",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    params={"search": "perez", "channel_type": "whatsapp", "limit": 50},
+    timeout=10,
+)
+resp.raise_for_status()
+contacts = resp.json()["data"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "data": [
+    {
+      "_id": "65a1f2b3c4d5e6f7a8b9c0d1",
+      "channel_type": "whatsapp",
+      "user_id": "56912345678",
+      "channel_id": "65b1c2d3e4f5a6b7c8d9e0f1",
+      "first_name": "Juan",
+      "last_name": "Pérez",
+      "phone": "+56912345678",
+      "email": "juan@example.com",
+      "custom_fields": {},
+      "tags": [],
+      "is_attended": false,
+      "first_seen_at": "2026-04-18T09:12:44.010Z",
+      "last_seen_at": "2026-05-02T14:31:07.221Z",
+      "last_user_message_at": "2026-05-02T14:31:07.221Z",
+      "created_at": "2026-04-18T09:12:44.010Z",
+      "updated_at": "2026-05-02T14:31:07.221Z"
+    }
+  ],
+  "total": 1,
+  "limit": 50,
+  "offset": 0
+}
+```
+
+### 400 Bad Request
+
+`limit` above 200, negative `offset`, a `channel_type` outside the allowed set, a malformed date, or an unknown query parameter.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `contacts:read` scope.
+
+### 502 Bad Gateway
+
+The messaging service could not answer.
+
+## Operational notes
+
+- **Results are sorted by last activity**, most recent first. There is no way to change the sort order.
+- **Merged contacts are hidden.** When two contacts are merged in the portal, the absorbed one stops appearing here. If you cached its `_id`, that id will 404 on [`GET /v1/contacts/:id`](/dev/endpoints/contacts-get).
+- **`search` uses a full-text index**, so it matches whole words rather than partial strings. `perez` matches `Pérez`; `pere` does not.
+- **`phone` is exact**, including the `+` and country code — unlike `user_id`, which on WhatsApp is the same number without the `+`.
+- To page through the full set, increment `offset` by `limit` until `offset >= total`.

@@ -5,7 +5,7 @@ description: "Send free-form text to a recipient with an open 24-hour conversati
 openapi: "POST /v1/messages/text"
 ---
 
-Sends a free-form text message to a recipient. WhatsApp only allows free-form text inside the **24-hour window** since the user's last inbound message; if the window is closed, Meta will reject the message and the broadcast ends in `FAILED`. For sends outside the window, use [`POST /v1/messages/template`](/dev/endpoints/messages-template).
+Sends a free-form text message to a recipient. WhatsApp only allows free-form text inside the **24-hour window** since the user's last inbound message; if the window is closed, Meta rejects the message and the send fails. For sends outside the window, use [`POST /v1/messages/template`](/dev/endpoints/messages-template).
 
 ## Endpoint
 
@@ -45,7 +45,7 @@ curl -X POST https://api.keebai.com/v1/messages/text \
   -d '{
     "to": "+5491155555555",
     "phone_number_id": "109876543210987",
-    "text": "Hola Lucio, ¿pudiste revisar la propuesta?"
+    "text": "Hola Juan, ¿pudiste revisar la propuesta?"
   }'
 ```
 
@@ -59,7 +59,7 @@ await fetch("https://api.keebai.com/v1/messages/text", {
   body: JSON.stringify({
     to: "+5491155555555",
     phone_number_id: "109876543210987",
-    text: "Hola Lucio, ¿pudiste revisar la propuesta?",
+    text: "Hola Juan, ¿pudiste revisar la propuesta?",
   }),
 });
 ```
@@ -73,7 +73,7 @@ requests.post(
     json={
         "to": "+5491155555555",
         "phone_number_id": "109876543210987",
-        "text": "Hola Lucio, ¿pudiste revisar la propuesta?",
+        "text": "Hola Juan, ¿pudiste revisar la propuesta?",
     },
     timeout=10,
 )
@@ -87,10 +87,9 @@ requests.post(
 
 ```json
 {
-  "broadcast_id": "65f4b5c6d7e8f9a0b1c2d3e4",
-  "status": "PENDING",
-  "total_recipients": 1,
-  "scheduled_at": null
+  "message_id": "wamid.HBgLNTQ5MTE1NTU1NTU1FQIAERgSN0EyRjc4...",
+  "status": "sent",
+  "sent_at": "2026-05-02T14:31:07.221Z"
 }
 ```
 
@@ -110,6 +109,6 @@ The token does not have the `messages:send` scope.
 
 ## Operational notes
 
-- **24-hour window**: Keebai does not reject the request if the window is closed — the send is attempted and, if Meta rejects it, the broadcast ends in `FAILED`. Check status with [`GET /v1/messages/bulk/:broadcastId`](/dev/endpoints/messages-bulk-status).
+- **24-hour window**: Keebai does not reject the request if the window is closed — the send is attempted, and a rejection surfaces as a `502` with Meta's error passed through.
 - **No special emoji handling**: WhatsApp supports full UTF-8, including emojis. Keebai performs no extra sanitization.
 - **No native Markdown formatting**: WhatsApp interprets `*text*` as bold, `_text_` as italic, and `~text~` as strikethrough. A backslash escapes these characters.

@@ -21,6 +21,10 @@
   "navbar": {
     "links": [
       {
+        "label": "Status",
+        "href": "https://status.keebai.com"
+      },
+      {
         "label": "Support",
         "href": "mailto:support@keebai.com"
       }
@@ -50,7 +54,15 @@
             "pages": [
               "dev/api-keys",
               "dev/authentication",
-              "dev/scopes"
+              "dev/scopes",
+              "dev/endpoints/me"
+            ]
+          },
+          {
+            "group": "MCP",
+            "pages": [
+              "dev/mcp/overview",
+              "dev/mcp/tools"
             ]
           },
           {
@@ -90,12 +102,41 @@
             ]
           },
           {
+            "group": "Contacts",
+            "pages": [
+              "dev/endpoints/contacts-list",
+              "dev/endpoints/contacts-get",
+              "dev/endpoints/contacts-create",
+              "dev/endpoints/contacts-update",
+              "dev/endpoints/contacts-delete"
+            ]
+          },
+          {
             "group": "WhatsApp",
             "pages": [
               "dev/endpoints/messages-template",
               "dev/endpoints/messages-text",
+              "dev/endpoints/messages-image",
+              "dev/endpoints/messages-video",
+              "dev/endpoints/messages-audio",
+              "dev/endpoints/messages-document",
+              "dev/endpoints/messages-sticker",
+              "dev/endpoints/messages-location",
+              "dev/endpoints/messages-contacts",
+              "dev/endpoints/messages-reaction",
+              "dev/endpoints/messages-mark-read",
+              "dev/endpoints/messages-raw",
               "dev/endpoints/messages-bulk",
               "dev/endpoints/messages-bulk-status"
+            ]
+          },
+          {
+            "group": "Interactive",
+            "pages": [
+              "dev/endpoints/messages-interactive-buttons",
+              "dev/endpoints/messages-interactive-list",
+              "dev/endpoints/messages-interactive-cta-url",
+              "dev/endpoints/messages-interactive-catalog"
             ]
           },
           {
@@ -268,6 +309,11 @@
     ],
     "global": {
       "anchors": [
+        {
+          "anchor": "Status",
+          "href": "https://status.keebai.com",
+          "icon": "signal"
+        },
         {
           "anchor": "Support",
           "href": "mailto:support@keebai.com",

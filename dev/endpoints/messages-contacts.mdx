@@ -1,0 +1,147 @@
+---
+title: "POST /v1/messages/contacts"
+sidebarTitle: "POST messages/contacts"
+description: "Share one or more contact cards inside a chat. Does not create contacts in Keebai."
+openapi: "POST /v1/messages/contacts"
+---
+
+Sends contact cards (vCards) to a recipient — the WhatsApp equivalent of forwarding someone's phone book entry.
+
+<Note>
+  This shares contact details **inside a conversation**. It does not create anything in Keebai. To create a contact record, use [`POST /v1/contacts`](/dev/endpoints/contacts-create).
+</Note>
+
+Only works inside the **24-hour window** since the recipient's last inbound message.
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/messages/contacts
+```
+
+## Required scope
+
+`messages:send`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `to` | `string` | Yes | Recipient phone number in E.164 format. |
+| `phone_number_id` | `string` | Yes | WhatsApp Business `phone_number_id` of the sending number. |
+| `contacts` | `array` | Yes | 1 to 20 contact cards. |
+| `meta_data` | `object` | No | Free-form metadata persisted with the message. |
+
+Each entry in `contacts`:
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `name` | `object` | Yes | `{ "formatted_name": "...", "first_name": "...", "last_name": "..." }`. `formatted_name` is mandatory. |
+| `phones` | `array` | No | `[{ "phone": "+56...", "type": "WORK", "wa_id": "56..." }]`. |
+| `emails` | `array` | No | `[{ "email": "...", "type": "WORK" }]`. |
+| `urls` | `array` | No | `[{ "url": "https://...", "type": "WORK" }]`. |
+| `org` | `object` | No | `{ "company": "...", "department": "...", "title": "..." }`. |
+| `birthday` | `string` | No | `YYYY-MM-DD`. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/messages/contacts \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "+5491155555555",
+    "phone_number_id": "109876543210987",
+    "contacts": [
+      {
+        "name": { "formatted_name": "Soporte Keebai", "first_name": "Soporte" },
+        "phones": [{ "phone": "+56912345678", "type": "WORK", "wa_id": "56912345678" }],
+        "emails": [{ "email": "support@keebai.com", "type": "WORK" }]
+      }
+    ]
+  }'
+```
+
+```js JavaScript
+await fetch("https://api.keebai.com/v1/messages/contacts", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    to: "+5491155555555",
+    phone_number_id: "109876543210987",
+    contacts: [
+      {
+        name: { formatted_name: "Soporte Keebai", first_name: "Soporte" },
+        phones: [
+          { phone: "+56912345678", type: "WORK", wa_id: "56912345678" },
+        ],
+      },
+    ],
+  }),
+});
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/messages/contacts",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={
+        "to": "+5491155555555",
+        "phone_number_id": "109876543210987",
+        "contacts": [
+            {
+                "name": {"formatted_name": "Soporte Keebai", "first_name": "Soporte"},
+                "phones": [{"phone": "+56912345678", "type": "WORK"}],
+            }
+        ],
+    },
+    timeout=10,
+)
+resp.raise_for_status()
+```
+
+</CodeGroup>
+
+## Response
+
+### 202 Accepted
+
+```json
+{
+  "message_id": "wamid.HBgLNTQ5MTE1NTU1NTU1FQIAERgSN0EyRjc4...",
+  "status": "sent",
+  "sent_at": "2026-05-02T14:31:07.221Z"
+}
+```
+
+### 400 Bad Request
+
+An empty `contacts` array, more than 20 entries, a card without `name.formatted_name`, or an unknown property.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `messages:send` scope.
+
+## Operational notes
+
+- **`wa_id` is what makes the card actionable.** Without it the recipient sees a phone number they must copy; with it, WhatsApp offers a "Message" button. It is the phone number without the `+`.
+- **`name.formatted_name` is the only mandatory field of a card** — everything else is optional decoration.
+- **All 20 cards arrive as one message**, not twenty.

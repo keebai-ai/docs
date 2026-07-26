@@ -1,0 +1,118 @@
+---
+title: "POST /v1/messages/video"
+sidebarTitle: "POST messages/video"
+description: "Send a video by public URL or by a previously uploaded media_id."
+openapi: "POST /v1/messages/video"
+---
+
+Sends a video to a recipient. Supply exactly one source: a public `link`, or a `media_id` you got from [`POST /v1/media/upload`](/dev/messaging/overview).
+
+Only works inside the **24-hour window** since the recipient's last inbound message.
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/messages/video
+```
+
+## Required scope
+
+`messages:send`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `to` | `string` | Yes | Recipient phone number in E.164 format. |
+| `phone_number_id` | `string` | Yes | WhatsApp Business `phone_number_id` of the sending number. |
+| `link` | `string` | No | Public HTTPS URL of the video. Mutually exclusive with `media_id`. |
+| `media_id` | `string` | No | Id of a previously uploaded media. Mutually exclusive with `link`. |
+| `caption` | `string` | No | Text under the video. Up to 1024 characters. |
+| `meta_data` | `object` | No | Free-form metadata persisted with the message. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/messages/video \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "+5491155555555",
+    "phone_number_id": "109876543210987",
+    "link": "https://cdn.example.com/demos/onboarding.mp4",
+    "caption": "Cómo activar tu cuenta en 2 minutos"
+  }'
+```
+
+```js JavaScript
+await fetch("https://api.keebai.com/v1/messages/video", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    to: "+5491155555555",
+    phone_number_id: "109876543210987",
+    link: "https://cdn.example.com/demos/onboarding.mp4",
+    caption: "Cómo activar tu cuenta en 2 minutos",
+  }),
+});
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/messages/video",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={
+        "to": "+5491155555555",
+        "phone_number_id": "109876543210987",
+        "link": "https://cdn.example.com/demos/onboarding.mp4",
+        "caption": "Cómo activar tu cuenta en 2 minutos",
+    },
+    timeout=10,
+)
+resp.raise_for_status()
+```
+
+</CodeGroup>
+
+## Response
+
+### 202 Accepted
+
+```json
+{
+  "message_id": "wamid.HBgLNTQ5MTE1NTU1NTU1FQIAERgSN0EyRjc4...",
+  "status": "sent",
+  "sent_at": "2026-05-02T14:31:07.221Z"
+}
+```
+
+### 400 Bad Request
+
+A malformed phone number, a `link` that is not a valid HTTPS URL, a caption over 1024 characters, or an unknown property.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `messages:send` scope.
+
+## Operational notes
+
+- **Meta accepts MP4 and 3GPP only**, up to 16 MB, with H.264 video and AAC audio. A re-encode on your side is cheaper than a failed send.
+- **Large files are worth uploading first.** Meta downloads a `link` synchronously while your send is in flight; a slow origin can time the send out. Upload once with `media_id` and reuse it across recipients.

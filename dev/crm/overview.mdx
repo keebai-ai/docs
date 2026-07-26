@@ -23,7 +23,7 @@ The CRM surface exposes the four core entities of Keebai's customer relationship
   </Card>
 </CardGroup>
 
-Customers and tickets are separate records that are not linked by a foreign key. A customer is the commercial identity; a ticket is a unit of work tied to a **chat user**, which is the contact record created when someone writes to one of your channels. If you need to correlate the two, match on phone or email, or store the customer id in the ticket's `custom_fields`.
+Customers and tickets are separate records that are not linked by a foreign key. A customer is the commercial identity; a ticket is a unit of work tied to a **contact** — the record created when someone writes to one of your channels, exposed as [`/v1/contacts`](/dev/endpoints/contacts-list) and referred to as `chat_user` throughout the CRM. If you need to correlate a customer with a ticket, match on phone or email, or store the customer id in the ticket's `custom_fields`.
 
 ## Scopes
 
@@ -68,7 +68,9 @@ Sending any of these in the request body returns `400 Bad Request` — the publi
 
 All ids are MongoDB ObjectIds: 24 lowercase hexadecimal characters, for example `65a1f2b3c4d5e6f7a8b9c0d1`. That includes the ids you pass in request bodies — `chat_user`, `assigned_to`, `stage_id`, `ticket_id`, and the entries of `tags` / `tag_ids`.
 
-There is no public endpoint yet for discovering pipelines, stages, tags, users, or chat users. Read those ids from the Keebai portal, or capture them from the payloads of the [outbound webhooks](/dev/webhooks/overview) your integration already receives.
+The `chat_user` id comes from [`GET /v1/contacts`](/dev/endpoints/contacts-list), which is the supported way to look a contact up by phone or name before creating a ticket or a note.
+
+There is still no public endpoint for discovering pipelines, stages, tags, or users. Read those ids from the Keebai portal, or capture them from the payloads of the [outbound webhooks](/dev/webhooks/overview) your integration already receives.
 
 ## Pagination
 

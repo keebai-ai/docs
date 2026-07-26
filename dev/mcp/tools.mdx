@@ -1,0 +1,125 @@
+---
+title: "Tool catalogue"
+sidebarTitle: "Tools"
+description: "All 52 MCP tools, grouped by domain, with the scope each one requires."
+---
+
+Every tool below is exposed by [`POST /v1/mcp`](/dev/mcp/overview) and delegates to the same service as its REST counterpart, so the behaviour, validation, and tenancy rules documented across these pages apply unchanged.
+
+The **Scope** column is the scope your token needs. Without it the tool still appears in `tools/list`, and the call fails with `INSUFFICIENT_SCOPE` — see [how scopes are enforced](/dev/mcp/overview#scopes-are-enforced-per-tool-not-per-connection).
+
+Tools marked 🔴 delete data permanently.
+
+## Contacts
+
+Read and write the people on the other side of your channels. See the [Contacts endpoints](/dev/endpoints/contacts-list) for the full field reference.
+
+| Tool | Scope | What it does |
+|---|---|---|
+| `keebai_contacts_list` | `contacts:read` | List contacts, most recently active first. The way to find a contact id before opening a CRM ticket. Never returns merged contacts or the `playground` channel. |
+| `keebai_contact_get` | `contacts:read` | Get one contact by id, with custom fields and last-activity timestamps. |
+| `keebai_contact_create` | `contacts:write` | Create a contact. `user_id` is the identifier inside the channel — on WhatsApp, the phone without the leading `+`. |
+| `keebai_contact_update` | `contacts:write` | Partial update. An empty string does not clear a field, and `custom_fields` is merged rather than replaced. |
+| 🔴 `keebai_contact_delete` | `contacts:delete` | Delete a contact and its change history. Conversations survive. |
+
+## CRM
+
+The full pipeline: customers, tickets, tasks, notes. See the [CRM overview](/dev/crm/overview) for how the entities relate.
+
+<Warning>
+  CRM reads are **company-wide**. Every `*_list` and `*_get` tool returns records from every project in your company, not just the one the token was minted for.
+</Warning>
+
+### Customers
+
+| Tool | Scope | What it does |
+|---|---|---|
+| `keebai_crm_customers_list` | `crm:customers:read` | List customers with free-text search and pagination. |
+| `keebai_crm_customer_get` | `crm:customers:read` | Get one customer by id. |
+| `keebai_crm_customer_create` | `crm:customers:write` | Create a customer. No implicit deduplication — calling twice creates two records. |
+| `keebai_crm_customer_update` | `crm:customers:write` | Partial update. `tags` replaces the whole tag list. |
+| 🔴 `keebai_crm_customer_delete` | `crm:customers:delete` | Delete a customer. |
+
+### Tickets
+
+| Tool | Scope | What it does |
+|---|---|---|
+| `keebai_crm_tickets_list` | `crm:tickets:read` | List tickets filtered by pipeline, stage, tag, contact, assignee, category, channel, or date. |
+| `keebai_crm_ticket_get` | `crm:tickets:read` | Get one ticket by id. |
+| `keebai_crm_ticket_create` | `crm:tickets:write` | Create a ticket for an existing contact. `chat_user` is required — find it with `keebai_contacts_list`. |
+| `keebai_crm_ticket_update` | `crm:tickets:write` | Update closing state, resolution, priority, amount, tags, and conversation summary. |
+| `keebai_crm_ticket_move_stage` | `crm:tickets:write` | Move a ticket between pipeline stages. Reports whether the destination needs a human and what comes next. |
+| 🔴 `keebai_crm_ticket_delete` | `crm:tickets:delete` | Delete a ticket. |
+
+### Tasks
+
+| Tool | Scope | What it does |
+|---|---|---|
+| `keebai_crm_tasks_list` | `crm:tasks:read` | List tasks, optionally filtered by status. |
+| `keebai_crm_task_get` | `crm:tasks:read` | Get one task by id. |
+| `keebai_crm_task_create` | `crm:tasks:write` | Create a task. The creator is the token's owner. |
+| `keebai_crm_task_update` | `crm:tasks:write` | Update title, assignee, status, priority, due date, or description. |
+| 🔴 `keebai_crm_task_delete` | `crm:tasks:delete` | Delete a task. |
+
+### Notes
+
+| Tool | Scope | What it does |
+|---|---|---|
+| `keebai_crm_notes_list` | `crm:notes:read` | List notes, optionally filtered by contact, ticket, or type. |
+| `keebai_crm_note_get` | `crm:notes:read` | Get one note by id. |
+| `keebai_crm_note_create` | `crm:notes:write` | Create a note. It must attach to a contact or a ticket; neither one fails. |
+| `keebai_crm_note_update` | `crm:notes:write` | Update the body or the type. What it is attached to cannot change. |
+| 🔴 `keebai_crm_note_delete` | `crm:notes:delete` | Delete a note. |
+
+## Knowledge
+
+Retrieval and authoring against the tenant knowledge base. See the [Knowledge overview](/dev/knowledge/overview).
+
+| Tool | Scope | What it does |
+|---|---|---|
+| `keebai_knowledge_search` | `knowledge:query` | Full-text, vector, or hybrid search. Returns `node_id`, title, snippet, and score. |
+| `keebai_knowledge_tree` | `knowledge:read` | The full folder and document tree. Use it to discover `node_id`s. |
+| `keebai_knowledge_folder_create` | `knowledge:write` | Create a folder. |
+| `keebai_knowledge_document_create` | `knowledge:write` | Create a document from Markdown. Triggers a reindex. |
+| 🔴 `keebai_knowledge_node_delete` | `knowledge:delete` | Delete a node. Deleting a folder takes its contents with it. |
+| `keebai_knowledge_assign` | `knowledge:assign` | Assign nodes to every worker of an assistant. |
+
+## Messaging
+
+Everything under [`/v1/messages`](/dev/messaging/overview). Free-form sends only work inside the 24-hour window; outside it, only `keebai_send_template` gets through.
+
+| Tool | Scope | What it does |
+|---|---|---|
+| `keebai_send_text` | `messages:send` | Free-form text. |
+| `keebai_send_template` | `messages:send` | A Meta-approved template. The only way out of the 24-hour window. |
+| `keebai_send_image` | `messages:send` | Image by link or `media_id`. |
+| `keebai_send_video` | `messages:send` | Video by link or `media_id`. |
+| `keebai_send_audio` | `messages:send` | Audio file, or a voice note with `voice: true`. |
+| `keebai_send_document` | `messages:send` | PDF, DOCX, and the like. |
+| `keebai_send_sticker` | `messages:send` | WebP sticker. |
+| `keebai_send_location` | `messages:send` | A map pin. |
+| `keebai_send_contacts` | `messages:send` | Share contact cards in a chat. Does **not** create contacts — that is `keebai_contact_create`. |
+| `keebai_send_reaction` | `messages:send` | React with an emoji; an empty emoji clears it. |
+| `keebai_mark_read` | `messages:send` | Mark an inbound message read, optionally with the typing indicator. |
+| `keebai_send_interactive_buttons` | `messages:send` | Up to 3 quick reply buttons. |
+| `keebai_send_interactive_list` | `messages:send` | A tappable menu, up to 10 sections. |
+| `keebai_send_interactive_cta_url` | `messages:send` | One button that opens a URL. |
+| `keebai_send_interactive_catalog` | `messages:send` | Opens your Meta product catalog. |
+| `keebai_send_raw` | `messages:send` | Escape hatch: an unvalidated Meta Graph API body. |
+| `keebai_send_bulk` | `messages:bulk` | Broadcast a template to up to 5000 recipients. Costs money at Meta. |
+| `keebai_bulk_status` | `messages:bulk` | Progress of a broadcast: sent, failed, pending. |
+
+## Media
+
+| Tool | Scope | What it does |
+|---|---|---|
+| `keebai_media_get` | `messages:send` | Metadata of a WhatsApp media object: mime type, size, sha256, temporary download URL. |
+| 🔴 `keebai_media_delete` | `messages:send` | Delete an uploaded media. Messages already sent with it are unaffected. |
+
+<Note>
+  Uploading and downloading the binary itself is REST-only — `POST /v1/media/upload` is multipart and `GET /v1/media/{id}/download` returns raw bytes, and neither fits a JSON tool call.
+</Note>
+
+## Not exposed as tools
+
+Scheduling, templates, channels, webhooks, tenants, and setup links have no MCP tools yet. Use the [REST API](/dev/overview) for those.

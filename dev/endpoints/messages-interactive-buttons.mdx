@@ -1,0 +1,131 @@
+---
+title: "POST /v1/messages/interactive/buttons"
+sidebarTitle: "POST interactive/buttons"
+description: "Send up to 3 quick reply buttons. The tapped button id comes back on the inbound webhook."
+openapi: "POST /v1/messages/interactive/buttons"
+---
+
+Sends a message with up to three tappable reply buttons. When the recipient taps one, your [inbound webhook](/dev/webhooks/events) receives the `id` you assigned — no free-text parsing needed.
+
+Only works inside the **24-hour window** since the recipient's last inbound message.
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/messages/interactive/buttons
+```
+
+## Required scope
+
+`messages:send`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `to` | `string` | Yes | Recipient phone number in E.164 format. |
+| `phone_number_id` | `string` | Yes | WhatsApp Business `phone_number_id` of the sending number. |
+| `body_text` | `string` | Yes | Message body. Up to 1024 characters. |
+| `buttons` | `array` | Yes | 1 to 3 objects: `{ "id": "...", "title": "..." }`. `id` up to 256 characters, `title` up to 20. |
+| `header` | `object` | No | `{ "type": "text", "text": "..." }`. |
+| `footer_text` | `string` | No | Small print under the buttons. Up to 60 characters. |
+| `meta_data` | `object` | No | Free-form metadata persisted with the message. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/messages/interactive/buttons \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "+5491155555555",
+    "phone_number_id": "109876543210987",
+    "header": { "type": "text", "text": "Tu pedido #1234" },
+    "body_text": "¿Confirmás la entrega para mañana entre 9 y 13?",
+    "buttons": [
+      { "id": "confirm_delivery", "title": "Confirmar" },
+      { "id": "reschedule", "title": "Reprogramar" }
+    ],
+    "footer_text": "Respondé antes de las 20:00"
+  }'
+```
+
+```js JavaScript
+await fetch("https://api.keebai.com/v1/messages/interactive/buttons", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    to: "+5491155555555",
+    phone_number_id: "109876543210987",
+    body_text: "¿Confirmás la entrega para mañana entre 9 y 13?",
+    buttons: [
+      { id: "confirm_delivery", title: "Confirmar" },
+      { id: "reschedule", title: "Reprogramar" },
+    ],
+  }),
+});
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/messages/interactive/buttons",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={
+        "to": "+5491155555555",
+        "phone_number_id": "109876543210987",
+        "body_text": "¿Confirmás la entrega para mañana entre 9 y 13?",
+        "buttons": [
+            {"id": "confirm_delivery", "title": "Confirmar"},
+            {"id": "reschedule", "title": "Reprogramar"},
+        ],
+    },
+    timeout=10,
+)
+resp.raise_for_status()
+```
+
+</CodeGroup>
+
+## Response
+
+### 202 Accepted
+
+```json
+{
+  "message_id": "wamid.HBgLNTQ5MTE1NTU1NTU1FQIAERgSN0EyRjc4...",
+  "status": "sent",
+  "sent_at": "2026-05-02T14:31:07.221Z"
+}
+```
+
+### 400 Bad Request
+
+An empty `buttons` array, more than 3 buttons, a `title` over 20 characters, a `body_text` over 1024, or an unknown property.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `messages:send` scope.
+
+## Operational notes
+
+- **20 characters is a hard ceiling on `title`, and it is short.** Meta truncates nothing — it rejects. Write labels as verbs: `Confirmar`, not `Confirmar la entrega`.
+- **Button `id`s must be unique within the message**, and they are what comes back on the webhook. Encode routing information in them (`confirm_delivery:1234`) rather than matching on the title, which is user-visible and may be translated.
+- **Need more than 3 options?** Use [`interactive/list`](/dev/endpoints/messages-interactive-list), which takes up to 100 rows.

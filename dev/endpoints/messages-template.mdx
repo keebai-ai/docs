@@ -51,7 +51,7 @@ curl -X POST https://api.keebai.com/v1/messages/template \
     "template_name": "welcome_v2",
     "language": "es",
     "variables": {
-      "nombre": "Lucio",
+      "nombre": "Juan",
       "monto": "1500"
     },
     "meta_data": {
@@ -72,7 +72,7 @@ const response = await fetch("https://api.keebai.com/v1/messages/template", {
     phone_number_id: "109876543210987",
     template_name: "welcome_v2",
     language: "es",
-    variables: { nombre: "Lucio", monto: "1500" },
+    variables: { nombre: "Juan", monto: "1500" },
   }),
 });
 const { broadcast_id } = await response.json();
@@ -89,7 +89,7 @@ resp = requests.post(
         "phone_number_id": "109876543210987",
         "template_name": "welcome_v2",
         "language": "es",
-        "variables": {"nombre": "Lucio", "monto": "1500"},
+        "variables": {"nombre": "Juan", "monto": "1500"},
     },
     timeout=10,
 )
@@ -103,23 +103,25 @@ print(resp.json())
 
 ### 202 Accepted
 
-The send was accepted and queued. Actual delivery to WhatsApp happens asynchronously.
+The message was handed to WhatsApp. Delivery to the recipient's device happens asynchronously and is reported through [webhooks](/dev/webhooks/events).
 
 ```json
 {
-  "broadcast_id": "65f4b5c6d7e8f9a0b1c2d3e4",
-  "status": "PENDING",
-  "total_recipients": 1,
-  "scheduled_at": null
+  "message_id": "wamid.HBgLNTQ5MTE1NTU1NTU1FQIAERgSN0EyRjc4...",
+  "status": "sent",
+  "sent_at": "2026-05-02T14:31:07.221Z"
 }
 ```
 
 | Field | Type | Description |
 |---|---|---|
-| `broadcast_id` | `string` | Id of the created broadcast. Use it to check status via `GET /v1/messages/bulk/:broadcastId`. |
-| `status` | `string` | Initial broadcast status: `PENDING`, `IN_PROGRESS`, `COMPLETED`, `FAILED`. |
-| `total_recipients` | `number` | Always `1` for this endpoint. |
-| `scheduled_at` | `string \| null` | ISO 8601 schedule date if applicable, `null` for immediate delivery. |
+| `message_id` | `string` | Meta `message_id` (`wamid.*`). Correlate delivery and read webhooks with it. |
+| `status` | `string` | `sent` when Meta accepted the message. |
+| `sent_at` | `string` | ISO 8601 timestamp of the dispatch. |
+
+<Note>
+  Single sends return a `message_id`, not a `broadcast_id`. Only [`POST /v1/messages/bulk`](/dev/endpoints/messages-bulk) creates a broadcast you can poll.
+</Note>
 
 ### 400 Bad Request
 

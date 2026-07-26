@@ -1,0 +1,136 @@
+---
+title: "POST /v1/messages/raw"
+sidebarTitle: "POST messages/raw"
+description: "Escape hatch: forward an unmodified Meta Graph API body. Use only when no typed endpoint fits."
+openapi: "POST /v1/messages/raw"
+---
+
+Forwards `body` as-is to Meta's `/{phone_number_id}/messages`. Keebai adds the access token and the routing, and validates nothing inside `body`.
+
+<Warning>
+  This is the escape hatch, not a shortcut. Every other endpoint on this page validates your payload, maps errors, and stays stable across Meta API versions. `raw` does none of that: if Meta changes its schema, your integration breaks with no warning from us.
+</Warning>
+
+Reach for it only when Meta ships a message type Keebai has not exposed yet — and tell us, so we can add a typed endpoint.
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/messages/raw
+```
+
+## Required scope
+
+`messages:send`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `phone_number_id` | `string` | Yes | WhatsApp Business `phone_number_id` of the sending number. |
+| `body` | `object` | Yes | Raw Meta Graph API messages body. Sent unmodified. |
+| `meta_data` | `object` | No | Free-form metadata persisted with the message. Not forwarded to Meta. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/messages/raw \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone_number_id": "109876543210987",
+    "body": {
+      "messaging_product": "whatsapp",
+      "recipient_type": "individual",
+      "to": "5491155555555",
+      "type": "text",
+      "text": { "preview_url": false, "body": "Enviado vía raw" }
+    }
+  }'
+```
+
+```js JavaScript
+await fetch("https://api.keebai.com/v1/messages/raw", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    phone_number_id: "109876543210987",
+    body: {
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: "5491155555555",
+      type: "text",
+      text: { preview_url: false, body: "Enviado vía raw" },
+    },
+  }),
+});
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/messages/raw",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={
+        "phone_number_id": "109876543210987",
+        "body": {
+            "messaging_product": "whatsapp",
+            "recipient_type": "individual",
+            "to": "5491155555555",
+            "type": "text",
+            "text": {"preview_url": False, "body": "Enviado vía raw"},
+        },
+    },
+    timeout=10,
+)
+resp.raise_for_status()
+```
+
+</CodeGroup>
+
+## Response
+
+### 202 Accepted
+
+```json
+{
+  "message_id": "wamid.HBgLNTQ5MTE1NTU1NTU1FQIAERgSN0EyRjc4...",
+  "status": "sent",
+  "sent_at": "2026-05-02T14:31:07.221Z"
+}
+```
+
+### 400 Bad Request
+
+`body` missing or not an object, or an unknown top-level property. **Nothing inside `body` is validated** — a malformed Meta payload surfaces as a `502` instead.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `messages:send` scope.
+
+### 502 Bad Gateway
+
+Meta rejected the payload. The upstream error message is passed through, so read it carefully — it is your only debugging signal here.
+
+## Operational notes
+
+- **`to` inside `body` has no `+`.** Meta's raw format wants `5491155555555`; every typed Keebai endpoint wants `+5491155555555`. Mixing the two conventions is the most common mistake with this endpoint.
+- **`messaging_product: "whatsapp"` is mandatory** in the raw body. Meta rejects the call without it.
+- **You still get Keebai's persistence**: the message is stored against the conversation and reported through webhooks like any other, so `meta_data` still works for correlation.

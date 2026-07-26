@@ -1,0 +1,115 @@
+---
+title: "POST /v1/messages/mark-read"
+sidebarTitle: "POST messages/mark-read"
+description: "Mark an inbound message as read and optionally show the typing indicator."
+openapi: "POST /v1/messages/mark-read"
+---
+
+Turns the recipient's single grey ticks into blue ones and, optionally, shows them a typing indicator while your integration composes a reply.
+
+This is the one endpoint in the messaging surface that does not send anything, so it does not consume the 24-hour window and does not create a message.
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/messages/mark-read
+```
+
+## Required scope
+
+`messages:send`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `phone_number_id` | `string` | Yes | WhatsApp Business `phone_number_id` that received the message. |
+| `message_id` | `string` | Yes | Meta `message_id` (`wamid.*`) to mark as read. |
+| `typing_indicator` | `string` | No | `text` shows the typing bubble; `off` hides it. |
+
+There is no `to` — the message id already identifies the conversation.
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/messages/mark-read \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone_number_id": "109876543210987",
+    "message_id": "wamid.HBgLNTQ5MTE1NTU1NTU1FQIAERgSN0EyRjc4",
+    "typing_indicator": "text"
+  }'
+```
+
+```js JavaScript
+await fetch("https://api.keebai.com/v1/messages/mark-read", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    phone_number_id: "109876543210987",
+    message_id: inboundMessageId,
+    typing_indicator: "text",
+  }),
+});
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/messages/mark-read",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={
+        "phone_number_id": "109876543210987",
+        "message_id": inbound_message_id,
+        "typing_indicator": "text",
+    },
+    timeout=10,
+)
+resp.raise_for_status()
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "success": true
+}
+```
+
+Note this returns `200`, not the `202` the send endpoints use — nothing is queued.
+
+### 400 Bad Request
+
+A missing `message_id`, a `typing_indicator` other than `text` or `off`, or an unknown property.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `messages:send` scope.
+
+## Operational notes
+
+- **The typing indicator lasts about 25 seconds** or until you send a message, whichever comes first. Meta gives no way to extend it, so calling this immediately before a slow LLM round trip is the intended pattern.
+- **Marking as read is not reversible.** There is no way to go back to grey ticks.
+- **Read receipts respect the recipient's privacy settings.** If they have read receipts disabled, the call succeeds and nothing visible changes on their side.

@@ -1,0 +1,155 @@
+---
+title: "MCP server"
+sidebarTitle: "Overview"
+description: "Connect an AI agent to Keebai over the Model Context Protocol — same token, same scopes, 52 tools."
+---
+
+Keebai exposes a **Model Context Protocol** server so an AI agent can use your account directly: send WhatsApp messages, search your knowledge base, read and write CRM records, manage contacts. It is the same API described in the rest of these docs, presented as tools an LLM can call.
+
+Authentication is the same [Personal Access Token](/dev/api-keys) you use for REST, and each tool checks the same [scope](/dev/scopes) as its REST counterpart. There is nothing extra to provision.
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/mcp
+```
+
+Transport is **Streamable HTTP**, stateless — every request carries its own auth and no session is kept between calls. `GET` and `DELETE` on this path return `405`.
+
+## Connect a client
+
+<CodeGroup>
+
+```json HTTP clients
+{
+  "mcpServers": {
+    "keebai": {
+      "url": "https://api.keebai.com/v1/mcp",
+      "headers": {
+        "Authorization": "Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      }
+    }
+  }
+}
+```
+
+```json Claude Desktop
+{
+  "mcpServers": {
+    "keebai": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://api.keebai.com/v1/mcp",
+        "--header",
+        "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      ]
+    }
+  }
+}
+```
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/mcp \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+```
+
+</CodeGroup>
+
+<Note>
+  The `Accept` header must list **both** `application/json` and `text/event-stream`. Streamable HTTP negotiates between them per response, and a client that offers only one gets a protocol error.
+</Note>
+
+The fastest way to get a working token is the **Servidor MCP** page in the portal: it opens the create-key modal with every scope the server uses already ticked. You can untick the ones you do not want — see [Least privilege](#least-privilege) below.
+
+## Scopes are enforced per tool, not per connection
+
+This is the one behaviour that surprises people:
+
+<Steps>
+  <Step title="Every tool is always listed">
+    `tools/list` returns all 52 tools regardless of what your token can do. The catalogue is not filtered by scope.
+  </Step>
+  <Step title="The check happens on call">
+    `tools/call` verifies the scope for that specific tool.
+  </Step>
+  <Step title="A missing scope is a tool error, not an HTTP error">
+    You get `200 OK` with a tool result carrying `isError: true`. The agent sees the failure and can explain it; your transport does not break.
+  </Step>
+</Steps>
+
+```json
+{
+  "isError": true,
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"code\":\"INSUFFICIENT_SCOPE\",\"required\":[\"crm:customers:delete\"]}"
+    }
+  ]
+}
+```
+
+The practical consequence: **an agent may attempt a tool it is not allowed to use** and only find out afterwards. Mint the token with the scopes you actually want it to have, and treat the ones you leave out as a hard boundary rather than a hint.
+
+## Least privilege
+
+The whole scope catalogue is on the [Scopes](/dev/scopes) page. Some useful shapes for an agent:
+
+<CardGroup cols={2}>
+  <Card title="Read-only assistant">
+    Answers questions about your data, changes nothing.
+
+    `knowledge:read`, `knowledge:query`, `contacts:read`, `crm:customers:read`, `crm:tickets:read`, `crm:tasks:read`, `crm:notes:read`.
+  </Card>
+  <Card title="Support agent">
+    Reads context, replies on WhatsApp, and logs what it did.
+
+    `knowledge:query`, `contacts:read`, `messages:send`, `crm:tickets:read`, `crm:tickets:write`, `crm:notes:write`.
+  </Card>
+  <Card title="CRM operator, no deletes">
+    Full read/write across the pipeline with destruction left out.
+
+    All `crm:*:read` and `crm:*:write`, `contacts:read`, `contacts:write`.
+  </Card>
+  <Card title="Knowledge maintainer">
+    Keeps the knowledge base in step with an external source.
+
+    `knowledge:read`, `knowledge:write`, `knowledge:delete`, `knowledge:assign`.
+  </Card>
+</CardGroup>
+
+<Warning>
+  **Nine of the 52 tools delete things permanently**, and CRM and contact reads span your whole company, not just one project. Think about that before handing an agent a token with `*:delete` scopes — the [tool catalogue](/dev/mcp/tools) marks every destructive tool.
+</Warning>
+
+## What is not exposed
+
+| Not available | Why |
+|---|---|
+| `POST /v1/media/upload` | Multipart upload of up to 100 MB does not fit a JSON tool call. |
+| `GET /v1/media/{id}/download` | Returns raw binary. |
+| Scheduling, templates, channels, webhooks, tenants | Not exposed as tools yet. Use the [REST API](/dev/overview). |
+
+Everything else in the REST surface has a matching tool.
+
+## Operational notes
+
+- **The MCP endpoint is not rate limited.** The [300/minute and 1000/day caps](/dev/rate-limits) apply to the REST API; tool calls do not consume them. An agent in a loop can generate a lot of upstream traffic, so put your own ceiling on it.
+- **Every tool call is audited** with the tool name, the token, the outcome, and the latency, the same way REST calls are.
+- **Tools are stateless.** Nothing carries over between calls — every tool takes the ids it needs as arguments.
+- **Errors arrive as text, not as structured problems.** A failed call returns `isError: true` with the message flattened into a string; the HTTP status codes documented for REST do not reach the agent.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Tool catalogue" icon="wrench" href="/dev/mcp/tools">
+    All 52 tools with their required scope.
+  </Card>
+  <Card title="Create a token" icon="key" href="/dev/api-keys">
+    Mint a PAT and pick its scopes.
+  </Card>
+</CardGroup>

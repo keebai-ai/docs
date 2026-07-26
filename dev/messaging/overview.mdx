@@ -4,11 +4,14 @@ sidebarTitle: "Overview"
 description: "Send WhatsApp messages, manage templates, and connect channels — the sending identity, the 24-hour window, and how broadcasts work."
 ---
 
-The messaging surface is how you send WhatsApp from your own backend: one-off messages, Meta-approved templates, and bulk broadcasts, plus the templates and channels that back them.
+The messaging surface is how you send WhatsApp from your own backend: one-off messages, Meta-approved templates, and bulk broadcasts, plus the contacts, templates, and channels that back them.
 
 ## What you can do
 
 <CardGroup cols={2}>
+  <Card title="Manage contacts" icon="address-book" href="/dev/endpoints/contacts-list">
+    List, read, create, update, and delete the people on the other side of your channels.
+  </Card>
   <Card title="Send messages" icon="paper-plane" href="/dev/endpoints/messages-text">
     Free-form text and approved templates to a single recipient, plus media, location, contacts, reactions, and interactive messages.
   </Card>
@@ -21,13 +24,19 @@ The messaging surface is how you send WhatsApp from your own backend: one-off me
   <Card title="Connect channels" icon="plug" href="/dev/endpoints/channels-list">
     List connected channels and onboard a new WhatsApp Business number without the portal.
   </Card>
+  <Card title="Drive it from an agent" icon="robot" href="/dev/mcp/overview">
+    Every send and every contact operation is also an MCP tool.
+  </Card>
 </CardGroup>
 
 ## Scopes
 
 | Scope | Grants |
 |---|---|
-| `messages:send` | Send a single message — text, template, media, interactive. |
+| `contacts:read` | [List](/dev/endpoints/contacts-list) and [read](/dev/endpoints/contacts-get) contacts. |
+| `contacts:write` | [Create](/dev/endpoints/contacts-create) and [update](/dev/endpoints/contacts-update) contacts, including custom fields. |
+| `contacts:delete` | [Delete contacts](/dev/endpoints/contacts-delete). Permanent. |
+| `messages:send` | Send a single message — text, template, media, interactive. Also covers the whole `/v1/media` surface: upload, metadata, download, delete. |
 | `messages:bulk` | [Launch broadcasts](/dev/endpoints/messages-bulk) and [read their status](/dev/endpoints/messages-bulk-status). |
 | `templates:read` | [Read the approved template catalog](/dev/endpoints/templates-list). |
 | `templates:create` | [Create templates](/dev/endpoints/templates-create) and submit them to Meta. |
@@ -36,6 +45,20 @@ The messaging surface is how you send WhatsApp from your own backend: one-off me
 | `channels:connect` | [Start and poll a connect session](/dev/endpoints/channels-whatsapp-connect). |
 
 `messages:send` and `messages:bulk` are deliberately separate: bulk is the higher-risk one, since it costs money at Meta and can damage sender reputation. Keep it in a key the marketing tool owns, not the one your transactional backend uses.
+
+## Contacts are the identity layer
+
+A **contact** is a person on one of your channels. Keebai creates one automatically the first time someone writes to you, and the [Contacts endpoints](/dev/endpoints/contacts-list) let you read and manage them from your own backend.
+
+Two identifiers matter, and confusing them is the most common integration bug:
+
+| Field | What it is | WhatsApp example |
+|---|---|---|
+| `_id` | Keebai `ObjectId` of the contact. What CRM tickets and notes reference as `chat_user`. | `65a1f2b3c4d5e6f7a8b9c0d1` |
+| `user_id` | Identifier **inside the channel**. On WhatsApp, the phone without the `+`. | `56912345678` |
+| `phone` | Display phone in E.164, with the `+`. | `+56912345678` |
+
+Contacts are also how the messaging and [CRM](/dev/crm/overview) surfaces meet: a CRM ticket hangs off a contact's `_id`, not off a CRM customer.
 
 ## The sending identity is `phone_number_id`
 
@@ -53,23 +76,35 @@ WhatsApp only allows **free-form** messages inside 24 hours of the recipient's l
 | The window is closed, or they never wrote | A [Meta-approved template](/dev/endpoints/messages-template). |
 
 <Warning>
-  Keebai does **not** reject a free-form send when the window is closed. The request is accepted, forwarded to Meta, and the resulting broadcast ends in `FAILED`. A `202` means "queued", never "delivered" — check the outcome with [`GET /v1/messages/bulk/:broadcastId`](/dev/endpoints/messages-bulk-status) or an [outbound webhook](/dev/webhooks/overview).
+  Keebai does **not** reject a free-form send when the window is closed. The request is forwarded to Meta, and the rejection comes back as a `502` with Meta's error passed through. A `202` means Meta accepted the message, never that it reached the device — for that, watch an [outbound webhook](/dev/webhooks/overview).
 </Warning>
 
-## Every send is a broadcast
+## Single sends and broadcasts return different things
 
-Single sends and bulk sends share one machine. A single send creates a broadcast with exactly one recipient, which is why both return the same envelope:
+The two paths are not the same shape, and mixing them up is a common mistake.
 
-```json
+<CodeGroup>
+
+```json Single send — 202
+{
+  "message_id": "wamid.HBgLNTQ5MTE1NTU1NTU1FQIAERgSN0EyRjc4...",
+  "status": "sent",
+  "sent_at": "2026-05-02T14:31:07.221Z"
+}
+```
+
+```json Bulk send — 202
 {
   "broadcast_id": "65f4b5c6d7e8f9a0b1c2d3e4",
   "status": "PENDING",
-  "total_recipients": 1,
+  "total_recipients": 5000,
   "scheduled_at": null
 }
 ```
 
-Keep the `broadcast_id`. It is the only handle you have for asking what happened afterwards.
+</CodeGroup>
+
+A single send gives you a Meta `message_id` — keep it to correlate the delivery and read webhooks. Only [`POST /v1/messages/bulk`](/dev/endpoints/messages-bulk) returns a `broadcast_id`, and it is the only thing [`GET /v1/messages/bulk/:broadcastId`](/dev/endpoints/messages-bulk-status) accepts.
 
 This also makes the cost model clear: one broadcast to 5,000 recipients is **one** request against your [daily quota](/dev/rate-limits); a loop over 5,000 single sends is 5,000.
 

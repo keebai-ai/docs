@@ -1,0 +1,123 @@
+---
+title: "POST /v1/messages/document"
+sidebarTitle: "POST messages/document"
+description: "Send a PDF, spreadsheet, or any other document by URL or media_id."
+openapi: "POST /v1/messages/document"
+---
+
+Sends a document to a recipient. Supply exactly one source: a public `link`, or a `media_id`.
+
+Only works inside the **24-hour window** since the recipient's last inbound message.
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/messages/document
+```
+
+## Required scope
+
+`messages:send`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `to` | `string` | Yes | Recipient phone number in E.164 format. |
+| `phone_number_id` | `string` | Yes | WhatsApp Business `phone_number_id` of the sending number. |
+| `link` | `string` | No | Public HTTPS URL of the document. Mutually exclusive with `media_id`. |
+| `media_id` | `string` | No | Id of a previously uploaded media. Mutually exclusive with `link`. |
+| `filename` | `string` | No | Name the recipient sees and saves. Up to 240 characters. |
+| `caption` | `string` | No | Text under the document. Up to 1024 characters. |
+| `meta_data` | `object` | No | Free-form metadata persisted with the message. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/messages/document \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "+5491155555555",
+    "phone_number_id": "109876543210987",
+    "link": "https://cdn.example.com/invoices/2026-05.pdf",
+    "filename": "Factura mayo 2026.pdf",
+    "caption": "Adjuntamos tu factura del mes"
+  }'
+```
+
+```js JavaScript
+await fetch("https://api.keebai.com/v1/messages/document", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    to: "+5491155555555",
+    phone_number_id: "109876543210987",
+    link: "https://cdn.example.com/invoices/2026-05.pdf",
+    filename: "Factura mayo 2026.pdf",
+    caption: "Adjuntamos tu factura del mes",
+  }),
+});
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/messages/document",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={
+        "to": "+5491155555555",
+        "phone_number_id": "109876543210987",
+        "link": "https://cdn.example.com/invoices/2026-05.pdf",
+        "filename": "Factura mayo 2026.pdf",
+        "caption": "Adjuntamos tu factura del mes",
+    },
+    timeout=10,
+)
+resp.raise_for_status()
+```
+
+</CodeGroup>
+
+## Response
+
+### 202 Accepted
+
+```json
+{
+  "message_id": "wamid.HBgLNTQ5MTE1NTU1NTU1FQIAERgSN0EyRjc4...",
+  "status": "sent",
+  "sent_at": "2026-05-02T14:31:07.221Z"
+}
+```
+
+### 400 Bad Request
+
+A malformed phone number, a `link` that is not a valid HTTPS URL, a caption over 1024 characters, or an unknown property.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `messages:send` scope.
+
+## Operational notes
+
+- **Always send `filename`.** Without it WhatsApp shows the last path segment of the URL, which is usually an opaque hash. Include the extension — the recipient's phone picks the app to open it by that.
+- **Documents cap at 100 MB** at Meta, the most generous of any media type.
+- **A `caption` and a `filename` are different things**: the caption is the message text, the filename is what the file is called once saved.

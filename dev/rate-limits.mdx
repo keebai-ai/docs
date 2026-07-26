@@ -37,6 +37,10 @@ Content-Type: application/json
 
 The message names the window you hit and when it frees up, so you can tell a one-minute burst apart from a spent daily budget.
 
+<Note>
+  **The [MCP server](/dev/mcp/overview) is outside these limits.** Tool calls on `POST /v1/mcp` are not counted against the per-minute or per-day quota. That is convenient and also a footgun: an agent stuck in a loop generates real upstream traffic with nothing stopping it, so cap it on your side.
+</Note>
+
 ### Read the headers instead of waiting for the 429
 
 Every response carries the state of each window, so you can self-throttle before you get blocked:
@@ -160,4 +164,4 @@ Branch on `code`, never on `message` — the wording can change, the slug will n
 - **Monitor** latency, error rate, and status codes. An alert on error rate `>5%` catches issues before users do.
 - **Rotate tokens** every 90 days, incident or not. Mint, deploy, validate, revoke the old.
 - **Audit *Last used*** in the tokens table periodically. Tokens unused for months are revoke candidates.
-- **Suspect us?** Email [support@keebai.com](mailto:support@keebai.com).
+- **Suspect us?** Check **[status.keebai.com](https://status.keebai.com)** first — it reports availability per component and any open incident, and it runs outside our cluster so it stays up when the API does not. If nothing is reported there, email [support@keebai.com](mailto:support@keebai.com).

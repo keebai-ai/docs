@@ -68,7 +68,7 @@ curl -X POST https://api.keebai.com/v1/templates \
         "text": "Hola {{nombre}}, tu pedido por {{monto}} está confirmado.",
         "example": {
           "body_text_named_params": [
-            { "param_name": "nombre", "example": "Lucio" },
+            { "param_name": "nombre", "example": "Juan" },
             { "param_name": "monto", "example": "$15.000" }
           ]
         }
@@ -96,7 +96,7 @@ const resp = await fetch("https://api.keebai.com/v1/templates", {
         text: "Hola {{nombre}}, tu pedido por {{monto}} está confirmado.",
         example: {
           body_text_named_params: [
-            { param_name: "nombre", example: "Lucio" },
+            { param_name: "nombre", example: "Juan" },
             { param_name: "monto", example: "$15.000" },
           ],
         },
@@ -128,7 +128,7 @@ resp = requests.post(
                 "text": "Hola {{nombre}}, tu pedido por {{monto}} está confirmado.",
                 "example": {
                     "body_text_named_params": [
-                        {"param_name": "nombre", "example": "Lucio"},
+                        {"param_name": "nombre", "example": "Juan"},
                         {"param_name": "monto", "example": "$15.000"},
                     ]
                 },

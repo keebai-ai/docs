@@ -63,7 +63,7 @@ curl -X PATCH https://api.keebai.com/v1/templates/65f3a1b2c3d4e5f6a7b8c9d2 \
         "text": "Hola {{nombre}}, tu pedido por {{monto}} fue actualizado.",
         "example": {
           "body_text_named_params": [
-            { "param_name": "nombre", "example": "Lucio" },
+            { "param_name": "nombre", "example": "Juan" },
             { "param_name": "monto", "example": "$15.000" }
           ]
         }
@@ -89,7 +89,7 @@ const resp = await fetch(
           text: "Hola {{nombre}}, tu pedido por {{monto}} fue actualizado.",
           example: {
             body_text_named_params: [
-              { param_name: "nombre", example: "Lucio" },
+              { param_name: "nombre", example: "Juan" },
               { param_name: "monto", example: "$15.000" },
             ],
           },
@@ -118,7 +118,7 @@ resp = requests.patch(
                 "text": "Hola {{nombre}}, tu pedido por {{monto}} fue actualizado.",
                 "example": {
                     "body_text_named_params": [
-                        {"param_name": "nombre", "example": "Lucio"},
+                        {"param_name": "nombre", "example": "Juan"},
                         {"param_name": "monto", "example": "$15.000"},
                     ]
                 },
