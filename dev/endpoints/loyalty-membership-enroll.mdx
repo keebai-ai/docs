@@ -1,0 +1,151 @@
+---
+title: "POST /v1/loyalty/memberships"
+sidebarTitle: "POST loyalty/memberships"
+description: "Enroll a customer into a loyalty program and get back their membership and wallet serial number."
+openapi: "POST /v1/loyalty/memberships"
+---
+
+Enrolls a customer into a program. The response carries the `_id` you will use for every subsequent movement and the `serial_number` their wallet card is keyed by.
+
+Enrollment is where you decide the identity of the customer, and that decision sticks. Read [the customer identifier is yours](/dev/loyalty/overview#the-customer-identifier-is-yours) before your first call.
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/loyalty/memberships
+```
+
+## Required scope
+
+`loyalty:write`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `program_id` | `string` | Yes | `ObjectId` of the program to enroll into. |
+| `customer` | `object` | Yes | Who is being enrolled. |
+| `customer.id` | `string` | Yes | Your own identifier for this customer. Up to 120 characters. This is the key you search by later. |
+| `customer.name` | `string` | No | Display name, shown on the wallet card if the template uses it. |
+| `customer.phone` | `string` | No | Store it as you like — phone search matches on a digit subsequence. |
+| `customer.email` | `string` | No | Must be a valid address if present. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/loyalty/memberships \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "program_id": "6650a1b2c3d4e5f6a7b8c9d0",
+    "customer": {
+      "id": "pos-8842",
+      "name": "Camila Rojas",
+      "phone": "+56912345678",
+      "email": "camila@example.com"
+    }
+  }'
+```
+
+```js JavaScript
+const response = await fetch("https://api.keebai.com/v1/loyalty/memberships", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    program_id: "6650a1b2c3d4e5f6a7b8c9d0",
+    customer: { id: "pos-8842", name: "Camila Rojas", phone: "+56912345678" },
+  }),
+});
+
+if (response.status === 409) {
+  // Already enrolled — look the existing membership up instead.
+}
+const { membership } = await response.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/loyalty/memberships",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={
+        "program_id": "6650a1b2c3d4e5f6a7b8c9d0",
+        "customer": {"id": "pos-8842", "name": "Camila Rojas", "phone": "+56912345678"},
+    },
+    timeout=10,
+)
+if resp.status_code == 409:
+    ...  # already enrolled
+resp.raise_for_status()
+membership = resp.json()["membership"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 201 Created
+
+```json
+{
+  "membership": {
+    "_id": "6650aaaa1111bbbb2222cccc",
+    "program_id": "6650a1b2c3d4e5f6a7b8c9d0",
+    "customer": {
+      "id": "pos-8842",
+      "name": "Camila Rojas",
+      "phone": "+56912345678",
+      "email": "camila@example.com"
+    },
+    "serial_number": "c0e9561b-4c2f-4f0a-9c1e-8b7d6a5f4e3d",
+    "balance_points": 0,
+    "stamps_count": 0,
+    "tier": "",
+    "status": "active",
+    "enrolled_at": "2026-07-26T21:38:22.104Z",
+    "created_at": "2026-07-26T21:38:22.104Z",
+    "updated_at": "2026-07-26T21:38:22.104Z"
+  }
+}
+```
+
+### 400 Bad Request
+
+Missing `program_id` or `customer.id`, a malformed `ObjectId`, an invalid email, or a property the endpoint does not accept.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `loyalty:write` scope.
+
+### 409 Conflict
+
+This `customer.id` is already enrolled in this program. Fetch the existing membership with [`GET /v1/loyalty/memberships`](/dev/endpoints/loyalty-memberships-list) filtered by `customer_id` and `program_id`.
+
+### 502 Bad Gateway
+
+The loyalty service is unreachable.
+
+## Operational notes
+
+- **Enrollment is idempotent by `customer.id` + `program_id`.** A repeat returns `409` rather than a second membership, so a retry after a timeout is safe: treat `409` as "already done" and read the existing row.
+- **The customer details are a snapshot.** They are copied at enrollment and never resolved again against your CRM or Keebai contacts. Updating the name afterwards is not possible through the API — the membership keeps what it was created with.
+- **A new membership starts empty**: zero points, zero stamps, no tier. Enrolling does not grant a welcome bonus; issue an `earn` movement if you want one.
+- **The same customer can hold memberships in several programs.** The uniqueness constraint is per program, not per company.
+- **Enrolling does not issue a wallet card.** Call [the Google](/dev/endpoints/loyalty-pass-google) or [Apple](/dev/endpoints/loyalty-pass-apple-link) pass endpoint afterwards, and note that a published wallet template must exist first.

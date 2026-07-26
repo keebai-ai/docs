@@ -122,6 +122,26 @@ Full details in [Webhooks → Overview](/dev/webhooks/overview).
 
 Full details in [CRM → Overview](/dev/crm/overview). Note that CRM reads span the whole company while writes stay scoped to the token's project.
 
+### Loyalty
+
+| Method | Path | Scope | Description |
+|---|---|---|---|
+| `GET` | `/v1/loyalty/programs` | `loyalty:read` | [List programs](/dev/endpoints/loyalty-programs-list) — points, stamps, or tiers. |
+| `GET` | `/v1/loyalty/programs/:id` | `loyalty:read` | Get a program with its rules. |
+| `GET` | `/v1/loyalty/templates` | `loyalty:read` | [List a program's wallet card designs](/dev/endpoints/loyalty-templates-list). |
+| `GET` | `/v1/loyalty/templates/:id` | `loyalty:read` | Get a single template. |
+| `GET` | `/v1/loyalty/memberships` | `loyalty:read` | [Find a membership](/dev/endpoints/loyalty-memberships-list) by customer, phone, or program. |
+| `GET` | `/v1/loyalty/memberships/:id` | `loyalty:read` | Get a membership with its balance. |
+| `POST` | `/v1/loyalty/memberships` | `loyalty:write` | [Enroll a customer](/dev/endpoints/loyalty-membership-enroll). |
+| `GET` | `/v1/loyalty/memberships/:id/ledger` | `loyalty:read` | [Movement history](/dev/endpoints/loyalty-ledger-list). |
+| `POST` | `/v1/loyalty/memberships/:id/ledger` | `loyalty:write` | [Accrue, redeem, or correct](/dev/endpoints/loyalty-ledger-record). |
+| `POST` | `/v1/loyalty/memberships/:id/passes/google` | `loyalty:write` | [Issue the Google Wallet pass](/dev/endpoints/loyalty-pass-google). |
+| `POST` | `/v1/loyalty/memberships/:id/passes/apple/link` | `loyalty:write` | [Issue the Apple Wallet link](/dev/endpoints/loyalty-pass-apple-link). |
+| `POST` | `/v1/loyalty/memberships/:id/passes/notify` | `loyalty:write` | [Push a message to the card](/dev/endpoints/loyalty-pass-notify). |
+| `GET` | `/v1/loyalty/memberships/:id/passes/notifications` | `loyalty:read` | [Message history](/dev/endpoints/loyalty-pass-notifications). |
+
+Full details in [Loyalty → Overview](/dev/loyalty/overview). Programs and card designs are authored in the portal; the API covers enrollment, balances, and passes.
+
 ## Next steps
 
 <CardGroup cols={2}>
@@ -155,8 +175,11 @@ Full details in [CRM → Overview](/dev/crm/overview). Note that CRM reads span 
   <Card title="Ecommerce" icon="cart-shopping" href="/dev/ecommerce/overview">
     Read the catalog, carts, and sales, and get a webhook when a sale closes.
   </Card>
+  <Card title="Loyalty" icon="wallet" href="/dev/loyalty/overview">
+    Points, stamps, and tiers, with the card in Apple Wallet or Google Wallet.
+  </Card>
   <Card title="MCP server" icon="plug-circle-bolt" href="/dev/mcp/overview">
-    Give an AI agent the same API as 58 tools, with the same token and scopes.
+    Give an AI agent the same API as 71 tools, with the same token and scopes.
   </Card>
 </CardGroup>
 

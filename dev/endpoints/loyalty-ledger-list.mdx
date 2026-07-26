@@ -1,0 +1,134 @@
+---
+title: "GET /v1/loyalty/memberships/{id}/ledger"
+sidebarTitle: "GET loyalty/.../ledger"
+description: "List the point or stamp movements of a membership, newest first, each with the balance it produced."
+openapi: "GET /v1/loyalty/memberships/{id}/ledger"
+---
+
+Returns the movement history of one membership: every accrual, redemption, and correction, newest first. Each entry records the balance it produced, so the ledger is the audit trail behind the number on the card.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/loyalty/memberships/{id}/ledger
+```
+
+## Required scope
+
+`loyalty:read`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | The membership `ObjectId`. |
+
+## Query parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `limit` | `integer` | `50` | Records per page, 1–200. |
+| `offset` | `integer` | `0` | Records to skip. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl "https://api.keebai.com/v1/loyalty/memberships/6650aaaa1111bbbb2222cccc/ledger?limit=20" \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+```js JavaScript
+const response = await fetch(
+  "https://api.keebai.com/v1/loyalty/memberships/6650aaaa1111bbbb2222cccc/ledger?limit=20",
+  { headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` } },
+);
+const { data } = await response.json();
+const currentBalance = data[0]?.balance_after ?? 0;
+```
+
+```python Python
+import os, requests
+
+resp = requests.get(
+    "https://api.keebai.com/v1/loyalty/memberships/6650aaaa1111bbbb2222cccc/ledger",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    params={"limit": 20},
+    timeout=10,
+)
+resp.raise_for_status()
+entries = resp.json()["data"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "data": [
+    {
+      "_id": "6650dddd3333eeee4444ffff",
+      "membership_id": "6650aaaa1111bbbb2222cccc",
+      "program_id": "6650a1b2c3d4e5f6a7b8c9d0",
+      "kind": "redeem",
+      "metric": "points",
+      "amount": -50,
+      "balance_after": 70,
+      "source": "pos",
+      "ref": "receipt-99155",
+      "note": "",
+      "created_at": "2026-07-26T21:39:10.220Z"
+    },
+    {
+      "_id": "6650dddd3333eeee4444fffe",
+      "membership_id": "6650aaaa1111bbbb2222cccc",
+      "program_id": "6650a1b2c3d4e5f6a7b8c9d0",
+      "kind": "earn",
+      "metric": "points",
+      "amount": 120,
+      "balance_after": 120,
+      "source": "pos",
+      "ref": "receipt-99120",
+      "note": "",
+      "created_at": "2026-07-26T21:38:44.008Z"
+    }
+  ],
+  "total": 2,
+  "limit": 50,
+  "offset": 0
+}
+```
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `loyalty:read` scope.
+
+### 404 Not Found
+
+No membership with that id in your company.
+
+### 502 Bad Gateway
+
+The loyalty service is unreachable.
+
+## Operational notes
+
+- **`amount` is signed, `kind` is the intent.** A `redeem` of `50` is stored as `-50`. Do not take the absolute value when summing — the entries add up as they are.
+- **`balance_after` is the trustworthy figure.** The first entry's `balance_after` is the real balance. On a program with point expiry, the membership's `balance_points` may read `0` while this still shows the accumulated total.
+- **`ref` is your reconciliation handle.** Nothing enforces uniqueness on it, but putting the receipt or order number there is what lets you match a movement back to the transaction that caused it.
+- **Entries are immutable.** There is no edit or delete. A mistake is corrected with an `adjust` movement, which leaves both the error and the correction visible.
+- **This is per membership, not per customer.** A customer enrolled in three programs has three separate ledgers.

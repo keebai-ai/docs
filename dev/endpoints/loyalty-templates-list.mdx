@@ -1,0 +1,125 @@
+---
+title: "GET /v1/loyalty/templates"
+sidebarTitle: "GET loyalty/templates"
+description: "List the wallet card designs of a program, newest version first."
+openapi: "GET /v1/loyalty/templates"
+---
+
+Lists the wallet card designs belonging to one program, newest version first. A template is what the customer sees in Apple Wallet or Google Wallet: colours, logo, the fields on the front and back, and the barcode.
+
+Templates are designed and published in the Keebai portal. Here they are read-only — useful for checking which version is live before issuing passes, or for rendering a preview in your own back office.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/loyalty/templates?program_id={programId}
+```
+
+## Required scope
+
+`loyalty:read`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+
+## Query parameters
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `program_id` | `string` | Yes | The program whose templates you want. Templates are always listed per program. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl "https://api.keebai.com/v1/loyalty/templates?program_id=6650a1b2c3d4e5f6a7b8c9d0" \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+```js JavaScript
+const params = new URLSearchParams({ program_id: "6650a1b2c3d4e5f6a7b8c9d0" });
+const response = await fetch(
+  `https://api.keebai.com/v1/loyalty/templates?${params}`,
+  { headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` } },
+);
+const { data } = await response.json();
+const published = data.find((t) => t.published);
+```
+
+```python Python
+import os, requests
+
+resp = requests.get(
+    "https://api.keebai.com/v1/loyalty/templates",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    params={"program_id": "6650a1b2c3d4e5f6a7b8c9d0"},
+    timeout=10,
+)
+resp.raise_for_status()
+published = next((t for t in resp.json()["data"] if t["published"]), None)
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "data": [
+    {
+      "_id": "6650bbbb1111cccc2222dddd",
+      "program_id": "6650a1b2c3d4e5f6a7b8c9d0",
+      "name": "Coffee Club card",
+      "version": 3,
+      "published": true,
+      "branding": {
+        "background_color": "#1A1A1A",
+        "foreground_color": "#FFFFFF",
+        "label_color": "#CCCCCC",
+        "logo_url": "https://cdn.keebai.com/loyalty/logo.png",
+        "icon_url": "https://cdn.keebai.com/loyalty/icon.png",
+        "strip_image_url": "",
+        "logo_text": "Coffee Club"
+      },
+      "fields": [
+        { "key": "stamps", "slot": "primary", "label": "Stamps", "value": "{{stampsCount}} / 10" },
+        { "key": "member", "slot": "back", "label": "Serial", "value": "{{serialNumber}}" }
+      ],
+      "barcode": { "type": "qr", "value": "{{serialNumber}}" },
+      "created_at": "2026-01-05T12:00:00.000Z",
+      "updated_at": "2026-03-11T18:02:44.100Z"
+    }
+  ],
+  "total": 1
+}
+```
+
+### 400 Bad Request
+
+`program_id` is missing or is not a valid `ObjectId`.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `loyalty:read` scope.
+
+### 502 Bad Gateway
+
+The loyalty service is unreachable.
+
+## Operational notes
+
+- **This response is not paginated.** It returns every template version of the program, with a `total` for convenience. Programs accumulate a handful of versions, not thousands.
+- **Exactly one version is normally `published`** — the one new passes are issued from. Passes already in a customer's wallet stay pinned to the version they were issued with.
+- **A program with no published template cannot issue passes.** Both pass endpoints fail with `400` until one exists. Check `published` here first if issuance is failing.
+- **`fields[].value` may contain bindings** — `{{balancePoints}}`, `{{stampsCount}}`, `{{tier}}`, `{{serialNumber}}` — resolved per membership at issue time. What you read here is the template, not the rendered card.
+- **Geofences and iBeacon settings are not exposed.** Store proximity configuration lives on the template but stays in the portal; it is physical deployment configuration rather than integration data.

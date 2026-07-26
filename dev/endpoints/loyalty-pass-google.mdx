@@ -1,0 +1,106 @@
+---
+title: "POST /v1/loyalty/memberships/{id}/passes/google"
+sidebarTitle: "POST loyalty/.../passes/google"
+description: "Issue the Google Wallet pass for a membership and get the save link to send to the customer."
+openapi: "POST /v1/loyalty/memberships/{id}/passes/google"
+---
+
+Issues the Google Wallet card for a membership and returns the **save link** — the URL that opens Google Wallet with the card ready to add. Send it by WhatsApp, put it behind a button, or turn it into a QR code.
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/loyalty/memberships/{id}/passes/google
+```
+
+## Required scope
+
+`loyalty:write`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | The membership `ObjectId`. |
+
+No body.
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/loyalty/memberships/6650aaaa1111bbbb2222cccc/passes/google \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+```js JavaScript
+const response = await fetch(
+  "https://api.keebai.com/v1/loyalty/memberships/6650aaaa1111bbbb2222cccc/passes/google",
+  {
+    method: "POST",
+    headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` },
+  },
+);
+const { save_url } = await response.json();
+// Send save_url to the customer — it opens Google Wallet directly.
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/loyalty/memberships/6650aaaa1111bbbb2222cccc/passes/google",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    timeout=20,
+)
+resp.raise_for_status()
+save_url = resp.json()["save_url"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 201 Created
+
+```json
+{
+  "save_url": "https://pay.google.com/gp/v/save/eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "provider_ref": "3388000000023162181.6650aaaa1111bbbb2222cccc"
+}
+```
+
+### 400 Bad Request
+
+The program has no published wallet template — see the notes.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `loyalty:write` scope.
+
+### 404 Not Found
+
+No membership with that id in your company.
+
+### 502 Bad Gateway
+
+The loyalty service is unreachable, or Google Wallet rejected the request.
+
+## Operational notes
+
+- **A published wallet template is required.** Without one the call fails with `400 no published wallet template for this program`. Design and publish the card in the Keebai portal first, then check with [`GET /v1/loyalty/templates`](/dev/endpoints/loyalty-templates-list) that a version has `published: true`.
+- **Calling twice is safe.** The second call reuses the existing pass instead of creating a duplicate, and returns the same `provider_ref`. Reissue freely if the customer lost the link.
+- **The save link does not expire on our side**, but it is a signed Google artefact — treat it as single-customer and do not publish it anywhere shared. Anyone with the link can add that specific card.
+- **The card is live after it is added.** Later ledger movements push the new balance to it automatically; you do not reissue to update a number.
+- **`provider_ref` is the Google Wallet object id**, useful if you also work against Google's API directly. It is not needed for anything in this API.

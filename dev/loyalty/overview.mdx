@@ -1,0 +1,163 @@
+---
+title: "Loyalty overview"
+sidebarTitle: "Overview"
+description: "Points, stamps and tiers with a wallet card on the customer's phone — programs, memberships, a movement ledger, and passes for Apple and Google Wallet."
+---
+
+Keebai Loyalty runs the reward program behind your counter: a customer enrolls, earns points or stamps, redeems them, and carries the card in Apple Wallet or Google Wallet — where you can update the balance and push a message without an app.
+
+The API covers the operational half of that. **Your point of sale accrues, your backend redeems, and your automation issues the card.** Designing the program and the card stays in the Keebai portal.
+
+## The data model
+
+<CardGroup cols={2}>
+  <Card title="Program" icon="trophy">
+    The rules. One of three kinds — `points`, `stamps`, or `tiers` — and only the matching rule set is populated.
+  </Card>
+  <Card title="Membership" icon="id-card">
+    One customer inside one program. Carries the balance, the stamp count, the tier, and the serial number the wallet card is keyed by.
+  </Card>
+  <Card title="Ledger entry" icon="receipt">
+    One movement: an accrual, a redemption, or a correction. Records the balance it resulted in.
+  </Card>
+  <Card title="Wallet template" icon="palette">
+    The card design for a program — colours, fields, barcode. Versioned, and one version is published.
+  </Card>
+</CardGroup>
+
+A program has many memberships and many template versions. A membership has many ledger entries and up to two passes, one per wallet platform.
+
+### The three program types
+
+| Type | What accrues | Typical shape |
+|---|---|---|
+| `points` | `balance_points`, by an amount you choose per movement | Spend-based: your POS converts a purchase into points. |
+| `stamps` | `stamps_count`, normally one at a time | Coffee-card: ten stamps, one free. `rules.stamps.reward` describes the prize. |
+| `tiers` | `balance_points`, plus a `tier` recomputed against the thresholds | Loyalty levels: bronze, silver, gold. |
+
+The program decides which metric a movement touches. You never pass a metric — `POST .../ledger` on a stamps program moves stamps, on a points program moves points.
+
+<Warning>
+  **There is no reward or redemption entity.** A reward is a free-text string in `rules.stamps.reward`, and a redemption is a ledger entry with `kind: "redeem"` — nothing links it to a specific item, and nothing checks that the balance covers it. A redemption larger than the balance clamps to zero rather than failing.
+
+  If you need a prize catalogue, a redemption code, or a rule that blocks an unaffordable redemption, build it on your side and use the ledger as the accounting record.
+</Warning>
+
+## What the API does and does not do
+
+| Available | Portal only |
+|---|---|
+| Read programs and wallet templates | Creating and editing programs |
+| List, read and enroll memberships | Designing and publishing wallet templates |
+| Read and record ledger movements | Bulk-importing memberships from a spreadsheet |
+| Issue wallet passes, notify, read the history | Uploading card branding images |
+
+Writes are deliberately narrow. Everything the API can write is something a system does many times a day; everything it cannot is something a person configures once.
+
+## Endpoints
+
+### Programs and templates
+
+| Method | Path | Scope | Description |
+|---|---|---|---|
+| `GET` | `/v1/loyalty/programs` | `loyalty:read` | [List programs](/dev/endpoints/loyalty-programs-list), filterable by status and type. |
+| `GET` | `/v1/loyalty/programs/{id}` | `loyalty:read` | [Get one program](/dev/endpoints/loyalty-program-get) with its rules. |
+| `GET` | `/v1/loyalty/templates` | `loyalty:read` | [List a program's card designs](/dev/endpoints/loyalty-templates-list). |
+| `GET` | `/v1/loyalty/templates/{id}` | `loyalty:read` | [Get one template](/dev/endpoints/loyalty-template-get). |
+
+### Memberships and ledger
+
+| Method | Path | Scope | Description |
+|---|---|---|---|
+| `GET` | `/v1/loyalty/memberships` | `loyalty:read` | [List memberships](/dev/endpoints/loyalty-memberships-list) by program, customer, phone, name, or status. |
+| `GET` | `/v1/loyalty/memberships/{id}` | `loyalty:read` | [Get one membership](/dev/endpoints/loyalty-membership-get) with its balance. |
+| `POST` | `/v1/loyalty/memberships` | `loyalty:write` | [Enroll a customer](/dev/endpoints/loyalty-membership-enroll). |
+| `GET` | `/v1/loyalty/memberships/{id}/ledger` | `loyalty:read` | [List movements](/dev/endpoints/loyalty-ledger-list). |
+| `POST` | `/v1/loyalty/memberships/{id}/ledger` | `loyalty:write` | [Record a movement](/dev/endpoints/loyalty-ledger-record). |
+
+### Wallet passes
+
+| Method | Path | Scope | Description |
+|---|---|---|---|
+| `POST` | `/v1/loyalty/memberships/{id}/passes/google` | `loyalty:write` | [Issue the Google Wallet pass](/dev/endpoints/loyalty-pass-google). |
+| `POST` | `/v1/loyalty/memberships/{id}/passes/apple/link` | `loyalty:write` | [Issue the Apple Wallet download link](/dev/endpoints/loyalty-pass-apple-link). |
+| `POST` | `/v1/loyalty/memberships/{id}/passes/notify` | `loyalty:write` | [Push a message to the card](/dev/endpoints/loyalty-pass-notify). |
+| `GET` | `/v1/loyalty/memberships/{id}/passes/notifications` | `loyalty:read` | [Message history](/dev/endpoints/loyalty-pass-notifications). |
+
+## A full round trip
+
+Enroll a customer, give them the card, and start accruing.
+
+```bash
+TOKEN="kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# 1. Find the program
+curl -s "https://api.keebai.com/v1/loyalty/programs?status=active" \
+  -H "Authorization: Bearer $TOKEN"
+
+# 2. Enroll the customer — customer.id is YOUR identifier for them
+curl -s -X POST https://api.keebai.com/v1/loyalty/memberships \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "program_id": "6650a1b2c3d4e5f6a7b8c9d0",
+    "customer": { "id": "pos-8842", "name": "Camila Rojas", "phone": "+56912345678" }
+  }'
+
+# 3. Give them the wallet card
+curl -s -X POST https://api.keebai.com/v1/loyalty/memberships/6650aaaa1111bbbb2222cccc/passes/google \
+  -H "Authorization: Bearer $TOKEN"
+
+# 4. Accrue on every purchase
+curl -s -X POST https://api.keebai.com/v1/loyalty/memberships/6650aaaa1111bbbb2222cccc/ledger \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{ "kind": "earn", "amount": 120, "source": "pos", "ref": "receipt-99120" }'
+```
+
+The card in the customer's pocket updates on step 4 on its own. You do not push anything.
+
+## The customer identifier is yours
+
+`customer.id` is a **free-text string that you choose**. It is not a Keebai contact id, not a CRM customer id, and nothing validates that it points at anything.
+
+Whatever you send at enrollment is copied into the membership and **never resolved again**. Rename the customer in your CRM and the membership keeps the old name until you enroll them somewhere new.
+
+<Note>
+  Pick something stable and reproducible — your POS customer id, your CRM primary key. It is the value you will pass to `customer_id` to find the membership again, and it is what makes enrollment idempotent: a second enrollment with the same `customer.id` in the same program returns `409` instead of creating a duplicate.
+</Note>
+
+If you would rather look people up by phone, that works too: `GET /v1/loyalty/memberships?phone=912345678` matches on a digit subsequence, so a stored `+56 9 1234 5678` is found without you normalising anything.
+
+## Balances are a projection
+
+The stored balance on a membership is maintained as movements happen; it is not summed from the ledger on read. Two consequences matter:
+
+<Warning>
+  **Serialise your movements per membership.** Two accruals fired concurrently against the same membership can lose one of them. Queue them, or accrue once per transaction rather than once per line item.
+</Warning>
+
+**Point expiry is a read-time view, not a movement.** When a program sets `rules.points.expiration_days` and the window since `enrolled_at` has passed, `GET` on the membership reports `balance_points: 0` — but no ledger entry is written and the stored balance is untouched. If that customer then earns points, the new balance continues from the old stored value, not from zero. The ledger's `balance_after` is the honest number; the membership's `balance_points` is the displayed one.
+
+## Scoping
+
+**Loyalty is company-wide.** No loyalty record carries a project, so every read and write covers your whole company regardless of which project the token was minted for. Same behaviour as CRM reads, and unlike messaging, where writes stay inside the token's project.
+
+The `loyalty` feature flag gates the portal, not the API. A company without loyalty enabled that calls with a scoped token gets empty lists, not a `403`.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Enroll a customer" icon="user-plus" href="/dev/endpoints/loyalty-membership-enroll">
+    The first write you will make.
+  </Card>
+  <Card title="Record a movement" icon="coins" href="/dev/endpoints/loyalty-ledger-record">
+    Accrue, redeem, and correct.
+  </Card>
+  <Card title="Issue a wallet pass" icon="wallet" href="/dev/endpoints/loyalty-pass-google">
+    Put the card on the customer's phone.
+  </Card>
+  <Card title="Scopes" icon="shield" href="/dev/scopes">
+    `loyalty:read` and `loyalty:write`.
+  </Card>
+</CardGroup>

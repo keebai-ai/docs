@@ -77,6 +77,8 @@ The catalog lives in the `api_scopes` MongoDB collection. The portal pulls it vi
 | `ecommerce:products:read` | ecommerce | [List](/dev/endpoints/ecommerce-products-list) and [read](/dev/endpoints/ecommerce-product-get) the product catalog. |
 | `ecommerce:carts:read` | ecommerce | [List](/dev/endpoints/ecommerce-carts-list) and [read](/dev/endpoints/ecommerce-cart-get) carts, including abandoned ones. |
 | `ecommerce:sales:read` | ecommerce | [List](/dev/endpoints/ecommerce-sales-list) and [read](/dev/endpoints/ecommerce-sale-get) sales, with amounts and payment state. |
+| `loyalty:read` | loyalty | [Read programs](/dev/endpoints/loyalty-programs-list), [templates](/dev/endpoints/loyalty-templates-list), [memberships](/dev/endpoints/loyalty-memberships-list), balances and [ledger movements](/dev/endpoints/loyalty-ledger-list). |
+| `loyalty:write` | loyalty | [Enroll customers](/dev/endpoints/loyalty-membership-enroll), [move points and stamps](/dev/endpoints/loyalty-ledger-record), [issue wallet passes](/dev/endpoints/loyalty-pass-google) and [notify the customer's card](/dev/endpoints/loyalty-pass-notify). |
 | `projects:read` | projects | [List the projects](/dev/endpoints/me) of your company the token can reach. |
 
 <Tip>
@@ -85,7 +87,7 @@ The catalog lives in the `api_scopes` MongoDB collection. The portal pulls it vi
 
 ## The MCP server uses the same scopes
 
-The [MCP server](/dev/mcp/overview) does not have a scope system of its own. Each of its 58 tools requires exactly the scope its REST counterpart does — `keebai_crm_ticket_create` needs `crm:tickets:write`, `keebai_contacts_list` needs `contacts:read`, and so on. The [tool catalogue](/dev/mcp/tools) lists the mapping.
+The [MCP server](/dev/mcp/overview) does not have a scope system of its own. Each of its 71 tools requires exactly the scope its REST counterpart does — `keebai_crm_ticket_create` needs `crm:tickets:write`, `keebai_contacts_list` needs `contacts:read`, and so on. The [tool catalogue](/dev/mcp/tools) lists the mapping.
 
 One difference matters when you hand a token to an agent: **a missing scope is not a `403`**. Every tool stays visible in `tools/list` regardless of your scopes, and the call comes back as a tool error carrying `INSUFFICIENT_SCOPE`. An agent will happily try something it cannot do and discover the limit afterwards, so pick the scope set deliberately rather than relying on the agent not to reach for a tool.
 
@@ -192,6 +194,16 @@ Pick the smallest scope set that does the job. Splitting `messages:send` and `me
     A BI job pulls closed sales nightly. Read-only, no catalog, no carts.
 
     `ecommerce:sales:read`.
+  </Card>
+  <Card title="Loyalty terminal">
+    Your point of sale enrolls customers, accrues on purchase, and hands out the wallet card.
+
+    `loyalty:read`, `loyalty:write`.
+  </Card>
+  <Card title="Loyalty balance display">
+    A kiosk or a customer-facing screen shows the balance and nothing more. Cannot move points or push notifications.
+
+    `loyalty:read`.
   </Card>
   <Card title="Contact sync">
     Your CRM or ERP keeps the contact directory in step with Keebai. Deletes stay out so a sync bug cannot erase people.

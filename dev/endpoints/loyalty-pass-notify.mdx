@@ -1,0 +1,138 @@
+---
+title: "POST /v1/loyalty/memberships/{id}/passes/notify"
+sidebarTitle: "POST loyalty/.../passes/notify"
+description: "Push a message to the customer's wallet card on their phone, with an optional link button."
+openapi: "POST /v1/loyalty/memberships/{id}/passes/notify"
+---
+
+Pushes a message to the wallet card on the customer's phone — a lock-screen notification and a line on the back of the card. No app required, and no messaging channel involved.
+
+Use it for something the customer will care about: they are two stamps from a free coffee, their points expire this month, a tier unlocked.
+
+<Warning>
+  This sends a real push notification to a real person's phone. It is not a broadcast channel — one call is one customer. Wallet notifications that get ignored train people to remove the card.
+</Warning>
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/loyalty/memberships/{id}/passes/notify
+```
+
+## Required scope
+
+`loyalty:write`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | The membership `ObjectId`. |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `header` | `string` | Yes | Title the customer sees. Up to 60 characters. |
+| `body` | `string` | Yes | Message text. Up to 200 characters. |
+| `link_url` | `string` | No | `https` URL the message button opens. Must include the protocol. |
+| `link_label` | `string` | No | Button text. Up to 40 characters. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/loyalty/memberships/6650aaaa1111bbbb2222cccc/passes/notify \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "header": "Three stamps to go",
+    "body": "Collect three more and your next coffee is on us.",
+    "link_url": "https://yourstore.example/rewards",
+    "link_label": "See rewards"
+  }'
+```
+
+```js JavaScript
+const response = await fetch(
+  "https://api.keebai.com/v1/loyalty/memberships/6650aaaa1111bbbb2222cccc/passes/notify",
+  {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      header: "Three stamps to go",
+      body: "Collect three more and your next coffee is on us.",
+    }),
+  },
+);
+const { notified, skipped } = await response.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/loyalty/memberships/6650aaaa1111bbbb2222cccc/passes/notify",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={
+        "header": "Three stamps to go",
+        "body": "Collect three more and your next coffee is on us.",
+    },
+    timeout=20,
+)
+resp.raise_for_status()
+result = resp.json()
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "notified": 2,
+  "skipped": 0
+}
+```
+
+### 400 Bad Request
+
+Missing `header` or `body`, a field over its length limit, or a `link_url` that is not an absolute `https` URL.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `loyalty:write` scope.
+
+### 404 Not Found
+
+No membership with that id in your company.
+
+### 502 Bad Gateway
+
+The loyalty service is unreachable.
+
+## Operational notes
+
+- **`notified: 0` is a success, not an error.** It means the customer has no pass registered on any device — they never added the card, or they removed it. The call still returns `200` and the message is recorded in the [history](/dev/endpoints/loyalty-pass-notifications).
+- **The counts are devices, not people.** A customer with the card on a phone and a watch counts as two.
+- **You do not need this to update a balance.** Ledger movements refresh the card's numbers on their own. Notify is for saying something, not for syncing.
+- **Both platforms are attempted.** The `channels` recorded in the history show which ones actually went out.
+- **There is no scheduling and no audience.** One call, one membership, sent now. Batching a campaign means iterating memberships yourself — and the [rate limits](/dev/rate-limits) apply to each call.
+- **Delivery is best effort.** Apple and Google decide whether and when to surface the notification; a `notified` count means it was handed off, not that it was seen.

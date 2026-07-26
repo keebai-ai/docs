@@ -1,10 +1,10 @@
 ---
 title: "MCP server"
 sidebarTitle: "Overview"
-description: "Connect an AI agent to Keebai over the Model Context Protocol — same token, same scopes, 58 tools."
+description: "Connect an AI agent to Keebai over the Model Context Protocol — same token, same scopes, 71 tools."
 ---
 
-Keebai exposes a **Model Context Protocol** server so an AI agent can use your account directly: send WhatsApp messages, search your knowledge base, read and write CRM records, manage contacts, look up products and sales. It is the same API described in the rest of these docs, presented as tools an LLM can call.
+Keebai exposes a **Model Context Protocol** server so an AI agent can use your account directly: send WhatsApp messages, search your knowledge base, read and write CRM records, manage contacts, look up products and sales, run the loyalty programme. It is the same API described in the rest of these docs, presented as tools an LLM can call.
 
 Authentication is the same [Personal Access Token](/dev/api-keys) you use for REST, and each tool checks the same [scope](/dev/scopes) as its REST counterpart. There is nothing extra to provision.
 
@@ -71,7 +71,7 @@ This is the one behaviour that surprises people:
 
 <Steps>
   <Step title="Every tool is always listed">
-    `tools/list` returns all 58 tools regardless of what your token can do. The catalogue is not filtered by scope.
+    `tools/list` returns all 71 tools regardless of what your token can do. The catalogue is not filtered by scope.
   </Step>
   <Step title="The check happens on call">
     `tools/call` verifies the scope for that specific tool.
@@ -125,10 +125,15 @@ The whole scope catalogue is on the [Scopes](/dev/scopes) page. Some useful shap
 
     `knowledge:read`, `knowledge:write`, `knowledge:delete`, `knowledge:assign`.
   </Card>
+  <Card title="Loyalty concierge">
+    Answers "how many points do I have" over WhatsApp. Reads balances, changes nothing.
+
+    `loyalty:read`, `contacts:read`, `messages:send`.
+  </Card>
 </CardGroup>
 
 <Warning>
-  **Nine of the 58 tools delete things permanently**, and CRM and contact reads span your whole company, not just one project. Think about that before handing an agent a token with `*:delete` scopes — the [tool catalogue](/dev/mcp/tools) marks every destructive tool.
+  **Nine of the 71 tools delete things permanently**, and CRM and contact reads span your whole company, not just one project. Think about that before handing an agent a token with `*:delete` scopes — the [tool catalogue](/dev/mcp/tools) marks every destructive tool.
 </Warning>
 
 ## What is not exposed
@@ -152,7 +157,7 @@ Everything else in the REST surface has a matching tool.
 
 <CardGroup cols={2}>
   <Card title="Tool catalogue" icon="wrench" href="/dev/mcp/tools">
-    All 58 tools with their required scope.
+    All 71 tools with their required scope.
   </Card>
   <Card title="Create a token" icon="key" href="/dev/api-keys">
     Mint a PAT and pick its scopes.

@@ -1,0 +1,114 @@
+---
+title: "GET /v1/loyalty/templates/{id}"
+sidebarTitle: "GET loyalty/templates/:id"
+description: "Get one wallet card design with its branding, fields, and barcode."
+openapi: "GET /v1/loyalty/templates/{id}"
+---
+
+Returns a single wallet template. Use it to inspect a specific version — for example the one an already-issued pass was built from, which is not necessarily the published one.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/loyalty/templates/{id}
+```
+
+## Required scope
+
+`loyalty:read`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | The template `ObjectId`. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl https://api.keebai.com/v1/loyalty/templates/6650bbbb1111cccc2222dddd \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+```js JavaScript
+const response = await fetch(
+  "https://api.keebai.com/v1/loyalty/templates/6650bbbb1111cccc2222dddd",
+  { headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` } },
+);
+const { template } = await response.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.get(
+    "https://api.keebai.com/v1/loyalty/templates/6650bbbb1111cccc2222dddd",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    timeout=10,
+)
+resp.raise_for_status()
+template = resp.json()["template"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "template": {
+    "_id": "6650bbbb1111cccc2222dddd",
+    "program_id": "6650a1b2c3d4e5f6a7b8c9d0",
+    "name": "Coffee Club card",
+    "version": 3,
+    "published": true,
+    "branding": {
+      "background_color": "#1A1A1A",
+      "foreground_color": "#FFFFFF",
+      "label_color": "#CCCCCC",
+      "logo_url": "https://cdn.keebai.com/loyalty/logo.png",
+      "icon_url": "https://cdn.keebai.com/loyalty/icon.png",
+      "strip_image_url": "",
+      "logo_text": "Coffee Club"
+    },
+    "fields": [
+      { "key": "stamps", "slot": "primary", "label": "Stamps", "value": "{{stampsCount}} / 10" }
+    ],
+    "barcode": { "type": "qr", "value": "{{serialNumber}}" },
+    "created_at": "2026-01-05T12:00:00.000Z",
+    "updated_at": "2026-03-11T18:02:44.100Z"
+  }
+}
+```
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `loyalty:read` scope.
+
+### 404 Not Found
+
+No template with that id in your company.
+
+### 502 Bad Gateway
+
+The loyalty service is unreachable.
+
+## Operational notes
+
+- **`slot` places the field on the card**: `header`, `primary`, `secondary`, `auxiliary`, or `back`. Apple and Google render the slots differently, and each platform caps how many fields it shows — a template with more fields than a platform supports is truncated by that platform, not rejected.
+- **`barcode.type` of `none` means the card carries no code**, which is worth knowing before you build a scanner flow around it.
+- **The bindings resolved today are `{{balancePoints}}`, `{{stampsCount}}`, `{{tier}}`, and `{{serialNumber}}`.** Other placeholder-looking text in a `value` is rendered literally.

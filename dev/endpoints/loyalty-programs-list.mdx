@@ -1,0 +1,117 @@
+---
+title: "GET /v1/loyalty/programs"
+sidebarTitle: "GET loyalty/programs"
+description: "List the loyalty programs of your company, newest first, with the rules that govern each one."
+openapi: "GET /v1/loyalty/programs"
+---
+
+Lists the loyalty programs of your company. This is the starting point for everything else: a membership, a template, and a ledger movement all hang off a program id.
+
+A program is one of three kinds — `points`, `stamps`, or `tiers` — and only the matching entry inside `rules` is populated.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/loyalty/programs
+```
+
+## Required scope
+
+`loyalty:read`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+
+## Query parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `status` | `string` | — | Filter by `draft`, `active`, or `archived`. |
+| `type` | `string` | — | Filter by `points`, `stamps`, or `tiers`. |
+| `limit` | `integer` | `50` | Records per page, 1–200. |
+| `offset` | `integer` | `0` | Records to skip. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl "https://api.keebai.com/v1/loyalty/programs?status=active" \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+```js JavaScript
+const params = new URLSearchParams({ status: "active" });
+const response = await fetch(
+  `https://api.keebai.com/v1/loyalty/programs?${params}`,
+  { headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` } },
+);
+const { data, total } = await response.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.get(
+    "https://api.keebai.com/v1/loyalty/programs",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    params={"status": "active"},
+    timeout=10,
+)
+resp.raise_for_status()
+programs = resp.json()["data"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "data": [
+    {
+      "_id": "6650a1b2c3d4e5f6a7b8c9d0",
+      "name": "Coffee Club",
+      "type": "stamps",
+      "status": "active",
+      "description": "Ten stamps, one free coffee",
+      "rules": {
+        "stamps": {
+          "target": 10,
+          "reward": "A free coffee",
+          "reset_on_redeem": true
+        }
+      },
+      "created_at": "2026-01-05T12:00:00.000Z",
+      "updated_at": "2026-02-01T09:30:00.000Z"
+    }
+  ],
+  "total": 1,
+  "limit": 50,
+  "offset": 0
+}
+```
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `loyalty:read` scope.
+
+### 502 Bad Gateway
+
+The loyalty service is unreachable.
+
+## Operational notes
+
+- **Only one `rules` variant is present.** A `stamps` program carries `rules.stamps` and nothing else; the other keys are absent, not empty objects. Switch on `type` rather than probing for keys.
+- **Reads span the whole company.** Loyalty has no notion of a project, so this returns every program in your company regardless of which project the token belongs to.
+- **Programs are created in the portal.** There is no `POST` here — the API reads program configuration, it does not author it.
+- **`archived` programs still list.** Filter by `status=active` if you only want the ones currently running.

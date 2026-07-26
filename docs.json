@@ -314,6 +314,56 @@
         ]
       },
       {
+        "tab": "Loyalty",
+        "icon": "wallet",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": [
+              "dev/loyalty/overview"
+            ]
+          },
+          {
+            "group": "Programs",
+            "pages": [
+              "dev/endpoints/loyalty-programs-list",
+              "dev/endpoints/loyalty-program-get"
+            ]
+          },
+          {
+            "group": "Templates",
+            "pages": [
+              "dev/endpoints/loyalty-templates-list",
+              "dev/endpoints/loyalty-template-get"
+            ]
+          },
+          {
+            "group": "Memberships",
+            "pages": [
+              "dev/endpoints/loyalty-memberships-list",
+              "dev/endpoints/loyalty-membership-get",
+              "dev/endpoints/loyalty-membership-enroll"
+            ]
+          },
+          {
+            "group": "Ledger",
+            "pages": [
+              "dev/endpoints/loyalty-ledger-list",
+              "dev/endpoints/loyalty-ledger-record"
+            ]
+          },
+          {
+            "group": "Wallet passes",
+            "pages": [
+              "dev/endpoints/loyalty-pass-google",
+              "dev/endpoints/loyalty-pass-apple-link",
+              "dev/endpoints/loyalty-pass-notify",
+              "dev/endpoints/loyalty-pass-notifications"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "Webhooks",
         "icon": "bell",
         "groups": [

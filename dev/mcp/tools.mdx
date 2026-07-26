@@ -1,7 +1,7 @@
 ---
 title: "Tool catalogue"
 sidebarTitle: "Tools"
-description: "All 58 MCP tools, grouped by domain, with the scope each one requires."
+description: "All 71 MCP tools, grouped by domain, with the scope each one requires."
 ---
 
 Every tool below is exposed by [`POST /v1/mcp`](/dev/mcp/overview) and delegates to the same service as its REST counterpart, so the behaviour, validation, and tenancy rules documented across these pages apply unchanged.
@@ -137,6 +137,34 @@ Read-only access to the catalog, carts, and sales. See the [ecommerce overview](
   There are no write tools here. Creating a sale or pushing a product goes through the platform integration, not the API.
 </Note>
 
+## Loyalty
+
+Points, stamps, and wallet cards. See the [loyalty overview](/dev/loyalty/overview) for the data model — in particular that there is no reward entity and that balances are a projection, not a sum of the ledger.
+
+| Tool | Scope | What it does |
+|---|---|---|
+| `keebai_loyalty_programs_list` | `loyalty:read` | List programs, newest first. Only the rules variant matching the program's type is populated. Start here for the program id. |
+| `keebai_loyalty_program_get` | `loyalty:read` | Get one program: points per currency unit and expiry, stamps target and reward, or tier thresholds. |
+| `keebai_loyalty_templates_list` | `loyalty:read` | List a program's wallet card designs. Read-only — the card is designed in the portal. |
+| `keebai_loyalty_template_get` | `loyalty:read` | Get one template with its branding, fields, and barcode. |
+| `keebai_loyalty_memberships_list` | `loyalty:read` | Find a membership by customer id, phone, name, program, or status. Phone matches on a digit subsequence. |
+| `keebai_loyalty_membership_get` | `loyalty:read` | Get one membership with its balance, stamps, and tier. |
+| `keebai_loyalty_membership_enroll` | `loyalty:write` | Enroll a customer. The details are copied as given and never re-resolved; a repeat enrollment conflicts rather than duplicating. |
+| `keebai_loyalty_ledger_list` | `loyalty:read` | Movement history of a membership, newest first, each entry with the balance it produced. |
+| ⚠️ `keebai_loyalty_ledger_record` | `loyalty:write` | Move a balance — earn, redeem, or adjust. Updates the card in the customer's wallet. Not idempotent. |
+| `keebai_loyalty_pass_issue_google` | `loyalty:write` | Issue the Google Wallet pass and return the save link. Reissuing reuses the existing pass. |
+| `keebai_loyalty_pass_issue_apple_link` | `loyalty:write` | Issue the Apple Wallet pass and return a public download link. |
+| ⚠️ `keebai_loyalty_pass_notify` | `loyalty:write` | Push a message to the customer's phone. A real notification to a real person. |
+| `keebai_loyalty_pass_notifications_list` | `loyalty:read` | What was already sent to this membership, and how many devices it reached. |
+
+<Warning>
+  Tools marked ⚠️ have effects outside Keebai. `keebai_loyalty_ledger_record` moves a balance a customer can spend and is **not idempotent** — a retried call double-counts. `keebai_loyalty_pass_notify` sends a push notification to a real phone.
+
+  Neither is destructive, so neither carries the 🔴 marker, but hand `loyalty:write` to an agent with the same care you would give `messages:send`.
+</Warning>
+
 ## Not exposed as tools
 
 Scheduling, templates, channels, webhooks, tenants, and setup links have no MCP tools yet. Use the [REST API](/dev/overview) for those.
+
+The binary Apple `.pkpass` has no tool either, for the same reason as media download: it is a file, not JSON. The Apple link tool covers the same use case.
