@@ -63,6 +63,7 @@ Every event shares the same outer shape. The difference is the `data` field, dis
   "type": "whatsapp.message.received",
   "occurred_at": "2026-04-27T12:34:56.789Z",
   "company_id": "comp_xxx",
+  "project_id": "65b1c2d3e4f5a6b7c8d9e0f1",
   "channel_id": "ch_xxx",
   "data": {
     "phone_number_id": "1234567890",
@@ -81,9 +82,20 @@ Every event shares the same outer shape. The difference is the `data` field, dis
 | `id` | string | Unique event ID. Stable: if we retry the delivery, the same ID arrives. Use it to deduplicate. |
 | `type` | enum | Discriminator from the catalog. See [events](/dev/webhooks/events). |
 | `occurred_at` | ISO-8601 | Event timestamp (UTC). |
-| `company_id` | string | Your Keebai company ID. |
+| `company_id` | string | Your Keebai company ID. Route on it when one endpoint serves several tenants. |
+| `project_id` | string \| absent | Project the event belongs to. Present on events that originate inside one. |
 | `channel_id` | string \| null | Channel associated with the event, if applicable. |
+| `dev_tenant_id` | string \| absent | Reseller flow only. Internal identifier — see the warning below. |
+| `dev_tenant_external_id` | string \| null \| absent | Reseller flow only. The external id you supplied when creating the tenant. |
 | `data` | object | Event-specific payload. Shape varies by `type`. |
+
+<Warning>
+  `dev_tenant_id` is an **internal identifier** and ships only on `whatsapp.message.received`
+  for channels onboarded through the reseller flow. It is documented here because it is on the
+  wire today, not because it is part of the contract: do not persist it, do not key on it, and
+  expect it to disappear. If you need a stable handle for a tenant, use
+  `dev_tenant_external_id` — the value you chose yourself.
+</Warning>
 
 ## Delivery headers
 
