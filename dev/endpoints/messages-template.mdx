@@ -31,7 +31,7 @@ POST https://api.keebai.com/v1/messages/template
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `to` | `string` | Yes | Recipient phone number in E.164 format (e.g. `+5491155555555`). |
-| `channel_id` | `string` | Yes | `ObjectId` of the WhatsApp channel used to send. Get it from the portal under **Channels**. |
+| `phone_number_id` | `string` | Yes | WhatsApp Business `phone_number_id` of the sending number — the numeric id Meta issues, not a Keebai `ObjectId`. List yours with [`GET /v1/whatsapp/numbers`](/dev/endpoints/whatsapp-numbers). |
 | `template_name` | `string` | Yes | Template name exactly as approved in Meta. |
 | `language` | `string` | Yes | Template language code (`es`, `en`, `pt_BR`, etc.). |
 | `variables` | `object<string, string>` | No | Map of named variables the template expects. Keys must match the template's `{{name}}` placeholders. The expected list is available via [`GET /v1/templates`](/dev/endpoints/templates-list). |
@@ -47,7 +47,7 @@ curl -X POST https://api.keebai.com/v1/messages/template \
   -H "Content-Type: application/json" \
   -d '{
     "to": "+5491155555555",
-    "channel_id": "65a1f2b3c4d5e6f7a8b9c0d1",
+    "phone_number_id": "109876543210987",
     "template_name": "welcome_v2",
     "language": "es",
     "variables": {
@@ -69,7 +69,7 @@ const response = await fetch("https://api.keebai.com/v1/messages/template", {
   },
   body: JSON.stringify({
     to: "+5491155555555",
-    channel_id: "65a1f2b3c4d5e6f7a8b9c0d1",
+    phone_number_id: "109876543210987",
     template_name: "welcome_v2",
     language: "es",
     variables: { nombre: "Lucio", monto: "1500" },
@@ -86,7 +86,7 @@ resp = requests.post(
     headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
     json={
         "to": "+5491155555555",
-        "channel_id": "65a1f2b3c4d5e6f7a8b9c0d1",
+        "phone_number_id": "109876543210987",
         "template_name": "welcome_v2",
         "language": "es",
         "variables": {"nombre": "Lucio", "monto": "1500"},
@@ -123,7 +123,7 @@ The send was accepted and queued. Actual delivery to WhatsApp happens asynchrono
 
 ### 400 Bad Request
 
-Invalid body (incorrect phone format, malformed `channel_id`, missing fields).
+Invalid body (incorrect phone format, malformed `phone_number_id`, missing fields).
 
 ### 401 Unauthorized
 
@@ -163,7 +163,7 @@ def notify_order(order_id: str, customer_phone: str, customer_name: str, amount:
         headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
         json={
             "to": customer_phone,
-            "channel_id": os.environ["KEEBAI_CHANNEL_ID"],
+            "phone_number_id": os.environ["KEEBAI_PHONE_NUMBER_ID"],
             "template_name": "order_confirmation",
             "language": "es",
             "variables": {

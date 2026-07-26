@@ -1,0 +1,91 @@
+---
+title: "Knowledge overview"
+sidebarTitle: "Overview"
+description: "The knowledge base your AI assistants read from — tree structure, document ingestion, retrieval, and how content reaches an assistant."
+---
+
+The knowledge base is the corpus your Keebai assistants answer from. It is a tree of folders and documents that you can write to from your own systems, query as a retrieval backend, and assign to specific assistants.
+
+## What you can do
+
+<CardGroup cols={2}>
+  <Card title="Browse the tree" icon="folder-tree" href="/dev/endpoints/knowledge-tree">
+    Read the full folder and document hierarchy for your company.
+  </Card>
+  <Card title="Publish content" icon="file-arrow-up" href="/dev/endpoints/knowledge-document-create">
+    Create folders and push documents from markdown — your CMS, a docs pipeline, or a scheduled sync.
+  </Card>
+  <Card title="Retrieve" icon="magnifying-glass" href="/dev/endpoints/knowledge-search">
+    Full-text, vector, and hybrid search — usable as retrieval for your own LLM, not just Keebai's.
+  </Card>
+  <Card title="Assign to assistants" icon="robot" href="/dev/endpoints/knowledge-assign">
+    Decide which assistants can read which nodes.
+  </Card>
+</CardGroup>
+
+## Scopes
+
+| Scope | Grants |
+|---|---|
+| `knowledge:read` | [Read the tree](/dev/endpoints/knowledge-tree) of folders and documents. |
+| `knowledge:write` | Create [folders](/dev/endpoints/knowledge-folder-create) and [documents](/dev/endpoints/knowledge-document-create). |
+| `knowledge:delete` | [Delete nodes](/dev/endpoints/knowledge-node-delete), folders and documents alike. |
+| `knowledge:query` | [Search](/dev/endpoints/knowledge-search) by full text, vector, or hybrid. |
+| `knowledge:assign` | [Assign nodes](/dev/endpoints/knowledge-assign) to an assistant's workers. |
+| `assistants:read` | [List assistants](/dev/endpoints/assistants-list) so you know what to assign to. |
+
+An external app that only uses Keebai as a retrieval backend needs `knowledge:read` and `knowledge:query` — nothing else. Keep `knowledge:delete` out of any token a sync job holds.
+
+## Everything is a node
+
+Folders and documents are both **nodes** in one tree, which is why deletion is a single endpoint rather than one per type.
+
+That has a consequence worth stating plainly: [deleting a folder deletes its descendants](/dev/endpoints/knowledge-node-delete). There is no "move children up" behaviour and no recycle bin.
+
+## Documents are written as markdown
+
+You publish markdown; Keebai converts it to BlockNote (the editor format the portal uses) and reindexes it for retrieval. That conversion is one-way — read a document back and you get the stored structure, not the markdown you sent. Keep your source of truth on your side and treat Keebai as the published copy.
+
+Indexing happens on write, so a document is searchable shortly after creation rather than instantly. Do not write a document and assert on a search result in the same breath.
+
+## Publishing does not mean an assistant can read it
+
+Creating a document puts it in the tree. It does **not** make any assistant use it — [assignment](/dev/endpoints/knowledge-assign) is a separate, explicit step.
+
+A sync that creates documents and never assigns them produces a knowledge base that looks full in the portal and changes nothing about what your assistants say. The usual pipeline is: create folder → create documents → [list assistants](/dev/endpoints/assistants-list) → assign.
+
+## Errors
+
+```json
+{
+  "error": {
+    "code": "INSUFFICIENT_SCOPE",
+    "message": "Forbidden",
+    "details": {
+      "required": ["knowledge:write"],
+      "missing": ["knowledge:write"]
+    }
+  }
+}
+```
+
+| Status | When |
+|---|---|
+| `400` | Invalid body, or a property the endpoint does not accept. |
+| `401` | Missing, invalid, revoked, or expired token. |
+| `403` | The token lacks the scope the endpoint requires. |
+| `404` | The node does not exist, or belongs to another company. |
+| `429` | You hit a [rate limit](/dev/rate-limits). |
+
+Branch on `error.code`, not on the message text.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Read the tree" icon="folder-tree" href="/dev/endpoints/knowledge-tree">
+    See what is already there before you write.
+  </Card>
+  <Card title="Publish a document" icon="file-arrow-up" href="/dev/endpoints/knowledge-document-create">
+    Push markdown and index it for retrieval.
+  </Card>
+</CardGroup>

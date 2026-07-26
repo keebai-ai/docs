@@ -25,6 +25,25 @@ The CRM surface exposes the four core entities of Keebai's customer relationship
 
 Customers and tickets are separate records that are not linked by a foreign key. A customer is the commercial identity; a ticket is a unit of work tied to a **chat user**, which is the contact record created when someone writes to one of your channels. If you need to correlate the two, match on phone or email, or store the customer id in the ticket's `custom_fields`.
 
+## Scopes
+
+| Scope | Grants |
+|---|---|
+| `crm:customers:read` | [List](/dev/endpoints/crm-customers-list) and [read](/dev/endpoints/crm-customer-get) customers. |
+| `crm:customers:write` | [Create](/dev/endpoints/crm-customer-create) and [update](/dev/endpoints/crm-customer-update) customers. |
+| `crm:customers:delete` | [Delete customers](/dev/endpoints/crm-customer-delete). Permanent. |
+| `crm:tickets:read` | [List](/dev/endpoints/crm-tickets-list) and [read](/dev/endpoints/crm-ticket-get) tickets. |
+| `crm:tickets:write` | [Create](/dev/endpoints/crm-ticket-create), [update](/dev/endpoints/crm-ticket-update), and [move between stages](/dev/endpoints/crm-ticket-stage). |
+| `crm:tickets:delete` | [Delete tickets](/dev/endpoints/crm-ticket-delete). Permanent. |
+| `crm:tasks:read` | [List](/dev/endpoints/crm-tasks-list) and [read](/dev/endpoints/crm-task-get) tasks. |
+| `crm:tasks:write` | [Create](/dev/endpoints/crm-task-create) and [update](/dev/endpoints/crm-task-update) tasks. |
+| `crm:tasks:delete` | [Delete tasks](/dev/endpoints/crm-task-delete). Permanent. |
+| `crm:notes:read` | [List](/dev/endpoints/crm-notes-list) and [read](/dev/endpoints/crm-note-get) notes. |
+| `crm:notes:write` | [Create](/dev/endpoints/crm-note-create) and [update](/dev/endpoints/crm-note-update) notes. |
+| `crm:notes:delete` | [Delete notes](/dev/endpoints/crm-note-delete). Permanent. |
+
+The `delete` scopes are split out on purpose: a sync job that keeps records in step with an external system should be able to create and update without being able to destroy.
+
 ## Tenancy is implicit
 
 Every CRM record belongs to a company, and most also belong to a project. **You never send either one.** Keebai derives them from the token on each request:

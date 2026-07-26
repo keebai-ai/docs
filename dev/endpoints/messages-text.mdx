@@ -29,8 +29,9 @@ POST https://api.keebai.com/v1/messages/text
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `to` | `string` | Yes | Recipient phone number in E.164 format. |
-| `channel_id` | `string` | Yes | `ObjectId` of the sending WhatsApp channel. |
+| `phone_number_id` | `string` | Yes | WhatsApp Business `phone_number_id` of the sending number — the numeric id Meta issues, not a Keebai `ObjectId`. List yours with [`GET /v1/whatsapp/numbers`](/dev/endpoints/whatsapp-numbers). |
 | `text` | `string` | Yes | Message body. Up to 4096 characters. |
+| `preview_url` | `boolean` | No | Render link previews for URLs in the body. |
 | `meta_data` | `object` | No | Free-form metadata persisted with the message. |
 
 ## Example request
@@ -43,7 +44,7 @@ curl -X POST https://api.keebai.com/v1/messages/text \
   -H "Content-Type: application/json" \
   -d '{
     "to": "+5491155555555",
-    "channel_id": "65a1f2b3c4d5e6f7a8b9c0d1",
+    "phone_number_id": "109876543210987",
     "text": "Hola Lucio, ¿pudiste revisar la propuesta?"
   }'
 ```
@@ -57,7 +58,7 @@ await fetch("https://api.keebai.com/v1/messages/text", {
   },
   body: JSON.stringify({
     to: "+5491155555555",
-    channel_id: "65a1f2b3c4d5e6f7a8b9c0d1",
+    phone_number_id: "109876543210987",
     text: "Hola Lucio, ¿pudiste revisar la propuesta?",
   }),
 });
@@ -71,7 +72,7 @@ requests.post(
     headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
     json={
         "to": "+5491155555555",
-        "channel_id": "65a1f2b3c4d5e6f7a8b9c0d1",
+        "phone_number_id": "109876543210987",
         "text": "Hola Lucio, ¿pudiste revisar la propuesta?",
     },
     timeout=10,

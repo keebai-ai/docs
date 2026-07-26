@@ -27,6 +27,15 @@ description: "Receive signed HTTP notifications when events happen in Keebai: in
   </Card>
 </CardGroup>
 
+## Scopes
+
+| Scope | Grants |
+|---|---|
+| `webhooks:read` | [List subscriptions](/dev/webhooks/manage) and read delivery history. |
+| `webhooks:manage` | Create, update, rotate the signing secret, delete subscriptions, and fire test events. |
+
+Rotating a secret invalidates the old one immediately, so `webhooks:manage` is the scope that can break your own receiver. A dashboard that only inspects delivery history needs `webhooks:read` alone.
+
 ## How it works
 
 <Steps>

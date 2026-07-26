@@ -84,6 +84,12 @@
         "icon": "paper-plane",
         "groups": [
           {
+            "group": "Get started",
+            "pages": [
+              "dev/messaging/overview"
+            ]
+          },
+          {
             "group": "WhatsApp",
             "pages": [
               "dev/endpoints/messages-template",
@@ -116,6 +122,12 @@
         "icon": "book-bookmark",
         "groups": [
           {
+            "group": "Get started",
+            "pages": [
+              "dev/knowledge/overview"
+            ]
+          },
+          {
             "group": "Knowledge base",
             "pages": [
               "dev/endpoints/knowledge-tree",
@@ -130,61 +142,6 @@
             "group": "Assistants",
             "pages": [
               "dev/endpoints/assistants-list"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Webhooks",
-        "icon": "bell",
-        "groups": [
-          {
-            "group": "Get started",
-            "pages": [
-              "dev/webhooks/overview",
-              "dev/webhooks/cli"
-            ]
-          },
-          {
-            "group": "Reference",
-            "pages": [
-              "dev/webhooks/events",
-              "dev/webhooks/security",
-              "dev/webhooks/manage"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Scheduling",
-        "icon": "calendar-check",
-        "groups": [
-          {
-            "group": "Resources",
-            "pages": [
-              "dev/endpoints/scheduling-branches-list",
-              "dev/endpoints/scheduling-branch-get",
-              "dev/endpoints/scheduling-services-list",
-              "dev/endpoints/scheduling-service-get",
-              "dev/endpoints/scheduling-professionals-list",
-              "dev/endpoints/scheduling-professional-get"
-            ]
-          },
-          {
-            "group": "Availability",
-            "pages": [
-              "dev/endpoints/scheduling-availability",
-              "dev/endpoints/scheduling-availability-range",
-              "dev/endpoints/scheduling-availability-next"
-            ]
-          },
-          {
-            "group": "Appointments",
-            "pages": [
-              "dev/endpoints/scheduling-appointment-get",
-              "dev/endpoints/scheduling-appointment-create",
-              "dev/endpoints/scheduling-appointment-confirm",
-              "dev/endpoints/scheduling-appointment-cancel"
             ]
           }
         ]
@@ -238,6 +195,72 @@
               "dev/endpoints/crm-note-create",
               "dev/endpoints/crm-note-update",
               "dev/endpoints/crm-note-delete"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Scheduling",
+        "icon": "calendar-check",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": [
+              "dev/scheduling/overview"
+            ]
+          },
+          {
+            "group": "Resources",
+            "pages": [
+              "dev/endpoints/scheduling-branches-list",
+              "dev/endpoints/scheduling-branch-get",
+              "dev/endpoints/scheduling-services-list",
+              "dev/endpoints/scheduling-service-get",
+              "dev/endpoints/scheduling-professionals-list",
+              "dev/endpoints/scheduling-professional-get"
+            ]
+          },
+          {
+            "group": "Availability",
+            "pages": [
+              "dev/endpoints/scheduling-availability",
+              "dev/endpoints/scheduling-availability-range",
+              "dev/endpoints/scheduling-availability-next"
+            ]
+          },
+          {
+            "group": "Appointments",
+            "pages": [
+              "dev/endpoints/scheduling-appointment-get",
+              "dev/endpoints/scheduling-appointment-create",
+              "dev/endpoints/scheduling-appointment-confirm",
+              "dev/endpoints/scheduling-appointment-cancel"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Webhooks",
+        "icon": "bell",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": [
+              "dev/webhooks/overview"
+            ]
+          },
+          {
+            "group": "Setup",
+            "pages": [
+              "dev/webhooks/cli"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "dev/webhooks/events",
+              "dev/webhooks/security",
+              "dev/webhooks/manage"
             ]
           }
         ]
