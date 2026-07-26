@@ -1,10 +1,12 @@
 ---
 title: "Outbound webhooks"
 sidebarTitle: "Overview"
-description: "Receive signed HTTP notifications when events happen in Keebai: inbound messages, status updates, template changes, and channel connections."
+description: "Receive signed HTTP notifications when things happen in Keebai — messages, conversations, CRM records, and appointments. 32 events across five domains."
 ---
 
-**Outbound webhooks** are HTTP calls Keebai makes to your server when something happens in your account — an inbound WhatsApp message, a status change, a template update, a new connection. They're the flip side of the API: instead of you polling, Keebai pushes the event to you.
+**Outbound webhooks** are HTTP calls Keebai makes to your server when something happens in your account — an inbound message, a delivery receipt, a CRM ticket moving through the pipeline, an appointment being cancelled. They're the flip side of the API: instead of you polling, Keebai pushes the event to you.
+
+There are **32 events** across five domains — WhatsApp, Instagram, conversations, CRM, and scheduling. The full list with payloads is in the [event catalog](/dev/webhooks/events).
 
 <Note>
   Not to be confused with the **inbound** webhooks Meta sends to Keebai. Those are configured by Keebai in the Meta dashboard when you connect a channel via Embedded Signup; you don't touch them.
@@ -24,6 +26,15 @@ description: "Receive signed HTTP notifications when events happen in Keebai: in
   </Card>
   <Card title="Automated provisioning" icon="plug">
     Listen for `whatsapp.channel.connected` to trigger your onboarding flow the moment a channel is ready.
+  </Card>
+  <Card title="Mirror the CRM pipeline" icon="address-book">
+    Subscribe to `crm.ticket.stage_changed` and `crm.ticket.closed` to keep an external CRM, a BI warehouse, or a Slack channel in step with the funnel.
+  </Card>
+  <Card title="Sync the calendar" icon="calendar-check">
+    `scheduling.appointment.created` / `.rescheduled` / `.cancelled` carry the branch, service, professional, and customer inline — enough to update an external calendar without a follow-up call.
+  </Card>
+  <Card title="Escalation alerts" icon="user-check">
+    `conversation.escalated_to_human` fires on the transition, once, when a ticket lands in a human-attended stage. Page whoever needs to pick it up.
   </Card>
 </CardGroup>
 
@@ -83,15 +94,15 @@ Every event shares the same outer shape. The difference is the `data` field, dis
 | `type` | enum | Discriminator from the catalog. See [events](/dev/webhooks/events). |
 | `occurred_at` | ISO-8601 | Event timestamp (UTC). |
 | `company_id` | string | Your Keebai company ID. Route on it when one endpoint serves several tenants. |
-| `project_id` | string \| absent | Project the event belongs to. Present on events that originate inside one. |
-| `channel_id` | string \| null | Channel associated with the event, if applicable. |
+| `project_id` | string \| absent | Project the event belongs to. Only on the message and conversation events — see below. |
+| `channel_id` | string \| null \| absent | Channel associated with the event. Only on the message and conversation events. |
 | `dev_tenant_id` | string \| absent | Reseller flow only. Internal identifier — see the warning below. |
 | `dev_tenant_external_id` | string \| null \| absent | Reseller flow only. The external id you supplied when creating the tenant. |
 | `data` | object | Event-specific payload. Shape varies by `type`. |
 
 <Warning>
-  `dev_tenant_id` is an **internal identifier** and ships only on `whatsapp.message.received`
-  for channels onboarded through the reseller flow. It is documented here because it is on the
+  `dev_tenant_id` is an **internal identifier** and ships only on the inbound-message and
+  conversation events for channels onboarded through the reseller flow. It is documented here because it is on the
   wire today, not because it is part of the contract: do not persist it, do not key on it, and
   expect it to disappear. If you need a stable handle for a tenant, use
   `dev_tenant_external_id` — the value you chose yourself.

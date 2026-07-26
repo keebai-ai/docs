@@ -1,12 +1,32 @@
 ---
 title: "Event catalog"
 sidebarTitle: "Events"
-description: "Full list of events you can subscribe to. Each event has its own `data` shape."
+description: "The 32 events you can subscribe to, across messaging, conversations, CRM, and scheduling. Each event has its own `data` shape."
 ---
 
-Every event is identified by a `type` in the form `<channel>.<domain>.<action>`. The envelope's `data` field changes based on the `type`.
+Every event is identified by a `type` in the form `<domain>.<entity>.<action>`. The envelope's `data` field changes based on the `type`.
 
-## WhatsApp — messages
+## At a glance
+
+| Domain | Events | What they cover |
+|---|---|---|
+| [WhatsApp messages](#whatsapp-messages) | 5 | Inbound messages and the delivery lifecycle of outbound ones. |
+| [WhatsApp templates](#whatsapp-templates) | 1 | Meta approving, rejecting, or pausing a template. |
+| [WhatsApp channels](#whatsapp-channels) | 2 | A channel connecting or disconnecting. |
+| [Instagram](#instagram) | 1 | Inbound Instagram direct messages. |
+| [Conversations](#conversations) | 2 | A conversation opening, and escalation to a human. |
+| [CRM](#crm) | 15 | Customers, tickets, tasks, and notes. |
+| [Scheduling](#scheduling) | 6 | The appointment lifecycle. |
+
+<Note>
+  Subscribe to what you actually process. Every subscription costs you a delivery your endpoint has to answer, and the high-volume ones — `whatsapp.message.delivered` and `whatsapp.message.read` — fire once per recipient per message.
+</Note>
+
+<Warning>
+  **Only the message and conversation events carry `project_id` and `channel_id`.** CRM, scheduling, channel, and template events are emitted from services that do not resolve a project, so those envelope fields are absent. Route on `company_id`, and take any further scoping from `data`.
+</Warning>
+
+## WhatsApp messages
 
 ### `whatsapp.message.received`
 
@@ -136,7 +156,7 @@ Meta rejected the send. Error info is available in `data.error`.
 }
 ```
 
-## WhatsApp — templates
+## WhatsApp templates
 
 ### `whatsapp.template.status_updated`
 
@@ -159,37 +179,390 @@ Meta changed a template's status (approval, rejection, pause, deletion).
 | `status` | `PENDING` \| `IN_REVIEW` \| `APPROVED` \| `REJECTED` \| `PAUSED` \| `DISABLED` \| `IN_APPEAL` |
 | `reason` | string \| null. Meta's reason when it rejects, pauses, or disables a template. |
 
-## WhatsApp — channels
+## WhatsApp channels
+
+Both events fire for **every** channel type, not only WhatsApp — the names are historical. Read `data.type` to tell them apart; the WhatsApp-specific fields are absent on the others.
 
 ### `whatsapp.channel.connected`
 
-A WhatsApp Business channel finished embedded signup. Useful for kicking off onboarding in your product.
+A channel was created and is ready to send and receive. Useful for kicking off onboarding in your product.
 
 ```json
 {
   "type": "whatsapp.channel.connected",
   "data": {
-    "business_account_id": "1234567890",
+    "channel_id": "65b1c2d3e4f5a6b7c8d9e0f1",
+    "type": "whatsapp",
+    "name": "Ventas",
+    "is_active": true,
+    "phone_number": "+56987654321",
     "phone_number_id": "9876543210",
-    "phone_number": "+56987654321"
+    "business_account_id": "1234567890"
   }
 }
 ```
 
+| Field | Type | Description |
+|---|---|---|
+| `channel_id` | string | `ObjectId` of the channel. Matches [`GET /v1/channels`](/dev/endpoints/channels-list). |
+| `type` | string | `whatsapp`, `whatsapp_qr`, `instagram`, `messenger`, `telegram`, `web`, … |
+| `name` | string | Display name given to the channel. |
+| `is_active` | boolean | Always `true` on this event. |
+| `phone_number` | string \| absent | WhatsApp channels only. |
+| `phone_number_id` | string \| absent | WhatsApp channels only. Use it as the sending identity. |
+| `business_account_id` | string \| absent | WhatsApp channels only. |
+
 ### `whatsapp.channel.disconnected`
 
-The channel was disconnected (manually from the portal or revoked by Meta).
+The channel was disconnected — manually from the portal, through the API, or because Meta revoked access.
 
 ```json
 {
   "type": "whatsapp.channel.disconnected",
   "data": {
-    "business_account_id": "1234567890",
-    "phone_number_id": "9876543210",
-    "phone_number": "+56987654321"
+    "channel_id": "65b1c2d3e4f5a6b7c8d9e0f1",
+    "type": "whatsapp",
+    "name": "Ventas",
+    "is_active": false
   }
 }
 ```
+
+The WhatsApp credentials are cleared as part of the disconnect, so `phone_number`, `phone_number_id`, and `business_account_id` are **absent** here even for a WhatsApp channel. Correlate on `channel_id`.
+
+## Instagram
+
+### `instagram.message.received`
+
+Inbound direct message on a connected Instagram account.
+
+```json
+{
+  "type": "instagram.message.received",
+  "occurred_at": "2026-04-27T12:34:56Z",
+  "company_id": "comp_xxx",
+  "channel_id": "65b1c2d3e4f5a6b7c8d9e0f1",
+  "data": {
+    "igb_business_account_id": "17841400000000000",
+    "username": "mi_tienda",
+    "from": "9876543210987654",
+    "message_id": "aWdfZAG1faXRlbToxOk...",
+    "type": "text",
+    "text": { "body": "¿Hacen envíos?" },
+    "timestamp": "1714214096"
+  }
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `igb_business_account_id` | string | Instagram business account that received the message. |
+| `username` | string | Handle of your account. |
+| `from` | string | Instagram-scoped id of the sender. **Not** a username, and it differs per business account. |
+| `message_id` | string | Meta's message id. Idempotency key. |
+| `type` | enum | `text` \| `image` \| `audio` \| `video` \| `document` \| `sticker`. |
+| `text` | object \| absent | Present when `type` is `text`. |
+
+## Conversations
+
+### `conversation.created`
+
+A new conversation opened — the first message of a fresh exchange, after any previous one had closed. Fires for WhatsApp and Instagram.
+
+```json
+{
+  "type": "conversation.created",
+  "occurred_at": "2026-04-27T12:34:56Z",
+  "company_id": "comp_xxx",
+  "channel_id": "65b1c2d3e4f5a6b7c8d9e0f1",
+  "data": {
+    "conversation_id": "65c2d3e4f5a6b7c8d9e0f1a2",
+    "chat_user_id": "65a1f2b3c4d5e6f7a8b9c0d1",
+    "channel_type": "whatsapp",
+    "started_at": "2026-04-27T12:34:56Z"
+  }
+}
+```
+
+`chat_user_id` is the contact's id — the same one [`GET /v1/contacts`](/dev/endpoints/contacts-list) returns as `_id`, and the same one CRM tickets reference as `chat_user`.
+
+<Note>
+  This fires alongside the `*.message.received` event for the same message, not instead of it. If you subscribe to both, expect two deliveries.
+</Note>
+
+### `conversation.escalated_to_human`
+
+A ticket moved into a pipeline stage marked as human-attended, coming from one that was not. This is the "the bot gave up, a person is taking over" signal.
+
+```json
+{
+  "type": "conversation.escalated_to_human",
+  "occurred_at": "2026-04-27T12:40:11Z",
+  "company_id": "comp_xxx",
+  "data": {
+    "ticket_id": "65d3e4f5a6b7c8d9e0f1a2b3",
+    "chat_user_id": "65a1f2b3c4d5e6f7a8b9c0d1",
+    "chat_user_name": "Juan Pérez",
+    "chat_user_channel": "whatsapp",
+    "assigned_to": "65e4f5a6b7c8d9e0f1a2b3c4",
+    "previous_stage_id": "65f5a6b7c8d9e0f1a2b3c4d5",
+    "current_stage_id": "6506b7c8d9e0f1a2b3c4d5e6",
+    "escalated_at": "2026-04-27T12:40:11Z"
+  }
+}
+```
+
+It fires on the **transition**, once — not on every message while a human is attending. Moving back to a bot stage and escalating again fires it a second time.
+
+## CRM
+
+Fifteen events covering the four [CRM entities](/dev/crm/overview). They fire on **every** write path — the portal, the [public API](/dev/endpoints/crm-customers-list), and the [MCP server](/dev/mcp/tools) all go through the same service, so you get the event regardless of who made the change.
+
+<Warning>
+  These events are **not filtered by project**. A subscription receives CRM events from every project in your company, matching the behaviour of the CRM read endpoints.
+</Warning>
+
+### Customers
+
+`crm.customer.created` · `crm.customer.updated` · `crm.customer.deleted`
+
+```json
+{
+  "type": "crm.customer.created",
+  "occurred_at": "2026-04-27T12:34:56Z",
+  "company_id": "comp_xxx",
+  "data": {
+    "customer": {
+      "id": "65a1f2b3c4d5e6f7a8b9c0d1",
+      "name": "Juan",
+      "last_name": "Pérez",
+      "email": "juan@example.com",
+      "phone": "+56912345678",
+      "identification_number": "12345678-9",
+      "identification_type": "rut",
+      "identification_country": "CL",
+      "tags": [],
+      "accepts_marketing": true,
+      "created_at": "2026-04-27T12:34:56Z",
+      "updated_at": "2026-04-27T12:34:56Z"
+    }
+  }
+}
+```
+
+On `crm.customer.deleted` the record is already gone, so only the id survives:
+
+```json
+{
+  "type": "crm.customer.deleted",
+  "data": { "customer": { "id": "65a1f2b3c4d5e6f7a8b9c0d1" } }
+}
+```
+
+### Tickets
+
+`crm.ticket.created` · `crm.ticket.updated` · `crm.ticket.deleted` · `crm.ticket.stage_changed` · `crm.ticket.closed`
+
+```json
+{
+  "type": "crm.ticket.stage_changed",
+  "occurred_at": "2026-04-27T12:40:11Z",
+  "company_id": "comp_xxx",
+  "data": {
+    "ticket": {
+      "id": "65d3e4f5a6b7c8d9e0f1a2b3",
+      "chat_user_id": "65a1f2b3c4d5e6f7a8b9c0d1",
+      "chat_user_name": "Juan Pérez",
+      "chat_user_channel": "whatsapp",
+      "stage_id": "6506b7c8d9e0f1a2b3c4d5e6",
+      "priority": "high",
+      "category": "soporte",
+      "assigned_to": "65e4f5a6b7c8d9e0f1a2b3c4",
+      "is_closed": false,
+      "amount": 150000,
+      "amount_currency": "CLP",
+      "amount_status": "estimated",
+      "tags": ["65c2d3e4f5a6b7c8d9e0f1a2"],
+      "created_at": "2026-04-27T12:34:56Z",
+      "updated_at": "2026-04-27T12:40:11Z"
+    },
+    "previous_stage_id": "65f5a6b7c8d9e0f1a2b3c4d5",
+    "current_stage_id": "6506b7c8d9e0f1a2b3c4d5e6",
+    "is_human_stage": true,
+    "stage_type": "in_progress"
+  }
+}
+```
+
+The four extra fields — `previous_stage_id`, `current_stage_id`, `is_human_stage`, `stage_type` — appear **only** on `crm.ticket.stage_changed`.
+
+Two things worth knowing about the ordering:
+
+- **`crm.ticket.closed` comes with `crm.ticket.updated`, not instead of it.** Closing a ticket is an update that also happens to close it, so you get both. `closed` only fires on the transition from open to closed, never on a re-save of an already-closed ticket.
+- **A stage move that escalates also emits [`conversation.escalated_to_human`](#conversation-escalated-to-human).** Same underlying change, two events, because they answer different questions.
+
+### Tasks
+
+`crm.task.created` · `crm.task.updated` · `crm.task.deleted` · `crm.task.completed`
+
+```json
+{
+  "type": "crm.task.completed",
+  "occurred_at": "2026-04-27T15:02:18Z",
+  "company_id": "comp_xxx",
+  "data": {
+    "task": {
+      "id": "6517c8d9e0f1a2b3c4d5e6f7",
+      "title": "Llamar para confirmar la propuesta",
+      "description": "Coordinar con el equipo comercial",
+      "status": "completed",
+      "priority": "high",
+      "assigned_to": "65e4f5a6b7c8d9e0f1a2b3c4",
+      "due_at": "2026-04-28T13:00:00Z",
+      "created_at": "2026-04-27T12:34:56Z",
+      "updated_at": "2026-04-27T15:02:18Z"
+    }
+  }
+}
+```
+
+Like tickets, `crm.task.completed` accompanies `crm.task.updated` and fires only on the transition into `completed`.
+
+### Notes
+
+`crm.note.created` · `crm.note.updated` · `crm.note.deleted`
+
+```json
+{
+  "type": "crm.note.created",
+  "occurred_at": "2026-04-27T12:45:00Z",
+  "company_id": "comp_xxx",
+  "data": {
+    "note": {
+      "id": "6528d9e0f1a2b3c4d5e6f7a8",
+      "content": "Pidió cotización por 20 unidades",
+      "type": "call",
+      "chat_user_id": "65a1f2b3c4d5e6f7a8b9c0d1",
+      "ticket_id": "65d3e4f5a6b7c8d9e0f1a2b3",
+      "created_by": "65e4f5a6b7c8d9e0f1a2b3c4",
+      "created_at": "2026-04-27T12:45:00Z",
+      "updated_at": "2026-04-27T12:45:00Z"
+    }
+  }
+}
+```
+
+## Scheduling
+
+Six events covering the appointment lifecycle. The payload carries the branch, service, professional, and customer inline, so a subscriber rarely needs a follow-up API call.
+
+### `scheduling.appointment.created`
+
+A new appointment was booked — from the portal, the public API, the assistant, or an external calendar sync.
+
+```json
+{
+  "type": "scheduling.appointment.created",
+  "occurred_at": "2026-04-27T12:34:56Z",
+  "company_id": "comp_xxx",
+  "data": {
+    "appointment": {
+      "id": "3f9a2c14-6b7d-4e88-9a01-5c2d3e4f5a6b",
+      "appointment_number": 1042,
+      "status": "pending",
+      "appointment_type": "in-person",
+      "start": "2026-04-29T14:00:00.000Z",
+      "end": "2026-04-29T14:45:00.000Z",
+      "time_zone": "America/Santiago",
+      "branch": { "id": "br_01", "display_name": "Sucursal Providencia" },
+      "service": { "id": "sv_07", "display_name": "Consulta general" },
+      "professional": {
+        "id": "pr_12",
+        "name": "Ana",
+        "last_name": "Silva",
+        "specialty": "Kinesiología"
+      },
+      "customer": {
+        "id": "65a1f2b3c4d5e6f7a8b9c0d1",
+        "name": "Juan",
+        "last_name": "Pérez",
+        "email": "juan@example.com",
+        "phone": "+56912345678"
+      },
+      "price": 25000,
+      "currency": "CLP",
+      "paid": false,
+      "payment_status": "pending",
+      "source": "web",
+      "created_at": "2026-04-27T12:34:56Z",
+      "updated_at": "2026-04-27T12:34:56Z"
+    }
+  }
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | string | UUID v4, not an `ObjectId` — scheduling uses a different id scheme from the rest of the API. |
+| `status` | enum | `pending` \| `confirmed` \| `completed` \| `cancelled` \| `blocked` \| `waitlist` \| `no_show`. |
+| `source` | enum | `agenda` (staff), `web` (public booking), `ia` (the assistant booked it). |
+| `professional` | object \| absent | Absent when the appointment has no assigned professional. |
+| `customer` | object \| absent | Absent on blocks and internal reservations. |
+
+### `scheduling.appointment.updated`
+
+Any change that is not a reschedule, a cancellation, or a confirmation — a professional swap, a price change, a note. Same `appointment` shape.
+
+When the change came from a status transition, `data.previous_status` carries the old value.
+
+### `scheduling.appointment.confirmed`
+
+The appointment moved to `confirmed`. Fires alongside `scheduling.appointment.updated`, with `data.previous_status`.
+
+```json
+{
+  "type": "scheduling.appointment.confirmed",
+  "data": {
+    "appointment": { "id": "3f9a2c14-...", "status": "confirmed" },
+    "previous_status": "pending"
+  }
+}
+```
+
+### `scheduling.appointment.rescheduled`
+
+The appointment moved to a different time or professional. The previous slot is included so you can update an external calendar without keeping your own copy.
+
+```json
+{
+  "type": "scheduling.appointment.rescheduled",
+  "data": {
+    "appointment": { "id": "3f9a2c14-...", "start": "2026-04-30T16:00:00.000Z", "end": "2026-04-30T16:45:00.000Z" },
+    "previous_start": "2026-04-29T14:00:00.000Z",
+    "previous_end": "2026-04-29T14:45:00.000Z",
+    "previous_status": "confirmed"
+  }
+}
+```
+
+### `scheduling.appointment.cancelled`
+
+The appointment was cancelled. `data.cancellation_reason` is present when the caller supplied one.
+
+```json
+{
+  "type": "scheduling.appointment.cancelled",
+  "data": {
+    "appointment": { "id": "3f9a2c14-...", "status": "cancelled" },
+    "previous_status": "confirmed",
+    "cancellation_reason": "El cliente no puede asistir"
+  }
+}
+```
+
+### `scheduling.appointment.no_show`
+
+The appointment was marked as a no-show. Fires alongside `scheduling.appointment.updated`, with `data.previous_status`.
 
 ## Synthetic events (`_test: true`)
 
