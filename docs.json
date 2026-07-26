@@ -205,6 +205,10 @@
       {
         "tab": "CRM",
         "icon": "address-book",
+        "openapi": {
+          "source": "https://api.keebai.com/v1/docs-json",
+          "directory": "_openapi/crm"
+        },
         "groups": [
           {
             "group": "Get started",
