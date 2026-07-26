@@ -2,7 +2,7 @@
 title: "PATCH /v1/templates/{id}"
 sidebarTitle: "PATCH templates"
 description: "Edit an existing template: components, category, language, or status."
-openapi: "PATCH /v1/templates/{id}"
+openapi: "https://api.keebai.com/v1/docs-json PATCH /v1/templates/{id}"
 ---
 
 Updates an existing template. Internally syncs the changes with Meta when applicable (for example when editing `components` or `category`). Only send the fields you want to change; the rest stays as-is.

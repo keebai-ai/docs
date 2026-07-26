@@ -2,7 +2,7 @@
 title: "GET /v1/knowledge/tree"
 sidebarTitle: "GET tree"
 description: "Returns the full tree of folders and documents in your company's knowledge base."
-openapi: "GET /v1/knowledge/tree"
+openapi: "https://api.keebai.com/v1/docs-json GET /v1/knowledge/tree"
 ---
 
 Returns the full hierarchy of active folders and documents in the knowledge base. The response is a tree nested by `parent_id`, ordered by `position`. Nodes don't include content (`content_json` / `content_text`) to keep the response lightweight — to create documents use [`POST /v1/knowledge/documents`](/dev/endpoints/knowledge-document-create), and to search within their content use [`POST /v1/knowledge/search`](/dev/endpoints/knowledge-search).

@@ -2,7 +2,7 @@
 title: "POST /v1/knowledge/assignments"
 sidebarTitle: "POST assign"
 description: "Assign knowledge base nodes to all of an assistant's workers."
-openapi: "POST /v1/knowledge/assignments"
+openapi: "https://api.keebai.com/v1/docs-json POST /v1/knowledge/assignments"
 ---
 
 Associates one or more knowledge base nodes with an assistant. The assignment propagates to **all of the assistant's workers** (except `supervisor` workers), adding the given `node_id` values to their list of accessible knowledge. The operation is idempotent: if a node was already assigned, it isn't duplicated.

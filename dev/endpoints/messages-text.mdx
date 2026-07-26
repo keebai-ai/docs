@@ -2,7 +2,7 @@
 title: "POST /v1/messages/text"
 sidebarTitle: "POST messages/text"
 description: "Send free-form text to a recipient with an open 24-hour conversation window. For sends outside that window, use a template."
-openapi: "POST /v1/messages/text"
+openapi: "https://api.keebai.com/v1/docs-json POST /v1/messages/text"
 ---
 
 Sends a free-form text message to a recipient. WhatsApp only allows free-form text inside the **24-hour window** since the user's last inbound message; if the window is closed, Meta will reject the message and the broadcast ends in `FAILED`. For sends outside the window, use [`POST /v1/messages/template`](/dev/endpoints/messages-template).

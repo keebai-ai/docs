@@ -2,7 +2,7 @@
 title: "GET /v1/scheduling/services/:id"
 sidebarTitle: "GET services/:id"
 description: "Fetch the full detail of a service: duration, buffers, time restrictions, and allowed professionals."
-openapi: "GET /v1/scheduling/services/{id}"
+openapi: "https://api.keebai.com/v1/docs-json GET /v1/scheduling/services/{id}"
 ---
 
 Returns the requested service as long as it belongs to the PAT's tenant. Includes the fields needed to build a service picker in a public UI (duration, description, pricing) and the data the availability engine uses internally (`time_rules`, `allowedProfessionals`).

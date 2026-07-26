@@ -2,7 +2,7 @@
 title: "GET /v1/templates"
 sidebarTitle: "GET templates"
 description: "Lists your tenant's approved WhatsApp templates with their expected variables, paginated."
-openapi: "GET /v1/templates"
+openapi: "https://api.keebai.com/v1/docs-json GET /v1/templates"
 ---
 
 Returns the WhatsApp templates for your tenant. By default only `APPROVED` ones, but you can filter by status. Each item includes the expected variables extracted from the template body, so you can build the right `variables` payload for [`POST /v1/messages/template`](/dev/endpoints/messages-template) without keeping that list on your side.

@@ -2,7 +2,7 @@
 title: "GET /v1/messages/bulk/:broadcastId"
 sidebarTitle: "GET messages/bulk/:id"
 description: "Returns the status and counters of a bulk send: total, sent, failed, and pending."
-openapi: "GET /v1/messages/bulk/{broadcastId}"
+openapi: "https://api.keebai.com/v1/docs-json GET /v1/messages/bulk/{broadcastId}"
 ---
 
 Returns the status of a broadcast created by [`POST /v1/messages/bulk`](/dev/endpoints/messages-bulk) or by any single send (`/v1/messages/template`, `/v1/messages/text`), which internally also creates a broadcast.

@@ -2,7 +2,7 @@
 title: "POST /v1/crm/tickets/:id/stage"
 sidebarTitle: "POST crm/tickets/{id}/stage"
 description: "Move a ticket to another stage of its pipeline and read back what the transition triggered."
-openapi: "POST /v1/crm/tickets/{id}/stage"
+openapi: "https://api.keebai.com/v1/docs-json POST /v1/crm/tickets/{id}/stage"
 ---
 
 Moves a ticket to a different stage. This is the endpoint to use for pipeline transitions — it runs the pipeline's own rules and reports what the move triggered, which a plain field write through [`PATCH /v1/crm/tickets/:id`](/dev/endpoints/crm-ticket-update) does not.
