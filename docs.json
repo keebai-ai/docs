@@ -114,16 +114,7 @@
           {
             "group": "WhatsApp",
             "pages": [
-              "dev/endpoints/messages-template",
-              "dev/endpoints/messages-text",
-              "dev/endpoints/messages-image",
-              "dev/endpoints/messages-video",
-              "dev/endpoints/messages-audio",
-              "dev/endpoints/messages-document",
-              "dev/endpoints/messages-sticker",
-              "dev/endpoints/messages-location",
-              "dev/endpoints/messages-contacts",
-              "dev/endpoints/messages-reaction",
+              "dev/endpoints/messages-send",
               "dev/endpoints/messages-mark-read",
               "dev/endpoints/messages-raw",
               "dev/endpoints/messages-bulk",
@@ -131,12 +122,15 @@
             ]
           },
           {
-            "group": "Interactive",
+            "group": "WhatsApp Flows",
             "pages": [
-              "dev/endpoints/messages-interactive-buttons",
-              "dev/endpoints/messages-interactive-list",
-              "dev/endpoints/messages-interactive-cta-url",
-              "dev/endpoints/messages-interactive-catalog"
+              "dev/messaging/flows",
+              "dev/endpoints/flows-create",
+              "dev/endpoints/flows-list",
+              "dev/endpoints/flows-get",
+              "dev/endpoints/flows-update",
+              "dev/endpoints/flows-publish",
+              "dev/endpoints/flows-delete"
             ]
           },
           {

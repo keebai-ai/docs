@@ -34,7 +34,8 @@ POST https://api.keebai.com/v1/messages/bulk
 |---|---|---|---|
 | `template_name` | `string` | Yes | Name of the approved template. |
 | `language` | `string` | Yes | Template language code. |
-| `phone_number_id` | `string` | Yes | WhatsApp Business `phone_number_id` of the sending number — the numeric id Meta issues, not a Keebai `ObjectId`. List yours with [`GET /v1/whatsapp/numbers`](/dev/endpoints/whatsapp-numbers). |
+| `channel_id` | `string` | No | Keebai channel id of the WhatsApp channel. Only needed when the project has more than one active WhatsApp channel. |
+| `phone_number_id` | `string` | No | Alias for `channel_id`: the numeric id Meta issues for the sending number, not a Keebai `ObjectId`. List yours with [`GET /v1/whatsapp/numbers`](/dev/endpoints/whatsapp-numbers). |
 | `campaign_name` | `string` | No | Human-readable name to identify the campaign in the portal. Auto-generated if omitted. |
 | `recipients` | `array` | Yes | Between 1 and 5000 recipients. Each item: `{ to, variables?, meta_data? }`. |
 

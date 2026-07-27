@@ -6,6 +6,10 @@ description: "@keebai/sdk — the official Keebai TypeScript client for WhatsApp
 
 The official Keebai SDK for Node.js, TypeScript, and modern runtimes. Saves you from writing your own HTTP layer against Meta Graph API or `api.keebai.com/v1`.
 
+<Warning>
+  **Pending migration.** The published SDK still targets the per-type routes (`/v1/messages/text`, `/v1/messages/image`, …) that were replaced by the single [`POST /v1/messages`](/dev/endpoints/messages-send). Its `keebai` mode will fail against the current API until a new version ships; `meta` mode, which talks straight to Meta Cloud API, is unaffected. Call the REST endpoint directly in the meantime.
+</Warning>
+
 ```ts
 import { WhatsAppClient } from "@keebai/sdk";
 

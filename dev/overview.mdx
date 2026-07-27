@@ -56,8 +56,8 @@ All public-API routes live under this prefix. The browsable Swagger UI is at [ap
 
 | Method | Path | Scope | Description |
 |---|---|---|---|
-| `POST` | `/v1/messages/template` | `messages:send` | Send an approved template to a recipient. |
-| `POST` | `/v1/messages/text` | `messages:send` | Send free text inside the 24h conversation window. |
+| `POST` | `/v1/messages` | `messages:send` | Send any message type on any connected channel. |
+| `POST` | `/v1/flows` | `flows:write` | Create a WhatsApp Flow. |
 | `POST` | `/v1/messages/bulk` | `messages:bulk` | Send a template to many recipients (up to 5,000). |
 | `GET` | `/v1/messages/bulk/:broadcastId` | `messages:bulk` | Status of a bulk send. |
 

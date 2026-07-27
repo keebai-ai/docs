@@ -1,0 +1,55 @@
+---
+title: "PUT /v1/flows/{id}"
+sidebarTitle: "PUT flows/:id"
+description: "Update a WhatsApp Flow. Sending flow_data re-uploads the Flow JSON at Meta."
+openapi: "PUT /v1/flows/{id}"
+---
+
+Updates a Flow's metadata and, when `flow_data` is present, re-uploads its Flow JSON to Meta.
+
+<Warning>
+  Meta does not allow editing a Flow that is already `published`. Update the Flow while it is still a draft, or create a new one and switch your sends over to its `meta_flow_id`.
+</Warning>
+
+## Endpoint
+
+```
+PUT https://api.keebai.com/v1/flows/{id}
+```
+
+## Required scope
+
+`flows:write`
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `name` | `string` | No | Up to 100 characters. |
+| `description` | `string` | No | Up to 500 characters. |
+| `categories` | `string[]` | No | Same values as on [create](/dev/endpoints/flows-create#body). |
+| `flow_data` | `object` | No | Replacement Flow JSON. Re-uploaded as the Flow asset at Meta. |
+| `metadata` | `object` | No | Free-form metadata stored in Keebai. |
+
+## Example request
+
+```bash curl
+curl -X PUT https://api.keebai.com/v1/flows/66a1f2b3c4d5e6f708192a3b \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{ "description": "Reserva de mesa — v2 con selector de sucursal" }'
+```
+
+## Response
+
+### 200 OK
+
+The updated Flow, same shape as [`GET /v1/flows/{id}`](/dev/endpoints/flows-get#200-ok).
+
+### 400 Bad Request
+
+Invalid id, invalid Flow JSON, or Meta refused the update because the Flow is published.
+
+### 404 Not Found
+
+`FLOW_NOT_FOUND`.

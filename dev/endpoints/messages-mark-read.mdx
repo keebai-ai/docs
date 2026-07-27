@@ -30,7 +30,8 @@ POST https://api.keebai.com/v1/messages/mark-read
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `phone_number_id` | `string` | Yes | WhatsApp Business `phone_number_id` that received the message. |
+| `channel_id` | `string` | No | Keebai channel id of the WhatsApp channel. Only needed when the project has more than one active WhatsApp channel. |
+| `phone_number_id` | `string` | No | Alias for `channel_id`: the WhatsApp Business `phone_number_id` that received the message. |
 | `message_id` | `string` | Yes | Meta `message_id` (`wamid.*`) to mark as read. |
 | `typing_indicator` | `string` | No | `text` shows the typing bubble; `off` hides it. |
 

@@ -211,4 +211,4 @@ keebai whatsapp messages send \
   --text "Hello from the QR channel"
 ```
 
-Internally the CLI calls `POST /v1/messages/text`, which detects the channel type (Cloud API vs QR) and routes accordingly. Templates and bulk are not supported against QR channels.
+Internally the CLI calls `POST /v1/messages` with a `text` message, which detects the channel type (Cloud API vs QR) and routes accordingly. Templates and bulk are not supported against QR channels.

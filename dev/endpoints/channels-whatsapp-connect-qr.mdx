@@ -149,7 +149,7 @@ The CLI creates the session, opens the stream, draws the QR in the terminal, ref
     If nobody scanned, the stream closes and the `session_id` stops working. Request a new session.
   </Card>
   <Card title="Don't use Cloud API against this channel">
-    QR channels don't support templates or bulk sends (Meta doesn't expose Cloud API on multi-device). `POST /v1/messages/template` and `POST /v1/messages/bulk` return `400 QR_NOT_SUPPORTED_FOR_TEMPLATE_OR_BULK`. `POST /v1/messages/text` works as usual.
+    QR channels don't support templates or bulk sends (Meta doesn't expose Cloud API on multi-device). A `template` message on `channel: "whatsapp_qr"` is rejected with `422 MESSAGE_TYPE_NOT_SUPPORTED_FOR_CHANNEL`, and `POST /v1/messages/bulk` returns `400 QR_NOT_SUPPORTED_FOR_TEMPLATE_OR_BULK`. Text and media work as usual.
   </Card>
 </CardGroup>
 
@@ -158,12 +158,13 @@ The CLI creates the session, opens the stream, draws the QR in the terminal, ref
 Once connected, QR channels show up in `GET /v1/whatsapp/numbers` with `connection_type: "qr"` and are used with the same endpoint as Cloud API ones:
 
 ```bash
-curl -X POST https://api.keebai.com/v1/messages/text \
+curl -X POST https://api.keebai.com/v1/messages \
   -H "Authorization: Bearer kbai_pk_xxx" \
   -H "Content-Type: application/json" \
   -d '{
-    "channel_id": "ch_01HXYZ...",
+    "channel": "whatsapp_qr",
+    "channel_id": "665f1a2b3c4d5e6f70819234",
     "to": "+5491155555555",
-    "text": "Hello from the QR channel"
+    "message": { "type": "text", "body": "Hello from the QR channel" }
   }'
 ```

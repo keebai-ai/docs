@@ -145,10 +145,10 @@ curl https://api.keebai.com/v1/me \
 curl https://api.keebai.com/v1/webhooks \
   -H "Authorization: Bearer $TOKEN"
 
-curl https://api.keebai.com/v1/messages/template \
+curl https://api.keebai.com/v1/messages \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"phone_number_id":"...","to":"+15551234567","template_name":"welcome","language":"en_US"}'
+  -d '{"channel":"whatsapp","to":"+15551234567","message":{"type":"template","name":"welcome","language":"en_US"}}'
 ```
 
 ## Global flags

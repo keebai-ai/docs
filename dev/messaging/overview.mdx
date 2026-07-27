@@ -1,10 +1,10 @@
 ---
 title: "Messaging overview"
 sidebarTitle: "Overview"
-description: "Send WhatsApp messages, manage templates, and connect channels — the sending identity, the 24-hour window, and how broadcasts work."
+description: "Send messages on WhatsApp, Instagram and Messenger, manage templates and Flows, and connect channels — the sending identity, the 24-hour window, and how broadcasts work."
 ---
 
-The messaging surface is how you send WhatsApp from your own backend: one-off messages, Meta-approved templates, and bulk broadcasts, plus the contacts, templates, and channels that back them.
+The messaging surface is how you send from your own backend: one endpoint for every message type on every connected channel, plus the contacts, templates, Flows and channels that back them.
 
 ## What you can do
 
@@ -12,14 +12,17 @@ The messaging surface is how you send WhatsApp from your own backend: one-off me
   <Card title="Manage contacts" icon="address-book" href="/dev/endpoints/contacts-list">
     List, read, create, update, and delete the people on the other side of your channels.
   </Card>
-  <Card title="Send messages" icon="paper-plane" href="/dev/endpoints/messages-text">
-    Free-form text and approved templates to a single recipient, plus media, location, contacts, reactions, and interactive messages.
+  <Card title="Send messages" icon="paper-plane" href="/dev/endpoints/messages-send">
+    One endpoint for text, media, location, contacts, reactions, approved templates, interactive blocks and Flows — on WhatsApp, Instagram or Messenger.
   </Card>
   <Card title="Broadcast" icon="tower-broadcast" href="/dev/endpoints/messages-bulk">
     Schedule a template to many recipients in one call and poll the campaign's status.
   </Card>
   <Card title="Manage templates" icon="file-lines" href="/dev/endpoints/templates-list">
     List the approved catalog, create new templates, and submit them to Meta for approval.
+  </Card>
+  <Card title="Build WhatsApp Flows" icon="diagram-project" href="/dev/messaging/flows">
+    Create, publish and send in-chat forms — bookings, surveys, lead capture — without leaving WhatsApp.
   </Card>
   <Card title="Connect channels" icon="plug" href="/dev/endpoints/channels-list">
     List connected channels and onboard a new WhatsApp Business number without the portal.
@@ -36,11 +39,13 @@ The messaging surface is how you send WhatsApp from your own backend: one-off me
 | `contacts:read` | [List](/dev/endpoints/contacts-list) and [read](/dev/endpoints/contacts-get) contacts. |
 | `contacts:write` | [Create](/dev/endpoints/contacts-create) and [update](/dev/endpoints/contacts-update) contacts, including custom fields. |
 | `contacts:delete` | [Delete contacts](/dev/endpoints/contacts-delete). Permanent. |
-| `messages:send` | Send a single message — text, template, media, interactive. Also covers the whole `/v1/media` surface: upload, metadata, download, delete. |
+| `messages:send` | [Send a single message](/dev/endpoints/messages-send) of any type, on any channel. Also covers the whole `/v1/media` surface: upload, metadata, download, delete. |
 | `messages:bulk` | [Launch broadcasts](/dev/endpoints/messages-bulk) and [read their status](/dev/endpoints/messages-bulk-status). |
 | `templates:read` | [Read the approved template catalog](/dev/endpoints/templates-list). |
 | `templates:create` | [Create templates](/dev/endpoints/templates-create) and submit them to Meta. |
 | `templates:update` | [Edit an existing template](/dev/endpoints/templates-update). |
+| `flows:read` | [List](/dev/endpoints/flows-list) and [read](/dev/endpoints/flows-get) WhatsApp Flows. |
+| `flows:write` | [Create](/dev/endpoints/flows-create), [update](/dev/endpoints/flows-update), [publish](/dev/endpoints/flows-publish) and [delete](/dev/endpoints/flows-delete) Flows. |
 | `channels:read` | [List channels](/dev/endpoints/channels-list) and [WhatsApp numbers](/dev/endpoints/whatsapp-numbers). |
 | `channels:connect` | [Start and poll a connect session](/dev/endpoints/channels-whatsapp-connect). |
 
@@ -60,11 +65,17 @@ Two identifiers matter, and confusing them is the most common integration bug:
 
 Contacts are also how the messaging and [CRM](/dev/crm/overview) surfaces meet: a CRM ticket hangs off a contact's `_id`, not off a CRM customer.
 
-## The sending identity is `phone_number_id`
+## Picking the sending channel
 
-Every send takes a `phone_number_id`: the **numeric identifier Meta issues** for the sending number, like `109876543210987`. It is not a Keebai `ObjectId`, and it is not the phone number itself.
+Every send declares a `channel` — `whatsapp`, `whatsapp_qr`, `instagram` or `messenger`. Which concrete channel it uses is resolved in this order:
 
-List the ones available to you with [`GET /v1/whatsapp/numbers`](/dev/endpoints/whatsapp-numbers) and cache the result — numbers change when someone connects or disconnects a channel, which is a human-timescale event, not a per-request one.
+1. `channel_id`, the Keebai id of the channel. Authoritative. List them with [`GET /v1/channels`](/dev/endpoints/channels-list).
+2. `phone_number_id`, a WhatsApp-only alias: the **numeric identifier Meta issues** for the sending number, like `109876543210987`. It is not a Keebai `ObjectId`, and it is not the phone number itself. List yours with [`GET /v1/whatsapp/numbers`](/dev/endpoints/whatsapp-numbers).
+3. Neither — then the project must have exactly one active channel of that type, and it is used. With more than one, the request fails with `400 CHANNEL_AMBIGUOUS` and lists the candidates.
+
+Cache whichever identifier you use. Channels change when someone connects or disconnects one, which is a human-timescale event, not a per-request one.
+
+Not every channel carries every message type: `template`, `location`, `contacts`, `catalog` and `flow` are WhatsApp-only, and an unsupported pair fails with `422 MESSAGE_TYPE_NOT_SUPPORTED_FOR_CHANNEL`. The full matrix is on the [send endpoint](/dev/endpoints/messages-send#message-types).
 
 ## The 24-hour window
 
@@ -72,8 +83,8 @@ WhatsApp only allows **free-form** messages inside 24 hours of the recipient's l
 
 | Situation | What to send |
 |---|---|
-| The user wrote to you in the last 24h | Anything — [text](/dev/endpoints/messages-text), media, interactive. |
-| The window is closed, or they never wrote | A [Meta-approved template](/dev/endpoints/messages-template). |
+| The user wrote to you in the last 24h | Anything — text, media, interactive, Flows. |
+| The window is closed, or they never wrote | A Meta-approved template: `{"type": "template", ...}`. |
 
 <Warning>
   Keebai does **not** reject a free-form send when the window is closed. The request is forwarded to Meta, and the rejection comes back as a `502` with Meta's error passed through. A `202` means Meta accepted the message, never that it reached the device — for that, watch an [outbound webhook](/dev/webhooks/overview).
@@ -104,7 +115,7 @@ The two paths are not the same shape, and mixing them up is a common mistake.
 
 </CodeGroup>
 
-A single send gives you a Meta `message_id` — keep it to correlate the delivery and read webhooks. Only [`POST /v1/messages/bulk`](/dev/endpoints/messages-bulk) returns a `broadcast_id`, and it is the only thing [`GET /v1/messages/bulk/:broadcastId`](/dev/endpoints/messages-bulk-status) accepts.
+A single send through [`POST /v1/messages`](/dev/endpoints/messages-send) gives you a provider `message_id` — keep it to correlate the delivery and read webhooks. Only [`POST /v1/messages/bulk`](/dev/endpoints/messages-bulk) returns a `broadcast_id`, and it is the only thing [`GET /v1/messages/bulk/:broadcastId`](/dev/endpoints/messages-bulk-status) accepts.
 
 This also makes the cost model clear: one broadcast to 5,000 recipients is **one** request against your [daily quota](/dev/rate-limits); a loop over 5,000 single sends is 5,000.
 
@@ -131,10 +142,10 @@ Branch on `error.code`, not on the message text.
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Send your first message" icon="paper-plane" href="/dev/endpoints/messages-text">
-    Free-form text to an open conversation.
+  <Card title="Send your first message" icon="paper-plane" href="/dev/endpoints/messages-send">
+    One endpoint, sixteen message types, four channels.
   </Card>
-  <Card title="Send a template" icon="file-lines" href="/dev/endpoints/messages-template">
-    Reach someone outside the 24-hour window.
+  <Card title="Build a WhatsApp Flow" icon="diagram-project" href="/dev/messaging/flows">
+    Collect structured data inside the chat instead of linking out to a form.
   </Card>
 </CardGroup>

@@ -1,0 +1,105 @@
+---
+title: "POST /v1/flows"
+sidebarTitle: "POST flows"
+description: "Create a WhatsApp Flow: registers it at Meta and uploads its Flow JSON. The Flow starts as a draft."
+openapi: "POST /v1/flows"
+---
+
+Creates a WhatsApp Flow on the channel's WhatsApp Business Account and uploads the Flow JSON as its asset. The Flow starts in `draft` — [publish it](/dev/endpoints/flows-publish) before sending it to real recipients.
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/flows
+```
+
+## Required scope
+
+`flows:write`
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `channel_id` | `string` | No | Keebai channel id of the WhatsApp channel that owns the Flow. Only needed when the project has more than one active WhatsApp channel. |
+| `phone_number_id` | `string` | No | Alias for `channel_id`: the numeric Meta `phone_number_id`. |
+| `name` | `string` | Yes | Flow name, unique per channel. Up to 100 characters. |
+| `description` | `string` | No | Up to 500 characters. |
+| `categories` | `string[]` | No | Any of `OTHER`, `SIGN_UP`, `SIGN_IN`, `APPOINTMENT_BOOKING`, `LEAD_GENERATION`, `CONTACT_US`, `CUSTOMER_SUPPORT`, `SURVEY`. Defaults to `["OTHER"]`. |
+| `flow_data` | `object` | Yes | Flow JSON as defined by Meta: `version`, `screens`, `routing_model`. |
+| `metadata` | `object` | No | Free-form metadata stored alongside the Flow in Keebai. |
+
+## Example request
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/flows \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "reserva-mesa",
+    "description": "Reserva de mesa en dos pasos",
+    "categories": ["APPOINTMENT_BOOKING"],
+    "flow_data": {
+      "version": "7.0",
+      "screens": [
+        {
+          "id": "WELCOME",
+          "title": "Reservar mesa",
+          "terminal": true,
+          "data": {},
+          "layout": {
+            "type": "SingleColumnLayout",
+            "children": [
+              {
+                "type": "Form",
+                "name": "reserva",
+                "children": [
+                  { "type": "TextInput", "name": "nombre", "label": "Nombre", "required": true },
+                  { "type": "DatePicker", "name": "fecha", "label": "Fecha", "required": true },
+                  {
+                    "type": "Footer",
+                    "label": "Reservar",
+                    "on-click-action": {
+                      "name": "complete",
+                      "payload": { "nombre": "${form.nombre}", "fecha": "${form.fecha}" }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }'
+```
+
+## Response
+
+### 201 Created
+
+```json
+{
+  "id": "66a1f2b3c4d5e6f708192a3b",
+  "channel_id": "665f1a2b3c4d5e6f70819234",
+  "name": "reserva-mesa",
+  "description": "Reserva de mesa en dos pasos",
+  "meta_flow_id": "1234567890123456",
+  "categories": ["APPOINTMENT_BOOKING"],
+  "status": "draft",
+  "flow_data": { "version": "7.0", "screens": [] },
+  "metadata": {},
+  "created_at": "2026-07-27T14:31:07.221Z",
+  "updated_at": "2026-07-27T14:31:07.221Z"
+}
+```
+
+`meta_flow_id` is what you pass as `flow_id` when sending a message of type `flow` through [`POST /v1/messages`](/dev/endpoints/messages-send).
+
+### 400 Bad Request
+
+The channel is not WhatsApp, has no Meta credentials, or the Flow JSON was rejected by Meta.
+
+### 409 Conflict
+
+A Flow with that name already exists on the channel.

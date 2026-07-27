@@ -5,7 +5,7 @@ description: "Lists your tenant's approved WhatsApp templates with their expecte
 openapi: "GET /v1/templates"
 ---
 
-Returns the WhatsApp templates for your tenant. By default only `APPROVED` ones, but you can filter by status. Each item includes the expected variables extracted from the template body, so you can build the right `variables` payload for [`POST /v1/messages/template`](/dev/endpoints/messages-template) without keeping that list on your side.
+Returns the WhatsApp templates for your tenant. By default only `APPROVED` ones, but you can filter by status. Each item includes the expected variables extracted from the template body, so you can build the right `variables` payload for `POST /v1/messages` with `{"type": "template"}` without keeping that list on your side.
 
 ## Endpoint
 
@@ -104,7 +104,7 @@ items = resp.json()["items"]
 | `items[].status` | `string` | Template status in Meta. |
 | `items[].category` | `string` | `MARKETING`, `UTILITY`, `AUTHENTICATION`. |
 | `items[].parameter_format` | `string` | `NAMED` or `POSITIONAL`. We recommend new integrations stick to `NAMED`. |
-| `items[].variables` | `string[]` | Named variables detected in the template body. The keys of the `variables` object you send in `POST /v1/messages/template` must match this list. |
+| `items[].variables` | `string[]` | Named variables detected in the template body. The keys of the `variables` object you send in a `template` message must match this list. |
 | `page` | `number` | Returned page. |
 | `limit` | `number` | Items per page. |
 | `total` | `number` | Total templates matching the filter. |

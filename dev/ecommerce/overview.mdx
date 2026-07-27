@@ -61,7 +61,7 @@ A cart with `abandoned_at` set and `completed_at` absent is the recoverable case
 | `recovered` | The customer came back and completed. |
 | `discarded` | Written off. |
 
-`recovery_url` is the link that puts the customer back in checkout with the cart intact. Sending it over WhatsApp with [`POST /v1/messages/interactive/cta-url`](/dev/endpoints/messages-interactive-cta-url) is the intended pairing.
+`recovery_url` is the link that puts the customer back in checkout with the cart intact. Sending it over WhatsApp with [a `cta_url` message](/dev/endpoints/messages-send) is the intended pairing.
 
 ## Money is stored in minor units
 

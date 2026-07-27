@@ -36,11 +36,13 @@ The catalog lives in the `api_scopes` MongoDB collection. The portal pulls it vi
 
 | Scope | Group | Action |
 |---|---|---|
-| `messages:send` | messages | Send a single message (text or template) to one recipient. |
+| `messages:send` | messages | [Send a single message](/dev/endpoints/messages-send) of any type, on any connected channel. |
 | `messages:bulk` | messages | Bulk-send a template to many recipients and read campaign status. |
 | `templates:read` | templates | Read the company's approved template catalog. |
 | `templates:create` | templates | Create WhatsApp templates and submit them to Meta. |
 | `templates:update` | templates | Edit an existing template (components, category, language, status). |
+| `flows:read` | flows | [List](/dev/endpoints/flows-list) and [read](/dev/endpoints/flows-get) [WhatsApp Flows](/dev/messaging/flows). |
+| `flows:write` | flows | [Create](/dev/endpoints/flows-create), [update](/dev/endpoints/flows-update), [publish](/dev/endpoints/flows-publish) and [delete](/dev/endpoints/flows-delete) WhatsApp Flows. |
 | `contacts:read` | contacts | [List](/dev/endpoints/contacts-list) and [read](/dev/endpoints/contacts-get) the messaging contacts of your company. |
 | `contacts:write` | contacts | [Create](/dev/endpoints/contacts-create) and [update](/dev/endpoints/contacts-update) contacts, including custom fields. |
 | `contacts:delete` | contacts | [Delete contacts](/dev/endpoints/contacts-delete) and their change history. Permanent. |

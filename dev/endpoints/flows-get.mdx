@@ -1,0 +1,43 @@
+---
+title: "GET /v1/flows/{id}"
+sidebarTitle: "GET flows/:id"
+description: "Get one WhatsApp Flow, including its stored Flow JSON and the Meta flow id used to send it."
+openapi: "GET /v1/flows/{id}"
+---
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/flows/{id}
+```
+
+## Required scope
+
+`flows:read`
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | Keebai flow id — the `id` returned by [`POST /v1/flows`](/dev/endpoints/flows-create), not Meta's `meta_flow_id`. |
+
+## Example request
+
+```bash curl
+curl https://api.keebai.com/v1/flows/66a1f2b3c4d5e6f708192a3b \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+## Response
+
+### 200 OK
+
+Same shape as one entry of [`GET /v1/flows`](/dev/endpoints/flows-list#200-ok).
+
+### 400 Bad Request
+
+`INVALID_FLOW_ID` — the id is not a valid Keebai identifier.
+
+### 404 Not Found
+
+`FLOW_NOT_FOUND` — no Flow with that id in this project.

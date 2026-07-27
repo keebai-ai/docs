@@ -86,12 +86,12 @@ Retrieval and authoring against the tenant knowledge base. See the [Knowledge ov
 
 ## Messaging
 
-Everything under [`/v1/messages`](/dev/messaging/overview). Free-form sends only work inside the 24-hour window; outside it, only `keebai_send_template` gets through.
+Everything under [`/v1/messages`](/dev/messaging/overview). Every send tool takes an optional `channel` (`whatsapp`, `whatsapp_qr`, `instagram`, `messenger`; defaults to `whatsapp`) plus `channel_id` or `phone_number_id` to pick the concrete channel. Free-form sends only work inside the 24-hour window; outside it, only `keebai_send_template` gets through.
 
 | Tool | Scope | What it does |
 |---|---|---|
 | `keebai_send_text` | `messages:send` | Free-form text. |
-| `keebai_send_template` | `messages:send` | A Meta-approved template. The only way out of the 24-hour window. |
+| `keebai_send_template` | `messages:send` | A Meta-approved template. The only way out of the 24-hour window. Pass `flow_token` to bind one of its FLOW buttons. |
 | `keebai_send_image` | `messages:send` | Image by link or `media_id`. |
 | `keebai_send_video` | `messages:send` | Video by link or `media_id`. |
 | `keebai_send_audio` | `messages:send` | Audio file, or a voice note with `voice: true`. |
@@ -105,9 +105,24 @@ Everything under [`/v1/messages`](/dev/messaging/overview). Free-form sends only
 | `keebai_send_interactive_list` | `messages:send` | A tappable menu, up to 10 sections. |
 | `keebai_send_interactive_cta_url` | `messages:send` | One button that opens a URL. |
 | `keebai_send_interactive_catalog` | `messages:send` | Opens your Meta product catalog. |
+| `keebai_send_interactive_carousel` | `messages:send` | Up to 10 media cards, each with its own URL button. |
+| `keebai_send_flow` | `messages:send` | Send a published [WhatsApp Flow](/dev/messaging/flows) as an interactive message. |
 | `keebai_send_raw` | `messages:send` | Escape hatch: an unvalidated Meta Graph API body. |
 | `keebai_send_bulk` | `messages:bulk` | Broadcast a template to up to 5000 recipients. Costs money at Meta. |
 | `keebai_bulk_status` | `messages:bulk` | Progress of a broadcast: sent, failed, pending. |
+
+## WhatsApp Flows
+
+In-chat forms. See the [Flows guide](/dev/messaging/flows) for the full lifecycle.
+
+| Tool | Scope | What it does |
+|---|---|---|
+| `keebai_flow_create` | `flows:write` | Register a Flow at Meta and upload its Flow JSON. Starts as a draft. |
+| `keebai_flow_list` | `flows:read` | List the project's Flows with their status and `meta_flow_id`. |
+| `keebai_flow_get` | `flows:read` | One Flow, including its stored Flow JSON. |
+| `keebai_flow_update` | `flows:write` | Update a draft Flow. Sending `flow_data` re-uploads it at Meta. |
+| `keebai_flow_publish` | `flows:write` | Publish. Meta validates here, and a published Flow can no longer be edited. |
+| 🔴 `keebai_flow_delete` | `flows:write` | Delete. Meta only allows this on drafts. |
 
 ## Media
 

@@ -1,0 +1,255 @@
+---
+title: "POST /v1/messages"
+sidebarTitle: "POST messages"
+description: "Single endpoint for every outbound message, on every connected channel. The message body is discriminated by its type field."
+openapi: "POST /v1/messages"
+---
+
+One endpoint sends everything. The `channel` field decides where the message goes, and the `type` inside `message` decides what it looks like — text, media, a location pin, an approved template, an interactive block, or a WhatsApp Flow.
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/messages
+```
+
+## Required scope
+
+`messages:send`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Envelope
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `channel` | `string` | Yes | `whatsapp`, `whatsapp_qr`, `instagram` or `messenger`. |
+| `channel_id` | `string` | No | Keebai channel id. Only needed when the project has more than one active channel of that type — otherwise the single one is resolved automatically. List them with [`GET /v1/channels`](/dev/endpoints/channels-list). |
+| `phone_number_id` | `string` | No | WhatsApp-only alias for `channel_id`: the numeric `phone_number_id` Meta issues for the sending number. List yours with [`GET /v1/whatsapp/numbers`](/dev/endpoints/whatsapp-numbers). |
+| `to` | `string` | Yes | Recipient in E.164 format. |
+| `context.message_id` | `string` | No | Provider message id (`wamid.*` on WhatsApp) this message quotes as a reply. |
+| `meta_data` | `object` | No | Free-form metadata persisted with the message and returned on webhooks for correlation. |
+| `message` | `object` | Yes | The message itself, discriminated by `type`. See below. |
+
+<Note>
+  Passing `channel_id` and `phone_number_id` together is fine — `channel_id` wins. Passing neither is fine too, as long as the project has exactly one active channel of that type. With more than one, the request fails with `400 CHANNEL_AMBIGUOUS` and the response lists the candidate ids.
+</Note>
+
+## Message types
+
+Every value of `message.type`, and which channels can deliver it:
+
+| `type` | WhatsApp | WhatsApp QR | Instagram | Messenger | Payload fields |
+|---|:---:|:---:|:---:|:---:|---|
+| `text` | ✅ | ✅ | ✅ | ✅ | `body` (max 4096), `preview_url?` |
+| `image` | ✅ | ✅ | ✅ | ✅ | `link?` \| `media_id?`, `caption?` |
+| `video` | ✅ | ✅ | ✅ | ✅ | `link?` \| `media_id?`, `caption?` |
+| `audio` | ✅ | ✅ | ✅ | ✅ | `link?` \| `media_id?`, `voice?` |
+| `document` | ✅ | ✅ | ✅ | ✅ | `link?` \| `media_id?`, `filename?`, `caption?` |
+| `sticker` | ✅ | ✅ | ✅ | ✅ | `link?` \| `media_id?` |
+| `location` | ✅ | — | — | — | `latitude`, `longitude`, `name?`, `address?` |
+| `contacts` | ✅ | — | — | — | `contacts[]` (1–20 vCards) |
+| `reaction` | ✅ | — | ✅ | ✅ | `message_id`, `emoji` |
+| `template` | ✅ | — | — | — | `name`, `language`, `variables?`, `flow?` |
+| `buttons` | ✅ | ✅ | ✅ | ✅ | `body_text`, `buttons[]` (1–3), `header?`, `footer_text?` |
+| `list` | ✅ | ✅ | ✅ | ✅ | `body_text`, `button_text`, `sections[]`, `header?`, `footer_text?` |
+| `cta_url` | ✅ | — | ✅ | — | `body_text`, `display_text`, `url`, `header?`, `footer_text?` |
+| `catalog` | ✅ | — | — | — | `body_text`, `thumbnail_product_retailer_id?`, `footer_text?` |
+| `carousel` | ✅ | — | ✅ | — | `body_text`, `cards[]` (1–10), `header?`, `footer_text?` |
+| `flow` | ✅ | — | — | — | `flow_id`, `flow_token`, `flow_cta`, `body_text`, `flow_action?`, `flow_action_payload?`, `mode?`, `header_text?`, `footer_text?` |
+
+A combination outside this table fails with `422 MESSAGE_TYPE_NOT_SUPPORTED_FOR_CHANNEL`, and the response lists the types that channel does accept. WhatsApp QR flattens `buttons` and `list` into a plain text message — the options are rendered as text, not as tappable controls.
+
+For media, `link` and `media_id` are mutually exclusive: exactly one is required. Upload a file with `POST /v1/media/upload` to get a `media_id`.
+
+## Example requests
+
+<CodeGroup>
+
+```bash Text
+curl -X POST https://api.keebai.com/v1/messages \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "channel": "whatsapp",
+    "to": "+5491155555555",
+    "message": {
+      "type": "text",
+      "body": "Hola Juan, ¿pudiste revisar la propuesta?"
+    }
+  }'
+```
+
+```bash Image
+curl -X POST https://api.keebai.com/v1/messages \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "channel": "whatsapp",
+    "phone_number_id": "109876543210987",
+    "to": "+5491155555555",
+    "message": {
+      "type": "image",
+      "link": "https://cdn.example.com/promo.png",
+      "caption": "Promo de marzo"
+    }
+  }'
+```
+
+```bash Template
+curl -X POST https://api.keebai.com/v1/messages \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "channel": "whatsapp",
+    "to": "+5491155555555",
+    "message": {
+      "type": "template",
+      "name": "welcome_v2",
+      "language": "es",
+      "variables": { "nombre": "Juan", "monto": "1500" }
+    }
+  }'
+```
+
+```bash Buttons
+curl -X POST https://api.keebai.com/v1/messages \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "channel": "whatsapp",
+    "to": "+5491155555555",
+    "message": {
+      "type": "buttons",
+      "body_text": "¿Confirmas tu reserva para el viernes?",
+      "buttons": [
+        { "id": "confirm", "title": "Confirmar" },
+        { "id": "reschedule", "title": "Reprogramar" }
+      ],
+      "footer_text": "Restaurante La Mela"
+    }
+  }'
+```
+
+```bash Instagram
+curl -X POST https://api.keebai.com/v1/messages \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "channel": "instagram",
+    "to": "17841400000000000",
+    "message": {
+      "type": "text",
+      "body": "¡Gracias por escribirnos!"
+    }
+  }'
+```
+
+</CodeGroup>
+
+```js JavaScript
+async function send(message, extra = {}) {
+  const res = await fetch("https://api.keebai.com/v1/messages", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      channel: "whatsapp",
+      to: "+5491155555555",
+      message,
+      ...extra,
+    }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+await send({ type: "text", body: "Hola Juan" });
+await send({ type: "location", latitude: -33.4489, longitude: -70.6693, name: "Sucursal Centro" });
+```
+
+```python Python
+import os, requests
+
+def send(message, **extra):
+    resp = requests.post(
+        "https://api.keebai.com/v1/messages",
+        headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+        json={"channel": "whatsapp", "to": "+5491155555555", "message": message, **extra},
+        timeout=10,
+    )
+    resp.raise_for_status()
+    return resp.json()
+
+send({"type": "text", "body": "Hola Juan"})
+send({"type": "document", "media_id": "1234567890", "filename": "factura.pdf"})
+```
+
+## Quoting a message
+
+Reply to a specific message by passing its provider id in `context`:
+
+```json
+{
+  "channel": "whatsapp",
+  "to": "+5491155555555",
+  "context": { "message_id": "wamid.HBgLNTQ5MTE1NTU1NTU1FQIAERgSN0EyRjc4..." },
+  "message": { "type": "text", "body": "Sí, ese mismo pedido." }
+}
+```
+
+If the quoted message is too old for the provider to reference, Keebai retries once without the quote rather than failing the send.
+
+## Response
+
+### 202 Accepted
+
+```json
+{
+  "message_id": "wamid.HBgLNTQ5MTE1NTU1NTU1FQIAERgSN0EyRjc4...",
+  "status": "sent",
+  "sent_at": "2026-07-27T14:31:07.221Z"
+}
+```
+
+### 400 Bad Request
+
+| `code` | Meaning |
+|---|---|
+| `UNKNOWN_MESSAGE_TYPE` | `message.type` is not one of the 16 supported values. The response lists them in `supported_types`. |
+| `INVALID_MESSAGE_PAYLOAD` | The payload does not match the schema for that `type`. The response lists the offending field paths. |
+| `MEDIA_REFERENCE_REQUIRED` | A media message carried neither `link` nor `media_id`. |
+| `MEDIA_REFERENCE_AMBIGUOUS` | A media message carried both `link` and `media_id`. |
+| `CHANNEL_AMBIGUOUS` | More than one active channel of that type. Pass `channel_id`; candidates are in `channel_ids`. |
+| `CHANNEL_TYPE_MISMATCH` | The `channel_id` belongs to a different channel type than `channel`. |
+| `CHANNEL_MISSING_ACCESS_TOKEN` | The channel is connected but its provider token is missing or expired. Reconnect it in the dashboard. |
+| `PHONE_NUMBER_ID_NOT_APPLICABLE` | `phone_number_id` was used with a non-WhatsApp channel. |
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `messages:send` scope.
+
+### 404 Not Found
+
+`CHANNEL_NOT_FOUND` — the project has no active channel matching the selector.
+
+### 422 Unprocessable Entity
+
+`MESSAGE_TYPE_NOT_SUPPORTED_FOR_CHANNEL` — the channel cannot carry that message type. `supported_types` lists what it accepts.
+
+## Operational notes
+
+- **24-hour window**: free-form messages (everything except `template`) only reach a recipient whose last inbound message is under 24 hours old. Keebai attempts the send regardless; a closed window surfaces as the provider's own error passed through.
+- **`meta_data` round-trips**: whatever you put there is stored with the message and echoed back on delivery and read webhooks, which is the intended way to correlate a send with your own records.
+- **Markdown**: WhatsApp interprets `*text*` as bold, `_text_` as italic and `~text~` as strikethrough. A backslash escapes them.

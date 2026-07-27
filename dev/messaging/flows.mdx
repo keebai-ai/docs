@@ -1,0 +1,169 @@
+---
+title: "WhatsApp Flows"
+sidebarTitle: "Flows"
+description: "Build in-chat forms — bookings, surveys, lead capture — create them at Meta, publish them, send them, and read the answers back on a webhook."
+---
+
+A **Flow** is a form that opens inside WhatsApp. The user taps a button, fills in a few screens without leaving the chat, and submits — you get the answers as structured JSON instead of parsing free text.
+
+Keebai handles the whole cycle: create the Flow at Meta, publish it, send it, and receive the response.
+
+## The lifecycle
+
+<Steps>
+  <Step title="Create">
+    [`POST /v1/flows`](/dev/endpoints/flows-create) registers the Flow on the channel's WhatsApp Business Account and uploads your Flow JSON. It comes back with `status: "draft"` and a `meta_flow_id`.
+  </Step>
+  <Step title="Test as a draft">
+    A draft only reaches phone numbers registered as **testers** on the WABA, and only when the send passes `"mode": "draft"`. Iterate here — a draft can still be edited with [`PUT /v1/flows/{id}`](/dev/endpoints/flows-update).
+  </Step>
+  <Step title="Publish">
+    [`POST /v1/flows/{id}/publish`](/dev/endpoints/flows-publish) hands the Flow JSON to Meta for validation. Publishing is one-way: a published Flow can no longer be edited.
+  </Step>
+  <Step title="Send">
+    Either as a standalone interactive message (`"type": "flow"`) inside the 24-hour window, or attached to a FLOW button on an approved template to reach a closed window.
+  </Step>
+  <Step title="Receive">
+    When the user submits, Meta sends the answers back. The `flow_token` you chose on send is what ties the response to the send.
+  </Step>
+</Steps>
+
+## Two ways to send a Flow
+
+The right one depends on whether the conversation window is open.
+
+| | Standalone (`"type": "flow"`) | Template FLOW button |
+|---|---|---|
+| Requires an open 24h window | Yes | No |
+| Requires Meta template approval | No | Yes |
+| Choose the opening screen per send | Yes, via `flow_action_payload` | Only the data, via `flow_action_data` |
+| Good for | Replying to an active conversation | Re-engaging a cold contact |
+
+### Standalone
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/messages \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "channel": "whatsapp",
+    "to": "+5491155555555",
+    "message": {
+      "type": "flow",
+      "flow_id": "1234567890123456",
+      "flow_token": "reserva-8f21c4",
+      "flow_cta": "Reservar",
+      "body_text": "Reserva tu mesa en menos de un minuto.",
+      "header_text": "La Mela",
+      "flow_action": "navigate",
+      "flow_action_payload": {
+        "screen": "WELCOME",
+        "data": { "customer_name": "Juan" }
+      }
+    }
+  }'
+```
+
+### Attached to a template
+
+The template must already have a FLOW button approved by Meta — create it with [`POST /v1/templates`](/dev/endpoints/templates-create), setting the button's `flow_id`.
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/messages \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "channel": "whatsapp",
+    "to": "+5491155555555",
+    "message": {
+      "type": "template",
+      "name": "encuesta_post_visita",
+      "language": "es",
+      "variables": { "nombre": "Juan" },
+      "flow": {
+        "flow_token": "csat-8f21c4",
+        "button_index": 0,
+        "flow_action_data": { "ticket_id": "A-1" }
+      }
+    }
+  }'
+```
+
+## `flow_token` is your correlation id
+
+You choose it, it must be unique per send, and Meta echoes it back verbatim when the user submits. Generate one per send and store it against whatever the Flow is about — a booking, a ticket, a lead.
+
+```js
+import { randomUUID } from "node:crypto";
+
+const flowToken = randomUUID();
+await db.surveys.insertOne({ flow_token: flowToken, ticket_id: ticket._id, sent_at: new Date() });
+// ...send the Flow with that flow_token, then match it on the webhook
+```
+
+Reusing a token across sends makes responses ambiguous — there is no other field that identifies which send an answer belongs to.
+
+## `navigate` vs `data_exchange`
+
+| `flow_action` | Meaning |
+|---|---|
+| `navigate` (default) | The Flow opens on the screen named in `flow_action_payload.screen`, seeded with `flow_action_payload.data`. Everything runs from the Flow JSON you uploaded. |
+| `data_exchange` | Each screen transition calls your own Flow endpoint, which decides what comes next. Do not send `flow_action_payload` — the endpoint controls the first screen. |
+
+<Note>
+  `data_exchange` needs an endpoint registered with Meta and the encrypted request handling that goes with it. Keebai does not host that endpoint for you today; `navigate` is the supported path end to end.
+</Note>
+
+## Flow JSON
+
+The `flow_data` you upload is Meta's Flow JSON: a `version`, a list of `screens`, and an optional `routing_model`. Keebai stores it verbatim and passes it through — it does not rewrite or validate it, so Meta's validation errors on [publish](/dev/endpoints/flows-publish) are the real check.
+
+```json
+{
+  "version": "7.0",
+  "screens": [
+    {
+      "id": "WELCOME",
+      "title": "Reservar mesa",
+      "terminal": true,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "reserva",
+            "children": [
+              { "type": "TextInput", "name": "nombre", "label": "Nombre", "required": true },
+              { "type": "DatePicker", "name": "fecha", "label": "Fecha", "required": true },
+              {
+                "type": "Footer",
+                "label": "Reservar",
+                "on-click-action": {
+                  "name": "complete",
+                  "payload": { "nombre": "${form.nombre}", "fecha": "${form.fecha}" }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
+## Scopes
+
+| Scope | Grants |
+|---|---|
+| `flows:read` | [List](/dev/endpoints/flows-list) and [read](/dev/endpoints/flows-get) Flows. |
+| `flows:write` | [Create](/dev/endpoints/flows-create), [update](/dev/endpoints/flows-update), [publish](/dev/endpoints/flows-publish) and [delete](/dev/endpoints/flows-delete) Flows. |
+
+Sending a Flow needs `messages:send`, not `flows:write` — it is a message like any other.
+
+## Operational notes
+
+- **Publishing is one-way.** Meta does not allow editing a published Flow. Iterate as a draft, and create a new Flow for the next version rather than trying to patch a live one.
+- **Delete only works on drafts.** A published Flow cannot be deleted; stop sending it and publish a replacement.
+- **Flows are WhatsApp-only.** Sending `"type": "flow"` on Instagram or Messenger fails with `422 MESSAGE_TYPE_NOT_SUPPORTED_FOR_CHANNEL`.
+- **`flow_cta` is capped at 20 characters** by Meta; longer labels are truncated rather than rejected.

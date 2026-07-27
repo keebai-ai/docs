@@ -1,0 +1,43 @@
+---
+title: "POST /v1/flows/{id}/publish"
+sidebarTitle: "POST flows/:id/publish"
+description: "Publish a WhatsApp Flow. Meta validates the Flow JSON here, and a published Flow can no longer be edited."
+openapi: "POST /v1/flows/{id}/publish"
+---
+
+Publishes the Flow at Meta. Until a Flow is published, sending it only reaches phone numbers registered as testers on the WhatsApp Business Account — and only with `mode: "draft"` on the send.
+
+<Warning>
+  Publishing is one-way. Meta does not allow editing a published Flow: iterate while it is still a draft, and create a new Flow for the next version.
+</Warning>
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/flows/{id}/publish
+```
+
+## Required scope
+
+`flows:write`
+
+## Example request
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/flows/66a1f2b3c4d5e6f708192a3b/publish \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+## Response
+
+### 200 OK
+
+The Flow with `status` now `published`, same shape as [`GET /v1/flows/{id}`](/dev/endpoints/flows-get#200-ok).
+
+### 400 Bad Request
+
+Meta rejected the Flow JSON. The validation errors are passed through in `message`.
+
+### 404 Not Found
+
+`FLOW_NOT_FOUND`.

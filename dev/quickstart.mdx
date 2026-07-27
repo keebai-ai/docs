@@ -69,20 +69,24 @@ Expected response (HTTP 200):
 
 ## 3. Send your first message
 
-Grab the `phone_number_id` of your channel from [`GET /v1/whatsapp/numbers`](/dev/endpoints/whatsapp-numbers), then call `POST /v1/messages/template`:
+Grab the `phone_number_id` of your channel from [`GET /v1/whatsapp/numbers`](/dev/endpoints/whatsapp-numbers), then call `POST /v1/messages` with a `template` message:
 
 ```bash
-curl -X POST https://api.keebai.com/v1/messages/template \
+curl -X POST https://api.keebai.com/v1/messages \
   -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
-    "to": "+15551234567",
+    "channel": "whatsapp",
     "phone_number_id": "100000000000001",
-    "template_name": "welcome_v2",
-    "language": "en_US",
-    "variables": {
-      "name": "Alex",
-      "amount": "1500"
+    "to": "+15551234567",
+    "message": {
+      "type": "template",
+      "name": "welcome_v2",
+      "language": "en_US",
+      "variables": {
+        "name": "Alex",
+        "amount": "1500"
+      }
     }
   }'
 ```
@@ -105,7 +109,7 @@ The message is on its way — WhatsApp usually delivers within seconds.
 |---|---|---|
 | `401 Unauthorized` | Token is invalid, revoked, or expired. | Check you copied the full token (`kbai_pk_` prefix included). If it's not in your active token list, mint a new one. |
 | `403 Forbidden` (`INSUFFICIENT_SCOPE`) | Token doesn't carry the scope the endpoint needs. | Mint a new token with the missing scopes checked. |
-| `400 Bad Request` | Body is malformed or `phone_number_id` is off. | Check the JSON against the [endpoint contract](/dev/endpoints/messages-template). |
+| `400 Bad Request` | Body is malformed or `phone_number_id` is off. | Check the JSON against the [endpoint contract](/dev/endpoints/messages-send). |
 | `429 Too Many Requests` | You hit the rate limit (60 req/min, 200 req/hour, **1,000 req/day** per project). | Read `Retry-After-<window>` and wait. See [Rate limits](/dev/rate-limits). |
 
 ## 5. Where to next

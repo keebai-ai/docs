@@ -1,7 +1,7 @@
 ---
 title: "Event catalog"
 sidebarTitle: "Events"
-description: "The 35 events you can subscribe to, across messaging, conversations, CRM, scheduling, and ecommerce. Each event has its own `data` shape."
+description: "The 36 events you can subscribe to, across messaging, Flows, conversations, CRM, scheduling, and ecommerce. Each event has its own `data` shape."
 ---
 
 Every event is identified by a `type` in the form `<domain>.<entity>.<action>`. The envelope's `data` field changes based on the `type`.
@@ -13,6 +13,7 @@ Every event is identified by a `type` in the form `<domain>.<entity>.<action>`. 
 | [WhatsApp messages](#whatsapp-messages) | 5 | Inbound messages and the delivery lifecycle of outbound ones. |
 | [WhatsApp templates](#whatsapp-templates) | 1 | Meta approving, rejecting, or pausing a template. |
 | [WhatsApp channels](#whatsapp-channels) | 2 | A channel connecting or disconnecting. |
+| [WhatsApp Flows](#whatsapp-flows) | 1 | A recipient submitting a Flow. |
 | [Instagram](#instagram) | 1 | Inbound Instagram direct messages. |
 | [Conversations](#conversations) | 2 | A conversation opening, and escalation to a human. |
 | [CRM](#crm) | 15 | Customers, tickets, tasks, and notes. |
@@ -230,6 +231,49 @@ The channel was disconnected — manually from the portal, through the API, or b
 ```
 
 The WhatsApp credentials are cleared as part of the disconnect, so `phone_number`, `phone_number_id`, and `business_account_id` are **absent** here even for a WhatsApp channel. Correlate on `channel_id`.
+
+## WhatsApp Flows
+
+### `whatsapp.flow.response`
+
+A recipient submitted a [WhatsApp Flow](/dev/messaging/flows). Fires alongside `whatsapp.message.received` for the same message — this one lifts the answers and the correlation token out of the raw interactive payload.
+
+```json
+{
+  "type": "whatsapp.flow.response",
+  "occurred_at": "2026-07-27T12:34:56Z",
+  "company_id": "comp_xxx",
+  "channel_id": "65b1c2d3e4f5a6b7c8d9e0f1",
+  "data": {
+    "phone_number_id": "109876543210987",
+    "from": "5491155555555",
+    "message_id": "wamid.HBgLNTQ5MTE1NTU1NTU1FQIAERgSN0EyRjc4...",
+    "flow_token": "reserva-8f21c4",
+    "flow_name": "reserva-mesa",
+    "body": "Reserva enviada",
+    "response": {
+      "flow_token": "reserva-8f21c4",
+      "nombre": "Juan",
+      "fecha": "2026-08-02"
+    },
+    "timestamp": "1785500096"
+  }
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `phone_number_id` | string | WhatsApp number that received the submission. |
+| `from` | string | Sender's phone without the `+`. |
+| `message_id` | string | Meta's message id for the submission. Idempotency key. |
+| `flow_token` | string \| absent | The token you passed on send. **This is how you correlate the answers with what you asked.** Absent only if the Flow JSON stripped it. |
+| `flow_name` | string \| absent | Flow name as Meta reports it. |
+| `body` | string \| absent | Summary line WhatsApp renders in the chat bubble. |
+| `response` | object | The submitted answers, parsed from Meta's `response_json`. Its keys are whatever your Flow JSON declares. |
+
+<Note>
+  The shape of `response` is defined by your own Flow JSON, not by Keebai — it is passed through as-is. Validate it on your side before writing it to a database.
+</Note>
 
 ## Instagram
 

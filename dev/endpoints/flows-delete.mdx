@@ -1,0 +1,37 @@
+---
+title: "DELETE /v1/flows/{id}"
+sidebarTitle: "DELETE flows/:id"
+description: "Delete a WhatsApp Flow. Meta only allows deleting Flows that are still in draft."
+openapi: "DELETE /v1/flows/{id}"
+---
+
+## Endpoint
+
+```
+DELETE https://api.keebai.com/v1/flows/{id}
+```
+
+## Required scope
+
+`flows:write`
+
+## Example request
+
+```bash curl
+curl -X DELETE https://api.keebai.com/v1/flows/66a1f2b3c4d5e6f708192a3b \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+## Response
+
+### 204 No Content
+
+The Flow was deleted at Meta and removed from Keebai.
+
+### 400 Bad Request
+
+Meta refuses to delete a published Flow. Deprecate it instead: stop sending it and publish a replacement.
+
+### 404 Not Found
+
+`FLOW_NOT_FOUND`.

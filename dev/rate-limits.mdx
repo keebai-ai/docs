@@ -6,7 +6,7 @@ description: "Usage limits per project, error response format, and best practice
 
 ## Rate limits
 
-Limits apply **per project** (not per token, not per user, not per IP) and are shared across **every endpoint** — the quota is one pool, so calls to `/v1/messages/text` and `/v1/crm/tickets` draw from the same budget.
+Limits apply **per project** (not per token, not per user, not per IP) and are shared across **every endpoint** — the quota is one pool, so calls to `/v1/messages` and `/v1/crm/tickets` draw from the same budget.
 
 | Window | Limit | Purpose |
 |---|---|---|
@@ -65,7 +65,7 @@ Every window is **rolling**, not aligned to a clock boundary: each one opens on 
 
 ### What does not count
 
-Requests to `/health` are exempt. Broadcasts count as **one** request each, not one per recipient — [`POST /v1/messages/bulk`](/dev/endpoints/messages-bulk) with 5,000 recipients costs a single unit, which makes it far cheaper than looping over [`POST /v1/messages/text`](/dev/endpoints/messages-text).
+Requests to `/health` are exempt. Broadcasts count as **one** request each, not one per recipient — [`POST /v1/messages/bulk`](/dev/endpoints/messages-bulk) with 5,000 recipients costs a single unit, which makes it far cheaper than looping over [`POST /v1/messages`](/dev/endpoints/messages-send).
 
 ## How to handle 429 properly
 
