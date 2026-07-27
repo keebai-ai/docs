@@ -1,0 +1,166 @@
+---
+title: "PUT /v1/functions/{id}"
+sidebarTitle: "PUT functions/:id"
+description: "Update a webhook function. Omitting headers keeps the stored ones; sending them replaces the whole map."
+openapi: "PUT /v1/functions/{id}"
+---
+
+Partial update: only the fields present in the body change.
+
+The subtlety is inside `context`. Because [header and query-string values are masked on read](/dev/assistants/webhook-security#secrets-are-write-only), you cannot round-trip them, so this endpoint merges instead.
+
+| What you send | What happens |
+|---|---|
+| No `context` | Nothing about the request changes |
+| `context` without `headers` | The stored headers are kept |
+| `context` with `headers` | The whole map is replaced with what you sent |
+| A value equal to `***` | `400 FUNCTION_MASKED_VALUE_WRITE`, naming the keys |
+
+The last row exists so the obvious client pattern — `GET`, change one field, `PUT` it all back — fails loudly instead of writing the literal string `***` over a live credential.
+
+## Endpoint
+
+```
+PUT https://api.keebai.com/v1/functions/{id}
+```
+
+## Required scope
+
+`assistants:write`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | `ObjectId` of the function. |
+
+## Body
+
+Every field is optional. `context`, when present, must carry at least `url`.
+
+| Field | Type | Description |
+|---|---|---|
+| `name` | `string` | Machine name, unique per company. |
+| `display_name` | `string` | Up to 200 characters. |
+| `description` | `string` | Up to 1000 characters. |
+| `context` | `object` | Same shape as [on create](/dev/endpoints/functions-create#body). Merged per the table above. |
+| `tool_params` | `object[]` | Replaces the whole list. |
+| `tags` | `string[]` | Replaces the whole list. |
+| `is_active` | `boolean` | `false` stops the model being offered the function. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+# Change the URL, keep the stored credentials.
+curl -X PUT https://api.keebai.com/v1/functions/6650cccc3333dddd4444eeee \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "context": {
+      "url": "https://erp.example.com/v2/stock/{{sku}}",
+      "method": "GET",
+      "timeout": 10
+    }
+  }'
+```
+
+```js JavaScript
+const url = "https://api.keebai.com/v1/functions/6650cccc3333dddd4444eeee";
+const headers = {
+  Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+  "Content-Type": "application/json",
+};
+
+// Rotating a credential: send the new value explicitly.
+await fetch(url, {
+  method: "PUT",
+  headers,
+  body: JSON.stringify({
+    context: {
+      url: "https://erp.example.com/v2/stock/{{sku}}",
+      method: "GET",
+      headers: { Authorization: `Bearer ${process.env.ERP_TOKEN_NEW}` },
+    },
+  }),
+});
+
+// Switching it off without changing anything else.
+await fetch(url, {
+  method: "PUT",
+  headers,
+  body: JSON.stringify({ is_active: false }),
+});
+```
+
+```python Python
+import os, requests
+
+resp = requests.put(
+    "https://api.keebai.com/v1/functions/6650cccc3333dddd4444eeee",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={
+        "context": {
+            "url": "https://erp.example.com/v2/stock/{{sku}}",
+            "method": "GET",
+            "timeout": 10,
+        }
+    },
+    timeout=10,
+)
+if resp.status_code == 400 and resp.json()["error"]["code"] == "FUNCTION_MASKED_VALUE_WRITE":
+    ...  # you echoed a *** back; send the real value or omit the field
+resp.raise_for_status()
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+The function, same shape as [`GET /v1/functions/{id}`](/dev/endpoints/functions-get).
+
+### 400 Bad Request
+
+A field over its limit or an unknown property, plus three specific codes:
+
+- `FUNCTION_MASKED_VALUE_WRITE` — a `headers` or `params` value was the literal `***`. `details.field` and `details.keys` name them.
+- `FUNCTION_URL_NOT_ALLOWED` — the URL failed validation. `details.reason` names the rule.
+- `FUNCTION_TIMEOUT_NOT_ALLOWED` — `timeout` outside 1–30 seconds.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `assistants:write` scope.
+
+### 404 Not Found
+
+No webhook function with that id in the token's company.
+
+### 409 Conflict
+
+The new `name` is already taken by another function in the company.
+
+### 502 Bad Gateway
+
+The assistant service is unreachable.
+
+## Operational notes
+
+- **`context` is replace-within-merge.** Fields you omit inside `context` — `method`, `timeout`, `body`, `response_path` — go back to their defaults, not to their stored values. Only `headers` and `params` are preserved on omission, because they are the ones you cannot read back. Send the whole `context` you want, minus the secrets.
+- **Updates are read-modify-write, so concurrent writers lose each other.** Merging the stored secrets requires reading them first; two overlapping updates to one function leave whichever finished last. Serialise them.
+- **The URL is only re-validated when you send `context`.** A function created before a validation rule existed keeps working until you next touch its URL.
+- **Renaming breaks nothing immediately but changes what the model calls.** Blocks reference the function by id, not by name, so the binding survives — but any prompt text mentioning the old name is now wrong.
+- **`tool_params` and `tags` replace, they do not append.** Read the current values first if you mean to add one.

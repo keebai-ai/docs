@@ -1,0 +1,128 @@
+---
+title: "GET /v1/functions/{id}"
+sidebarTitle: "GET functions/:id"
+description: "Get one webhook function with its request shape and the blocks that reference it."
+openapi: "GET /v1/functions/{id}"
+---
+
+Returns one webhook function. Same shape as an entry in [the list](/dev/endpoints/functions-list), with header and query-string values masked.
+
+The field worth coming here for is `used_by_blocks`: it tells you which blocks reference the function, which is what you need before [deleting it](/dev/endpoints/functions-delete).
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/functions/{id}
+```
+
+## Required scope
+
+`assistants:read`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | `ObjectId` of the function. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl https://api.keebai.com/v1/functions/6650cccc3333dddd4444eeee \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+```js JavaScript
+const resp = await fetch(
+  "https://api.keebai.com/v1/functions/6650cccc3333dddd4444eeee",
+  { headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` } },
+);
+const { function: fn } = await resp.json();
+
+if (fn.used_by_blocks.length > 0) {
+  // Unbind these blocks before deleting.
+}
+```
+
+```python Python
+import os, requests
+
+resp = requests.get(
+    "https://api.keebai.com/v1/functions/6650cccc3333dddd4444eeee",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    timeout=10,
+)
+resp.raise_for_status()
+fn = resp.json()["function"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "function": {
+    "_id": "6650cccc3333dddd4444eeee",
+    "name": "consultar_stock",
+    "display_name": "Consultar stock",
+    "description": "Devuelve el stock disponible de un SKU en el ERP.",
+    "type": "webhook",
+    "tool_params": [
+      {
+        "name": "sku",
+        "description": "Código del producto",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "context": {
+      "url": "https://erp.example.com/stock/{{sku}}",
+      "method": "GET",
+      "headers": { "Authorization": "***" },
+      "params": {},
+      "timeout": 30
+    },
+    "tags": ["erp"],
+    "is_active": true,
+    "used_by_blocks": [
+      { "block_id": "6650bbbb2222cccc3333dddd", "name": "Reserva", "type": "steps" }
+    ],
+    "created_at": "2026-07-22T08:12:04.221Z",
+    "updated_at": "2026-07-25T16:30:19.008Z"
+  }
+}
+```
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `assistants:read` scope.
+
+### 404 Not Found
+
+No function with that id in the token's company, **or** the id belongs to a function that is not a webhook.
+
+### 502 Bad Gateway
+
+The assistant service is unreachable.
+
+## Operational notes
+
+- **A non-webhook function reads as `404`, not `403`.** An id you cannot manage is deliberately indistinguishable from one that does not exist.
+- **The masked values are not a permissions thing.** Every caller sees `***`, including one with `assistants:write`. The stored value is never returned by any endpoint.
+- **`is_active: false` means the model will not be offered the function**, but the configuration is intact. It is the reversible way to switch one off.
+- **`type` is always `webhook`** on this surface, and is included so the field is not silently absent from a contract that upstream considers polymorphic.

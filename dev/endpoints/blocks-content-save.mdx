@@ -1,0 +1,156 @@
+---
+title: "PUT /v1/blocks/{id}/content"
+sidebarTitle: "PUT blocks/:id/content"
+description: "Replace a block's content. Creates a new version and makes it current; the previous one stays in history."
+openapi: "PUT /v1/blocks/{id}/content"
+---
+
+Writes new content for a block. This is where prompts actually get edited.
+
+The write is a **replace**, not a patch: send the whole text. Nothing is overwritten in storage, though — the content is appended as a new immutable version, the block is pointed at it, and the previous version stays in [the history](/dev/endpoints/blocks-versions-list) where it can be [restored](/dev/endpoints/blocks-version-restore).
+
+<Warning>
+  **Only the seven free types accept content here.** `product_info`, `store_info`, `reservation_info`, `tables_info` and `tags` return `409 BLOCK_TYPE_NOT_WRITABLE`. Check `content_writable` on the block before calling, and read [why](/dev/assistants/overview#catalogue-blocks-are-read-only-here) if the refusal is surprising.
+</Warning>
+
+## Endpoint
+
+```
+PUT https://api.keebai.com/v1/blocks/{id}/content
+```
+
+## Required scope
+
+`assistants:write`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | `ObjectId` of the block. |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `content` | `string` | Yes | The complete new text, up to 100,000 characters. Send `""` to empty the block. |
+
+Three markdown conventions are recognised, because the portal editor renders them as real elements:
+
+| You write | It becomes |
+|---|---|
+| `- item` or `* item` | A bullet |
+| `1. item` | A numbered list item |
+| `# Title`, `## Title` | A heading |
+| Two leading spaces | Nests the line under the one above |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X PUT https://api.keebai.com/v1/blocks/6650bbbb2222cccc3333dddd/content \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "1. Saludar y preguntar en qué puede ayudar.\n2. Preguntar el servicio.\n3. Ofrecer los horarios disponibles."
+  }'
+```
+
+```js JavaScript
+const resp = await fetch(
+  "https://api.keebai.com/v1/blocks/6650bbbb2222cccc3333dddd/content",
+  {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      content: [
+        "1. Saludar y preguntar en qué puede ayudar.",
+        "2. Preguntar el servicio.",
+        "3. Ofrecer los horarios disponibles.",
+      ].join("\n"),
+    }),
+  },
+);
+
+if (resp.status === 409) {
+  // Catalogue block — configure it in the portal.
+}
+const { content } = await resp.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.put(
+    "https://api.keebai.com/v1/blocks/6650bbbb2222cccc3333dddd/content",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={"content": "1. Saludar\n2. Preguntar el servicio\n3. Ofrecer horarios"},
+    timeout=10,
+)
+if resp.status_code == 409:
+    ...  # read-only block type
+resp.raise_for_status()
+content = resp.json()["content"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "content": {
+    "block_id": "6650bbbb2222cccc3333dddd",
+    "version_id": "6650ffff4444aaaa5555dddd",
+    "version_number": 5,
+    "edit_mode": "free",
+    "content": "1. Saludar y preguntar en qué puede ayudar.\n2. Preguntar el servicio.\n3. Ofrecer los horarios disponibles.",
+    "created_at": "2026-07-26T21:38:22.104Z"
+  }
+}
+```
+
+### 400 Bad Request
+
+Missing `content`, over 100,000 characters, or a property the endpoint does not accept.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `assistants:write` scope.
+
+### 404 Not Found
+
+No block with that id in the token's company and project.
+
+### 409 Conflict
+
+`error.code` is `BLOCK_TYPE_NOT_WRITABLE`. The block is one of the five catalogue types; `details.type` names it and `details.read_only_types` lists all five.
+
+### 502 Bad Gateway
+
+The assistant service is unreachable.
+
+## Operational notes
+
+- **Every save is a new version, so history grows.** There is no way to edit a version in place and no way to delete one. A block edited hundreds of times keeps hundreds of versions; [the history endpoint](/dev/endpoints/blocks-versions-list) is paginated for that reason.
+- **The write is not idempotent.** A retry after a timeout appends a second identical version and bumps `version_number` again. Harmless, but check the history before retrying if that matters to you.
+- **Assistants pinned to an older version do not see this.** A save moves the block's current version; an assistant with `pinned_version_id` set keeps rendering the version it was pinned to until you [repin it](/dev/endpoints/assistants-blocks-set).
+- **The text you send is what you get back.** Reading the content returns the same text, modulo runs of blank lines collapsing to one. Formatting beyond the three conventions above is not preserved because it is not stored.
+- **The change reaches live conversations within about fifteen minutes at worst.** The composed prompt is cached per assistant and the cache is dropped on every save, but a conversation already mid-turn finishes with the previous version.

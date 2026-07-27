@@ -1,11 +1,13 @@
 ---
 title: "GET /v1/assistants"
 sidebarTitle: "GET assistants"
-description: "List the active assistants in your company. Filterable by name and paginated."
+description: "List the active assistants in your project. Filterable by name and paginated."
 openapi: "GET /v1/assistants"
 ---
 
-Returns the active assistants in your company. Mainly useful to discover the `assistant_id` values you'll later use in [`POST /v1/knowledge/assignments`](/dev/endpoints/knowledge-assign). The listing only exposes basic metadata — to configure prompts, tools, or personality, keep using the portal.
+Returns the active assistants in your project. This is the index: start here to find the `id` every other endpoint in this tab needs, and the one [`POST /v1/knowledge/assignments`](/dev/endpoints/knowledge-assign) takes as `assistant_id`.
+
+The listing carries basic metadata only — no blocks, no functions. To see how an assistant is actually configured, follow it with [`GET /v1/assistants/:id/blocks`](/dev/endpoints/assistants-blocks-list).
 
 ## Endpoint
 
@@ -23,11 +25,11 @@ GET https://api.keebai.com/v1/assistants
 |---|---|---|
 | `Authorization` | Yes | `Bearer kbai_pk_<token>` |
 
-## Query params
+## Query parameters
 
-| Param | Type | Default | Description |
+| Parameter | Type | Default | Description |
 |---|---|---|---|
-| `q` | `string` | — | Filter by name. Partial, case-insensitive search. |
+| `q` | `string` | — | Filter by name. Partial, case-insensitive. Up to 120 characters. |
 | `page` | `number` | `1` | Page, 1-based. |
 | `limit` | `number` | `25` | Items per page, max `100`. |
 
@@ -96,6 +98,21 @@ items = resp.json()["items"]
 | `items[].voice_response_enabled` | `boolean` | Whether voice responses are enabled. |
 | `page` / `limit` / `total` | `number` | Standard pagination. |
 
-### 401 / 403 / 429
+### 401 Unauthorized
 
-- `403 FORBIDDEN` with `code: INSUFFICIENT_SCOPE`: the PAT doesn't have `assistants:read`.
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `assistants:read` scope.
+
+### 502 Bad Gateway
+
+The assistant service is unreachable.
+
+## Operational notes
+
+- **This endpoint uses a different envelope from the rest of the API.** It returns `items` with a 1-based `page` and an `id` field, where everything else paginated returns `data` with `offset` and `_id`. It predates that convention and is deliberately left alone so existing integrations keep working — the other endpoints in this tab use the current shape.
+- **Only active assistants appear.** There is no parameter to include inactive ones. Fetch a known id with [`GET /v1/assistants/:id`](/dev/endpoints/assistants-get), which returns it either way and includes `is_active`.
+- **Scoped to the token's project**, not the whole company. A token issued against another project sees another list. Blocks follow the same rule; [functions do not](/dev/assistants/overview#scoping).
+- **`voice_response_enabled` is a flag, not the configuration.** The underlying provider settings, including voice ids, are not exposed.

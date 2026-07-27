@@ -1,0 +1,115 @@
+---
+title: "Webhook function security"
+sidebarTitle: "Webhook security"
+description: "Which URLs a function may target, how header and query-string secrets are masked, and what the validator does not protect against."
+---
+
+A [webhook function](/dev/endpoints/functions-create) makes Keebai's infrastructure send an HTTPS request on your behalf, with arguments the model chose, to a host you configured. Two consequences follow, and this page is about both.
+
+## Which URLs are rejected
+
+Every create and every update that touches `context.url` runs the same validator. A rejection is a `400` with `error.code` of `FUNCTION_URL_NOT_ALLOWED` and a `details.reason` naming the rule.
+
+| `details.reason` | Rule | Examples rejected |
+|---|---|---|
+| `scheme_not_https` | Only `https` | `http://…`, `ftp://…`, `file://…` |
+| `credentials_in_url` | No userinfo in the URL | `https://user:pw@example.com/` |
+| `placeholder_in_authority` | No `{{…}}` in host or port | `https://{{host}}/hook` |
+| `host_not_qualified` | Host must be a fully qualified name | `https://api-client/`, `https://localhost/` |
+| `internal_suffix` | No cluster-internal names | `*.svc.cluster.local`, `*.local`, `*.internal` |
+| `not_globally_routable` | No loopback, private, link-local, CGNAT or multicast address | `https://127.0.0.1/`, `https://10.0.0.5/`, `https://169.254.169.254/`, `https://[::1]/`, `https://[fd00::1]/` |
+| `port_not_allowed` | Only ports `443` and `8443` | `https://example.com:6379/` |
+| `url_too_long` | 2048 characters | — |
+| `malformed` | Must be an absolute URL | `/hook` |
+
+Alternate encodings of an address are normalised before the check, so `https://0x7f000001/`, `https://2130706433/`, `https://127.1/` and `https://[::ffff:127.0.0.1]/` are all rejected as `not_globally_routable` just like `https://127.0.0.1/`.
+
+`timeout` is separately bounded to 1–30 seconds; outside that it is a `400` with `FUNCTION_TIMEOUT_NOT_ALLOWED`.
+
+### Placeholders in the host are the interesting case
+
+`{{name}}` placeholders are a real feature: they are filled at call time from the arguments the model picked, which is what makes `https://erp.example.com/stock/{{sku}}` work.
+
+<Warning>
+  That substitution happens **at call time, with values the model chose**. A URL like `https://{{host}}/webhook` would pass every static address check above and then hand the choice of destination to the model. That is why placeholders are allowed in the path, the query string and the body, and rejected in the host and the port.
+</Warning>
+
+### What this does not protect against
+
+The validator inspects the URL you stored. It resolves nothing.
+
+<Note>
+  A hostname that points at a public address today can point at a private one tomorrow, and the name is resolved again when the request is actually made. Closing that gap is a matter of controlling egress, not of validating input, so **treat this validator as a guard against the accidental and the casual** — a copy-pasted `http://localhost:3000`, a cloud metadata endpoint, an internal service name — and not as a boundary against a determined attacker who already holds a write-scoped token for your company.
+</Note>
+
+## Secrets are write-only
+
+`context.headers` and `context.params` are where webhook credentials live in practice: a bearer token, an API key, a signed query parameter.
+
+**Reads mask them.** Keys stay visible so you can see the shape of the request; every value comes back as the literal string `***`.
+
+```json
+{
+  "context": {
+    "url": "https://erp.example.com/stock",
+    "method": "POST",
+    "headers": { "Authorization": "***", "X-Tenant": "***" },
+    "params": { "api_key": "***" },
+    "body": { "sku": "{{sku}}" },
+    "timeout": 30
+  }
+}
+```
+
+`context.body` is **not** masked. It is the request template the model fills in, not a place credentials normally live, and hiding it would remove the main reason to read a function at all.
+
+### Writing them back
+
+The masking creates one hazard, and the API refuses rather than let you walk into it.
+
+| What you send | What happens |
+|---|---|
+| `context` without `headers` | The stored headers are kept |
+| `context` with `headers` | The whole map is replaced with what you sent |
+| A value equal to `***` | `400 FUNCTION_MASKED_VALUE_WRITE`, naming the keys |
+
+The third row is the one that matters. The obvious client pattern — `GET`, change one field, `PUT` the whole object back — would otherwise store the literal string `***` over a live credential, and the function would start failing with a `401` from your own service for no visible reason. Instead it fails loudly and immediately.
+
+So to change the URL and keep the credentials, omit `headers`:
+
+```bash
+curl -X PUT https://api.keebai.com/v1/functions/6650cccc3333dddd4444eeee \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{ "context": { "url": "https://erp.example.com/v2/stock", "method": "POST" } }'
+```
+
+And to rotate a credential, send the new value:
+
+```bash
+curl -X PUT https://api.keebai.com/v1/functions/6650cccc3333dddd4444eeee \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{ "context": { "url": "https://erp.example.com/v2/stock", "headers": { "Authorization": "Bearer erp_live_NEW" } } }'
+```
+
+<Warning>
+  **Updates are read-modify-write, so concurrent writers can lose each other's changes.** Merging the stored headers requires reading them first; two updates to the same function that overlap will leave whichever finished last. Serialise updates to one function.
+</Warning>
+
+## Only webhook functions are exposed
+
+Keebai has other kinds of function — calendar integrations, ecommerce lookups, the ones generated automatically from a `product_info` block. None of them appear here. [`GET /v1/functions`](/dev/endpoints/functions-list) filters to webhooks, and asking for a non-webhook by id returns `404` rather than `403`, so an id you cannot manage is indistinguishable from one that does not exist.
+
+Because auto-generated functions are never of type `webhook`, they fall outside this surface by construction: there is no way to create one, re-point one at a different block, or delete one through this API.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Create a function" icon="plus" href="/dev/endpoints/functions-create">
+    The full body, with parameters and placeholders.
+  </Card>
+  <Card title="Update a function" icon="pen" href="/dev/endpoints/functions-update">
+    The merge rules, in detail.
+  </Card>
+</CardGroup>

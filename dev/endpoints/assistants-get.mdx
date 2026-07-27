@@ -1,0 +1,121 @@
+---
+title: "GET /v1/assistants/{id}"
+sidebarTitle: "GET assistants/:id"
+description: "Get one assistant with its model, its knowledge nodes, and the ordered block references that make up its prompt."
+openapi: "GET /v1/assistants/{id}"
+---
+
+Returns one assistant, including the wiring that [the list endpoint](/dev/endpoints/assistants-list) leaves out: the ordered `blocks` array and the knowledge nodes it can search.
+
+The `blocks` array carries **references only** — a block id, an optional pinned version, and a position. To get each block's type and name, use [`GET /v1/assistants/{id}/blocks`](/dev/endpoints/assistants-blocks-list), which resolves them in one extra call rather than one per block.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/assistants/{id}
+```
+
+## Required scope
+
+`assistants:read`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | `ObjectId` of the assistant. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl https://api.keebai.com/v1/assistants/6650a1b2c3d4e5f6a7b8c9d0 \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+```js JavaScript
+const resp = await fetch(
+  "https://api.keebai.com/v1/assistants/6650a1b2c3d4e5f6a7b8c9d0",
+  { headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` } },
+);
+const { assistant } = await resp.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.get(
+    "https://api.keebai.com/v1/assistants/6650a1b2c3d4e5f6a7b8c9d0",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    timeout=10,
+)
+resp.raise_for_status()
+assistant = resp.json()["assistant"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "assistant": {
+    "_id": "6650a1b2c3d4e5f6a7b8c9d0",
+    "name": "Recepción",
+    "description": "Atiende reservas y consultas de horario",
+    "avatar_url": "https://cdn.example.com/avatars/recepcion.png",
+    "avatar_emoji": "💈",
+    "model": "gemini-2.5-flash",
+    "voice_response_enabled": false,
+    "is_active": true,
+    "blocks": [
+      {
+        "block_id": "6650bbbb2222cccc3333dddd",
+        "pinned_version_id": null,
+        "order": 0
+      },
+      {
+        "block_id": "6650bbbb2222cccc3333eeee",
+        "pinned_version_id": "6650ffff4444aaaa5555bbbb",
+        "order": 1
+      }
+    ],
+    "knowledge_node_ids": ["6650dddd5555eeee6666ffff"],
+    "created_at": "2026-07-20T14:02:11.870Z",
+    "updated_at": "2026-07-26T09:44:03.512Z"
+  }
+}
+```
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `assistants:read` scope.
+
+### 404 Not Found
+
+No assistant with that id in the token's company **and project**.
+
+### 502 Bad Gateway
+
+The assistant service is unreachable.
+
+## Operational notes
+
+- **A `pinned_version_id` of `null` means "follow the block".** The assistant renders whatever version the block currently points at, so editing that block changes this assistant. A non-null value freezes it to one snapshot, and later saves to the block do not reach this assistant until you [repin it](/dev/endpoints/assistants-blocks-set).
+- **`order` is the position in the composed prompt**, not an index into the array. Values need not be contiguous, and the array is returned in whatever order it is stored. [`GET /v1/assistants/{id}/blocks`](/dev/endpoints/assistants-blocks-list) sorts by `order` for you.
+- **This endpoint returns inactive assistants too**, unlike the list. `is_active: false` means the assistant does not answer, but its configuration is intact.
+- **404 covers the cross-project case.** An assistant that belongs to another project of the same company reads as not found, not as forbidden — the project of the token is part of its identity.
+- **`company`, `project`, `metadata` and `created_by` are never returned.** The first two are implied by the token, the third has no published schema, and the fourth is an internal user id.

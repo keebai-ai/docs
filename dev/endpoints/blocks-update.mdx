@@ -1,0 +1,117 @@
+---
+title: "PATCH /v1/blocks/{id}"
+sidebarTitle: "PATCH blocks/:id"
+description: "Rename a block or change its archived flag. Content is edited elsewhere."
+openapi: "PATCH /v1/blocks/{id}"
+---
+
+Changes a block's name or archives it. These are the only two mutable fields on a block document — `type` and `family` are fixed at creation, and the content lives in versions.
+
+To change what the block says, use [`PUT /v1/blocks/{id}/content`](/dev/endpoints/blocks-content-save).
+
+## Endpoint
+
+```
+PATCH https://api.keebai.com/v1/blocks/{id}
+```
+
+## Required scope
+
+`assistants:write`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | `ObjectId` of the block. |
+
+## Body
+
+Both fields are optional; send at least one.
+
+| Field | Type | Description |
+|---|---|---|
+| `name` | `string` | Up to 150 characters, non-empty. |
+| `is_archived` | `boolean` | `true` hides it from the catalogue, `false` brings it back. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X PATCH https://api.keebai.com/v1/blocks/6650bbbb2222cccc3333dddd \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "Reserva de turnos" }'
+```
+
+```js JavaScript
+// Unarchive a block so it shows up in the catalogue again.
+const resp = await fetch(
+  "https://api.keebai.com/v1/blocks/6650bbbb2222cccc3333dddd",
+  {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ is_archived: false }),
+  },
+);
+const { block } = await resp.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.patch(
+    "https://api.keebai.com/v1/blocks/6650bbbb2222cccc3333dddd",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={"name": "Reserva de turnos"},
+    timeout=10,
+)
+resp.raise_for_status()
+block = resp.json()["block"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+The block, same shape as [`GET /v1/blocks/{id}`](/dev/endpoints/blocks-get).
+
+### 400 Bad Request
+
+An empty or over-long `name`, or a property the endpoint does not accept — including `type`, `family` and `content`.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `assistants:write` scope.
+
+### 404 Not Found
+
+No block with that id in the token's company and project.
+
+### 502 Bad Gateway
+
+The assistant service is unreachable.
+
+## Operational notes
+
+- **This works on all twelve types, including the read-only five.** Renaming and archiving do not touch content, so `product_info` and friends are editable here even though [saving their content](/dev/endpoints/blocks-content-save) is not.
+- **`is_archived: false` is the undo for [`DELETE /v1/blocks/{id}`](/dev/endpoints/blocks-archive).** They write the same field.
+- **Archiving does not detach.** Assistants referencing the block keep using it, and its content keeps rendering into their prompts. [Detach it](/dev/endpoints/assistants-block-detach) if that is what you meant.
+- **`type` cannot be changed.** A block created as `steps` is a `steps` block forever; create a new one of the right type and move the content across.

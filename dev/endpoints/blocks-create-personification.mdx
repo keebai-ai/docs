@@ -1,0 +1,139 @@
+---
+title: "POST /v1/blocks/personification"
+sidebarTitle: "POST blocks/personification"
+description: "Create a personality block with its content as plain text."
+openapi: "POST /v1/blocks/personification"
+---
+
+Who the assistant is: its role, its tone, and how it addresses people. This is the block that makes an assistant sound like your business rather than like a generic bot.
+
+The block is created in the project catalogue and is **not attached to anything**. Wire it into an assistant with [`POST /v1/assistants/{id}/blocks`](/dev/endpoints/assistants-block-attach) afterwards.
+
+<Note>
+  **Identity block: one per assistant.** Attaching a second `personification` to the same assistant fails with `ASSISTANT_DUPLICATE_IDENTITY_BLOCK`.
+</Note>
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/blocks/personification
+```
+
+## Required scope
+
+`assistants:write`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `name` | `string` | Yes | Up to 150 characters. What the block shows as in the portal. |
+| `content` | `string` | No | The block's text, up to 100,000 characters. Omit it to create an empty block. |
+
+`type` and `family` are not accepted: the type is the endpoint you called, and `family` is derived from it (`identity` for this one).
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/blocks/personification \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Personalidad",
+    "content": "Sos la recepción de una barbería en Providencia.\n- Tuteás al cliente.\n- Sos breve y directo, sin ser seco.\n- No prometés descuentos que no estén en el catálogo."
+  }'
+```
+
+```js JavaScript
+const resp = await fetch("https://api.keebai.com/v1/blocks/personification", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    name: "Personalidad",
+    content: "Sos la recepción de una barbería en Providencia.\n- Tuteás al cliente.\n- Sos breve y directo, sin ser seco.\n- No prometés descuentos que no estén en el catálogo.",
+  }),
+});
+
+const { block } = await resp.json();
+
+// Then wire it into an assistant.
+await fetch("https://api.keebai.com/v1/assistants/6650a1b2c3d4e5f6a7b8c9d0/blocks", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ block_id: block._id }),
+});
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/blocks/personification",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={"name": "Personalidad", "content": "Sos la recepción de una barbería en Providencia.\n- Tuteás al cliente.\n- Sos breve y directo."},
+    timeout=10,
+)
+resp.raise_for_status()
+block = resp.json()["block"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 201 Created
+
+```json
+{
+  "block": {
+    "_id": "6650bbbb2222cccc3333dddd",
+    "type": "personification",
+    "family": "identity",
+    "name": "Personalidad",
+    "current_version_id": "6650ffff4444aaaa5555bbbb",
+    "is_archived": false,
+    "content_writable": true,
+    "created_at": "2026-07-26T21:38:22.104Z",
+    "updated_at": "2026-07-26T21:38:22.104Z"
+  }
+}
+```
+
+### 400 Bad Request
+
+Missing `name`, `content` over 100,000 characters, or a property the endpoint does not accept.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `assistants:write` scope.
+
+### 502 Bad Gateway
+
+The assistant service is unreachable.
+
+## Operational notes
+
+- Every assistant created with [`POST /v1/assistants`](/dev/endpoints/assistants-create) already comes with an empty one of these attached. Check [its block list](/dev/endpoints/assistants-blocks-list) before creating another — you probably want to [fill in the existing one](/dev/endpoints/blocks-content-save) instead.
+- **Creating a block also creates its first version.** The response already carries a `current_version_id`, even when you omit `content` — the block starts with one empty version rather than none.
+- **Creation is not idempotent.** Nothing enforces unique names, so a retry after a timeout leaves you with two blocks. Check [the catalogue](/dev/endpoints/blocks-list) filtered by `type` before retrying.
+- **Content is plain text with three markdown conventions**: `-` for bullets, `1.` for numbered items, `#` for headings. Everything else is a paragraph. [More on how content is stored](/dev/assistants/overview#content-is-text).
+- **The block belongs to the token's project**, and a token on another project can neither see it nor read it by id.

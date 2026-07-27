@@ -32,7 +32,7 @@ The knowledge base is the corpus your Keebai assistants answer from. It is a tre
 | `knowledge:delete` | [Delete nodes](/dev/endpoints/knowledge-node-delete), folders and documents alike. |
 | `knowledge:query` | [Search](/dev/endpoints/knowledge-search) by full text, vector, or hybrid. |
 | `knowledge:assign` | [Assign nodes](/dev/endpoints/knowledge-assign) to an assistant's workers. |
-| `assistants:read` | [List assistants](/dev/endpoints/assistants-list) so you know what to assign to. |
+| `assistants:read` | [List assistants](/dev/endpoints/assistants-list) so you know what to assign to. Their full configuration lives in the [Assistants](/dev/assistants/overview) tab. |
 
 An external app that only uses Keebai as a retrieval backend needs `knowledge:read` and `knowledge:query` — nothing else. Keep `knowledge:delete` out of any token a sync job holds.
 

@@ -1,0 +1,122 @@
+---
+title: "POST /v1/blocks/{id}/versions/{versionId}/restore"
+sidebarTitle: "POST blocks/.../restore"
+description: "Restore an old version by appending it as a new current version. Nothing is overwritten."
+openapi: "POST /v1/blocks/{id}/versions/{versionId}/restore"
+---
+
+Brings back an earlier version of a block's content.
+
+It does this by **copying** that version into a new one at the top of the history and pointing the block at it. Nothing is rewound and nothing is lost: after restoring version 2 onto a block at version 5, the block is at version 6 and versions 1 through 5 are still there.
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/blocks/{id}/versions/{versionId}/restore
+```
+
+## Required scope
+
+`assistants:write`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | `ObjectId` of the block. |
+| `versionId` | `string` | `ObjectId` of the version to restore. Must belong to that block. |
+
+No body.
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST \
+  https://api.keebai.com/v1/blocks/6650bbbb2222cccc3333dddd/versions/6650ffff4444aaaa5555bbbb/restore \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+```js JavaScript
+const base = "https://api.keebai.com/v1/blocks/6650bbbb2222cccc3333dddd";
+const auth = { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` };
+
+// Roll back to the version before the current one.
+const { data } = await (await fetch(`${base}/versions`, { headers: auth })).json();
+const previous = data.find((v) => !v.is_current);
+
+const resp = await fetch(`${base}/versions/${previous._id}/restore`, {
+  method: "POST",
+  headers: auth,
+});
+const { content } = await resp.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/blocks/6650bbbb2222cccc3333dddd"
+    "/versions/6650ffff4444aaaa5555bbbb/restore",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    timeout=10,
+)
+resp.raise_for_status()
+content = resp.json()["content"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 201 Created
+
+The newly created version, in the same shape as [`GET /v1/blocks/{id}/content`](/dev/endpoints/blocks-content-get). Note the `version_number` is the new one, and the content is the restored one.
+
+```json
+{
+  "content": {
+    "block_id": "6650bbbb2222cccc3333dddd",
+    "version_id": "6650ffff4444aaaa5555eeee",
+    "version_number": 6,
+    "edit_mode": "free",
+    "content": "1. Saludar.\n2. Preguntar el servicio.",
+    "created_at": "2026-07-26T22:01:47.330Z"
+  }
+}
+```
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `assistants:write` scope.
+
+### 404 Not Found
+
+The block does not exist in the token's company and project, or `error.code` is `BLOCK_VERSION_NOT_FOUND` because the version does not exist or belongs to a different block.
+
+### 409 Conflict
+
+`error.code` is `BLOCK_TYPE_NOT_WRITABLE`. The block is one of the five catalogue types, which the portal owns.
+
+### 502 Bad Gateway
+
+The assistant service is unreachable.
+
+## Operational notes
+
+- **Restoring is a write, so it needs `assistants:write`** and is subject to the same type restriction as [saving content](/dev/endpoints/blocks-content-save): the five catalogue types refuse it.
+- **Restoring is not idempotent.** Calling it twice appends two identical versions. Harmless, but the history grows.
+- **Assistants pinned to another version are unaffected.** Restoring moves the block's current version; a pinned assistant keeps rendering what it was pinned to.
+- **Restoring is reversible by restoring again.** The version you just moved away from is still in the history with its own id.
+- **Check before you restore.** [Read the version](/dev/endpoints/blocks-version-get) first — the history list deliberately carries no content, so `version_number` alone tells you nothing about what you are bringing back.

@@ -1,0 +1,137 @@
+---
+title: "POST /v1/assistants"
+sidebarTitle: "POST assistants"
+description: "Create an assistant. It comes with an empty personality block and an empty response-policy block already attached."
+openapi: "POST /v1/assistants"
+---
+
+Creates an assistant in the token's project and returns it with its `_id` and its starting blocks.
+
+The assistant is **not born empty**: it comes with a `personification` block and a `response_policy` block already created and attached, both with no content. Without those two an assistant has no identity and no rule about when to answer, so it would not say anything useful. Your next call is normally [`PUT /v1/blocks/{id}/content`](/dev/endpoints/blocks-content-save) on the personality block.
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/assistants
+```
+
+## Required scope
+
+`assistants:write`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `name` | `string` | Yes | Up to 150 characters. |
+| `description` | `string` | No | Up to 500 characters. Shown in the portal. |
+| `avatar_url` | `string` | No | Public `https` URL. Up to 500 characters. |
+| `avatar_emoji` | `string` | No | Up to 16 characters. Used when there is no `avatar_url`. |
+| `model` | `string` | No | Model id. Validated; an unsupported one returns `400 INVALID_MODEL`. Defaults to the platform default. |
+| `knowledge_node_ids` | `string[]` | No | Up to 200 `ObjectId`s from [the knowledge tree](/dev/endpoints/knowledge-tree). |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/assistants \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Recepción",
+    "description": "Atiende reservas y consultas de horario",
+    "avatar_emoji": "💈",
+    "model": "gemini-2.5-flash"
+  }'
+```
+
+```js JavaScript
+const resp = await fetch("https://api.keebai.com/v1/assistants", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    name: "Recepción",
+    description: "Atiende reservas y consultas de horario",
+    model: "gemini-2.5-flash",
+  }),
+});
+
+const { assistant } = await resp.json();
+// The personality block it was born with:
+const personality = assistant.blocks[0].block_id;
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/assistants",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={"name": "Recepción", "model": "gemini-2.5-flash"},
+    timeout=10,
+)
+resp.raise_for_status()
+assistant = resp.json()["assistant"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 201 Created
+
+```json
+{
+  "assistant": {
+    "_id": "6650a1b2c3d4e5f6a7b8c9d0",
+    "name": "Recepción",
+    "description": "Atiende reservas y consultas de horario",
+    "avatar_emoji": "💈",
+    "model": "gemini-2.5-flash",
+    "voice_response_enabled": false,
+    "is_active": true,
+    "blocks": [
+      { "block_id": "6650bbbb2222cccc3333dddd", "pinned_version_id": null, "order": 0 },
+      { "block_id": "6650bbbb2222cccc3333eeee", "pinned_version_id": null, "order": 1 }
+    ],
+    "knowledge_node_ids": [],
+    "created_at": "2026-07-26T21:38:22.104Z",
+    "updated_at": "2026-07-26T21:38:22.104Z"
+  }
+}
+```
+
+### 400 Bad Request
+
+Missing `name`, a field over its length limit, an `avatar_url` that is not `https`, a malformed `ObjectId` in `knowledge_node_ids`, or a property the endpoint does not accept. `error.code` is `INVALID_MODEL` when the problem is the model.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `assistants:write` scope.
+
+### 502 Bad Gateway
+
+The assistant service is unreachable.
+
+## Operational notes
+
+- **The two starting blocks are real catalogue blocks**, `order: 0` is the `personification` and `order: 1` the `response_policy`. They belong to the project like any other, so they show up in [`GET /v1/blocks`](/dev/endpoints/blocks-list) and can be renamed, archived or reused. Read their type from [`GET /v1/assistants/{id}/blocks`](/dev/endpoints/assistants-blocks-list) rather than trusting the array position.
+- **Creation is not idempotent.** There is no uniqueness constraint on `name`, so a retry after a timeout creates a second assistant. Check with [the list endpoint](/dev/endpoints/assistants-list) filtered by `q` before retrying.
+- **The assistant is created in the token's project.** There is no `project` field to send; it comes from the token, and a token scoped to another project creates it there instead.
+- **Sending `metadata`, `company`, `project`, `blocks` or `is_active` is rejected**, not ignored — unknown properties return `400`. Blocks are wired with [the block endpoints](/dev/endpoints/assistants-block-attach) after creation.
+- **A new assistant is active immediately** and will answer on any channel it gets routed to. Create it, configure it, then route it — not the other way round.

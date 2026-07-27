@@ -1,7 +1,7 @@
 ---
 title: "Tool catalogue"
 sidebarTitle: "Tools"
-description: "All 71 MCP tools, grouped by domain, with the scope each one requires."
+description: "All 101 MCP tools, grouped by domain, with the scope each one requires."
 ---
 
 Every tool below is exposed by [`POST /v1/mcp`](/dev/mcp/overview) and delegates to the same service as its REST counterpart, so the behaviour, validation, and tenancy rules documented across these pages apply unchanged.
@@ -161,6 +161,49 @@ Points, stamps, and wallet cards. See the [loyalty overview](/dev/loyalty/overvi
   Tools marked ⚠️ have effects outside Keebai. `keebai_loyalty_ledger_record` moves a balance a customer can spend and is **not idempotent** — a retried call double-counts. `keebai_loyalty_pass_notify` sends a push notification to a real phone.
 
   Neither is destructive, so neither carries the 🔴 marker, but hand `loyalty:write` to an agent with the same care you would give `messages:send`.
+</Warning>
+
+## Assistants
+
+Read and write the configuration of the assistants themselves: the [blocks that make up their prompt](/dev/assistants/overview) and the webhook functions they can call. Thirty tools, all on `assistants:read` or `assistants:write`.
+
+| Tool | Scope | What it does |
+|---|---|---|
+| `keebai_assistants_list` | `assistants:read` | List the active assistants of the project. Start here for the id everything else needs. |
+| `keebai_assistant_get` | `assistants:read` | One assistant with its model, knowledge nodes, and ordered block references. |
+| `keebai_assistant_create` | `assistants:write` | Create one. It is born with an empty personality and response-policy block attached. |
+| `keebai_assistant_update` | `assistants:write` | Partial update of name, description, avatar, model, active flag, knowledge nodes. |
+| 🔴 `keebai_assistant_delete` | `assistants:write` | Delete permanently. Its blocks survive in the catalogue. |
+| `keebai_assistant_blocks_list` | `assistants:read` | The blocks wired into one assistant, in prompt order, metadata only. |
+| `keebai_assistant_blocks_set` | `assistants:write` | Replace the whole block list. The only way to reorder or pin. Blocks left out get detached. |
+| `keebai_assistant_block_attach` | `assistants:write` | Attach one block. Fails on a cross-company block or a duplicate identity block. |
+| `keebai_assistant_block_detach` | `assistants:write` | Detach one block. The block itself is untouched. |
+| `keebai_assistant_blocks_catalog` | `assistants:read` | Every block in the project, attached or not, filtered by type or family. |
+| `keebai_assistant_block_get` | `assistants:read` | One block's metadata, including whether its content is writable. |
+| `keebai_assistant_block_create_personification` | `assistants:write` | Create a personality block: role, tone, how it addresses people. |
+| `keebai_assistant_block_create_objective` | `assistants:write` | Create an objective block: what to achieve and how you know it did. |
+| `keebai_assistant_block_create_response_format` | `assistants:write` | Create a format block: length, emoji usage, formatting rules. |
+| `keebai_assistant_block_create_steps` | `assistants:write` | Create a steps block: the procedure, in order. |
+| `keebai_assistant_block_create_cases_possible` | `assistants:write` | Create a cases block: situations and how to answer each. |
+| `keebai_assistant_block_create_do_not` | `assistants:write` | Create a restrictions block: what it must never do. |
+| `keebai_assistant_block_create_response_policy` | `assistants:write` | Create a policy block: when to stay silent, when to react. |
+| `keebai_assistant_block_update` | `assistants:write` | Rename a block or flip its archived flag. |
+| `keebai_assistant_block_archive` | `assistants:write` | Archive a block. Reversible; assistants still attached keep using it. |
+| `keebai_assistant_block_content_get` | `assistants:read` | Read a block's current content. Free blocks come back as text. |
+| `keebai_assistant_block_content_save` | `assistants:write` | Replace the content, creating a new version. The five catalogue types refuse. |
+| `keebai_assistant_block_versions_list` | `assistants:read` | Version history, newest first, without the payloads. |
+| `keebai_assistant_block_version_get` | `assistants:read` | Read one historical version, to check it before restoring. |
+| `keebai_assistant_block_version_restore` | `assistants:write` | Restore an old version by appending it as a new one. Nothing is lost. |
+| `keebai_assistant_functions_list` | `assistants:read` | The company's webhook functions. Secret values come back masked. |
+| `keebai_assistant_function_get` | `assistants:read` | One function with its URL, parameters, and the blocks referencing it. |
+| ⚠️ `keebai_assistant_function_create` | `assistants:write` | Create a webhook the assistant can call. The URL must be a public https host. |
+| ⚠️ `keebai_assistant_function_update` | `assistants:write` | Partial update. Omitting headers keeps the stored ones; never echo back a `***`. |
+| 🔴 `keebai_assistant_function_delete` | `assistants:write` | Delete permanently. Fails while a block still references it. |
+
+<Warning>
+  **Writing here changes what your bots say to customers.** An agent with `assistants:write` can rewrite any prompt block and create webhook functions that make Keebai's infrastructure call an external host — the URL is validated against loopback, private ranges and internal names, but a public host of the agent's choosing is allowed. Treat it as a higher-privilege scope than the read side, and read [webhook security](/dev/assistants/webhook-security) before handing it out.
+
+  **Functions are company-wide**, unlike assistants and blocks, which are scoped to the token's project.
 </Warning>
 
 ## Not exposed as tools

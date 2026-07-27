@@ -1,0 +1,128 @@
+---
+title: "GET /v1/blocks/{id}/versions"
+sidebarTitle: "GET blocks/:id/versions"
+description: "List a block's version history, newest first, without the content."
+openapi: "GET /v1/blocks/{id}/versions"
+---
+
+Every [content save](/dev/endpoints/blocks-content-save) appends an immutable version. This lists them, newest first, so you can find a `version_id` to [inspect](/dev/endpoints/blocks-version-get) or [restore](/dev/endpoints/blocks-version-restore).
+
+**No payloads.** A block edited a few hundred times would make this response megabytes, for a list whose only job is to let you pick an id.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/blocks/{id}/versions
+```
+
+## Required scope
+
+`assistants:read`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | `ObjectId` of the block. |
+
+## Query parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `limit` | `integer` | `50` | Records per page, 1–200. |
+| `offset` | `integer` | `0` | Records to skip. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl "https://api.keebai.com/v1/blocks/6650bbbb2222cccc3333dddd/versions?limit=20" \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+```js JavaScript
+const resp = await fetch(
+  "https://api.keebai.com/v1/blocks/6650bbbb2222cccc3333dddd/versions?limit=20",
+  { headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` } },
+);
+const { data } = await resp.json();
+
+// The one before the current one.
+const previous = data.find((v) => !v.is_current);
+```
+
+```python Python
+import os, requests
+
+resp = requests.get(
+    "https://api.keebai.com/v1/blocks/6650bbbb2222cccc3333dddd/versions",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    params={"limit": 20},
+    timeout=10,
+)
+resp.raise_for_status()
+versions = resp.json()["data"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "data": [
+    {
+      "_id": "6650ffff4444aaaa5555dddd",
+      "block_id": "6650bbbb2222cccc3333dddd",
+      "version_number": 5,
+      "edit_mode": "free",
+      "is_current": true,
+      "created_at": "2026-07-26T21:38:22.104Z"
+    },
+    {
+      "_id": "6650ffff4444aaaa5555bbbb",
+      "block_id": "6650bbbb2222cccc3333dddd",
+      "version_number": 4,
+      "edit_mode": "free",
+      "is_current": false,
+      "created_at": "2026-07-26T09:44:03.512Z"
+    }
+  ],
+  "limit": 20,
+  "offset": 0,
+  "has_more": false
+}
+```
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `assistants:read` scope.
+
+### 404 Not Found
+
+No block with that id in the token's company and project.
+
+### 502 Bad Gateway
+
+The assistant service is unreachable.
+
+## Operational notes
+
+- **There is no `total`.** The upstream store exposes no count for versions, and returning the page length as if it were the size of the set would make a client stop paginating early. Page until `has_more` is `false`.
+- **`is_current` marks the version the block points at**, which is what an unpinned assistant renders. Exactly one version per block has it.
+- **`version_number` is monotonic and never reused.** A [restore](/dev/endpoints/blocks-version-restore) appends a new number rather than reviving the old one, so restoring version 2 onto a block at version 5 gives you version 6 with version 2's content.
+- **Versions are never deleted.** Not by [archiving the block](/dev/endpoints/blocks-archive), not by [deleting the assistant](/dev/endpoints/assistants-delete), and there is no endpoint that removes one.
+- **An assistant may render a version that is not current**, if it was pinned. Compare against `pinned_version_id` from [its block list](/dev/endpoints/assistants-blocks-list).

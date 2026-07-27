@@ -1,0 +1,133 @@
+---
+title: "GET /v1/functions"
+sidebarTitle: "GET functions"
+description: "List the webhook functions of your company, with secret values masked."
+openapi: "GET /v1/functions"
+---
+
+Lists the webhook functions an assistant can call. Each one is an HTTPS endpoint of yours: you describe what it does, the model decides when to call it, and Keebai makes the request.
+
+Header and query-string **values come back masked** as `***`; the keys stay visible so you can see the shape of the request. See [webhook security](/dev/assistants/webhook-security#secrets-are-write-only).
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/functions
+```
+
+## Required scope
+
+`assistants:read`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+
+## Query parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `active_only` | `boolean` | `false` | Return only functions with `is_active: true`. |
+| `limit` | `integer` | `50` | Records per page, 1–200. |
+| `offset` | `integer` | `0` | Records to skip. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -s "https://api.keebai.com/v1/functions?active_only=true" \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+```js JavaScript
+const params = new URLSearchParams({ active_only: "true" });
+const resp = await fetch(`https://api.keebai.com/v1/functions?${params}`, {
+  headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` },
+});
+const { data, total } = await resp.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.get(
+    "https://api.keebai.com/v1/functions",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    params={"active_only": True},
+    timeout=10,
+)
+resp.raise_for_status()
+functions = resp.json()["data"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "data": [
+    {
+      "_id": "6650cccc3333dddd4444eeee",
+      "name": "consultar_stock",
+      "display_name": "Consultar stock",
+      "description": "Devuelve el stock disponible de un SKU en el ERP.",
+      "type": "webhook",
+      "tool_params": [
+        {
+          "name": "sku",
+          "description": "Código del producto",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "context": {
+        "url": "https://erp.example.com/stock/{{sku}}",
+        "method": "GET",
+        "headers": { "Authorization": "***" },
+        "params": {},
+        "timeout": 30
+      },
+      "tags": ["erp"],
+      "is_active": true,
+      "used_by_blocks": [
+        {
+          "block_id": "6650bbbb2222cccc3333dddd",
+          "name": "Reserva",
+          "type": "steps"
+        }
+      ],
+      "created_at": "2026-07-22T08:12:04.221Z",
+      "updated_at": "2026-07-25T16:30:19.008Z"
+    }
+  ],
+  "total": 1,
+  "limit": 50,
+  "offset": 0
+}
+```
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `assistants:read` scope.
+
+### 502 Bad Gateway
+
+The assistant service is unreachable.
+
+## Operational notes
+
+- **Functions are company-wide, not project-scoped.** Unlike assistants and blocks, two tokens on two projects of the same company see the same list. A name collision is a company-level collision.
+- **Only webhook functions appear here.** Keebai also has calendar, ecommerce and block-generated functions; none of them are exposed, and asking for one by id returns `404`. See [why](/dev/assistants/webhook-security#only-webhook-functions-are-exposed).
+- **`used_by_blocks` is what makes a delete recoverable.** While it is non-empty, [deleting the function](/dev/endpoints/functions-delete) returns `409` — this field names the blocks to unbind first.
+- **`context.body` is not masked.** It is the request template the model fills in, not a place credentials normally live, and hiding it would remove the main reason to read a function.
+- **`total` is a real count**, unlike the block endpoints: the upstream returns the full set, so the page is sliced here.

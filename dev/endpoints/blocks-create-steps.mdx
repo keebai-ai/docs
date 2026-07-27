@@ -1,0 +1,139 @@
+---
+title: "POST /v1/blocks/steps"
+sidebarTitle: "POST blocks/steps"
+description: "Create a steps block with its content as plain text."
+openapi: "POST /v1/blocks/steps"
+---
+
+The procedure the assistant follows, in order. Use it when the conversation has a shape: gather, confirm, act.
+
+The block is created in the project catalogue and is **not attached to anything**. Wire it into an assistant with [`POST /v1/assistants/{id}/blocks`](/dev/endpoints/assistants-block-attach) afterwards.
+
+<Note>
+  **Instruction block: an assistant can hold several.** Split long procedures into named blocks rather than one giant one — they are easier to reorder and to reuse.
+</Note>
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/blocks/steps
+```
+
+## Required scope
+
+`assistants:write`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `name` | `string` | Yes | Up to 150 characters. What the block shows as in the portal. |
+| `content` | `string` | No | The block's text, up to 100,000 characters. Omit it to create an empty block. |
+
+`type` and `family` are not accepted: the type is the endpoint you called, and `family` is derived from it (`instructions` for this one).
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/blocks/steps \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Reserva",
+    "content": "1. Saludar y preguntar en qué puede ayudar.\n2. Preguntar el servicio.\n3. Ofrecer los horarios disponibles.\n4. Confirmar la reserva y repetir los datos."
+  }'
+```
+
+```js JavaScript
+const resp = await fetch("https://api.keebai.com/v1/blocks/steps", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    name: "Reserva",
+    content: "1. Saludar y preguntar en qué puede ayudar.\n2. Preguntar el servicio.\n3. Ofrecer los horarios disponibles.\n4. Confirmar la reserva y repetir los datos.",
+  }),
+});
+
+const { block } = await resp.json();
+
+// Then wire it into an assistant.
+await fetch("https://api.keebai.com/v1/assistants/6650a1b2c3d4e5f6a7b8c9d0/blocks", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ block_id: block._id }),
+});
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/blocks/steps",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={"name": "Reserva", "content": "1. Saludar\n2. Preguntar el servicio\n3. Ofrecer horarios"},
+    timeout=10,
+)
+resp.raise_for_status()
+block = resp.json()["block"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 201 Created
+
+```json
+{
+  "block": {
+    "_id": "6650bbbb2222cccc3333dddd",
+    "type": "steps",
+    "family": "instructions",
+    "name": "Reserva",
+    "current_version_id": "6650ffff4444aaaa5555bbbb",
+    "is_archived": false,
+    "content_writable": true,
+    "created_at": "2026-07-26T21:38:22.104Z",
+    "updated_at": "2026-07-26T21:38:22.104Z"
+  }
+}
+```
+
+### 400 Bad Request
+
+Missing `name`, `content` over 100,000 characters, or a property the endpoint does not accept.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `assistants:write` scope.
+
+### 502 Bad Gateway
+
+The assistant service is unreachable.
+
+## Operational notes
+
+- Write each step on a line starting with a number so it renders as an ordered list. Indent a line by two spaces to nest it under the step above.
+- **Creating a block also creates its first version.** The response already carries a `current_version_id`, even when you omit `content` — the block starts with one empty version rather than none.
+- **Creation is not idempotent.** Nothing enforces unique names, so a retry after a timeout leaves you with two blocks. Check [the catalogue](/dev/endpoints/blocks-list) filtered by `type` before retrying.
+- **Content is plain text with three markdown conventions**: `-` for bullets, `1.` for numbered items, `#` for headings. Everything else is a paragraph. [More on how content is stored](/dev/assistants/overview#content-is-text).
+- **The block belongs to the token's project**, and a token on another project can neither see it nor read it by id.

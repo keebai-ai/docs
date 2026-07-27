@@ -178,12 +178,6 @@
               "dev/endpoints/knowledge-search",
               "dev/endpoints/knowledge-assign"
             ]
-          },
-          {
-            "group": "Assistants",
-            "pages": [
-              "dev/endpoints/assistants-list"
-            ]
           }
         ]
       },
@@ -359,6 +353,89 @@
               "dev/endpoints/loyalty-pass-apple-link",
               "dev/endpoints/loyalty-pass-notify",
               "dev/endpoints/loyalty-pass-notifications"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Assistants",
+        "icon": "robot",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": [
+              "dev/assistants/overview"
+            ]
+          },
+          {
+            "group": "Assistants",
+            "pages": [
+              "dev/endpoints/assistants-list",
+              "dev/endpoints/assistants-get",
+              "dev/endpoints/assistants-create",
+              "dev/endpoints/assistants-update",
+              "dev/endpoints/assistants-delete"
+            ]
+          },
+          {
+            "group": "Assistant blocks",
+            "pages": [
+              "dev/endpoints/assistants-blocks-list",
+              "dev/endpoints/assistants-blocks-set",
+              "dev/endpoints/assistants-block-attach",
+              "dev/endpoints/assistants-block-detach"
+            ]
+          },
+          {
+            "group": "Block catalogue",
+            "pages": [
+              "dev/endpoints/blocks-list",
+              "dev/endpoints/blocks-get",
+              "dev/endpoints/blocks-update",
+              "dev/endpoints/blocks-archive"
+            ]
+          },
+          {
+            "group": "Create a block",
+            "pages": [
+              "dev/endpoints/blocks-create-personification",
+              "dev/endpoints/blocks-create-objective",
+              "dev/endpoints/blocks-create-response-format",
+              "dev/endpoints/blocks-create-steps",
+              "dev/endpoints/blocks-create-cases-possible",
+              "dev/endpoints/blocks-create-do-not",
+              "dev/endpoints/blocks-create-response-policy"
+            ]
+          },
+          {
+            "group": "Block content",
+            "pages": [
+              "dev/endpoints/blocks-content-get",
+              "dev/endpoints/blocks-content-save"
+            ]
+          },
+          {
+            "group": "Versions",
+            "pages": [
+              "dev/endpoints/blocks-versions-list",
+              "dev/endpoints/blocks-version-get",
+              "dev/endpoints/blocks-version-restore"
+            ]
+          },
+          {
+            "group": "Functions",
+            "pages": [
+              "dev/endpoints/functions-list",
+              "dev/endpoints/functions-get",
+              "dev/endpoints/functions-create",
+              "dev/endpoints/functions-update",
+              "dev/endpoints/functions-delete"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "dev/assistants/webhook-security"
             ]
           }
         ]

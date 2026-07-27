@@ -1,0 +1,122 @@
+---
+title: "PATCH /v1/assistants/{id}"
+sidebarTitle: "PATCH assistants/:id"
+description: "Update an assistant's name, description, avatar, model, knowledge nodes, or active flag."
+openapi: "PATCH /v1/assistants/{id}"
+---
+
+Partial update. Only the fields present in the body change; everything else is left alone.
+
+Blocks are **not** editable here. Use [`PUT /v1/assistants/{id}/blocks`](/dev/endpoints/assistants-blocks-set) to reorder or repin them, and [`PUT /v1/blocks/{id}/content`](/dev/endpoints/blocks-content-save) to change what one says.
+
+## Endpoint
+
+```
+PATCH https://api.keebai.com/v1/assistants/{id}
+```
+
+## Required scope
+
+`assistants:write`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | `ObjectId` of the assistant. |
+
+## Body
+
+Every field is optional.
+
+| Field | Type | Description |
+|---|---|---|
+| `name` | `string` | Up to 150 characters, non-empty. |
+| `description` | `string` | Up to 500 characters. |
+| `avatar_url` | `string` | Public `https` URL. |
+| `avatar_emoji` | `string` | Up to 16 characters. |
+| `model` | `string` | Model id. Validated only when it differs from the current one. |
+| `knowledge_node_ids` | `string[]` | Replaces the whole list. Send `[]` to unassign everything. |
+| `is_active` | `boolean` | `false` stops the assistant answering without deleting anything. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X PATCH https://api.keebai.com/v1/assistants/6650a1b2c3d4e5f6a7b8c9d0 \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{ "model": "gemini-2.5-pro", "is_active": true }'
+```
+
+```js JavaScript
+const resp = await fetch(
+  "https://api.keebai.com/v1/assistants/6650a1b2c3d4e5f6a7b8c9d0",
+  {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ model: "gemini-2.5-pro" }),
+  },
+);
+const { assistant } = await resp.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.patch(
+    "https://api.keebai.com/v1/assistants/6650a1b2c3d4e5f6a7b8c9d0",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={"model": "gemini-2.5-pro"},
+    timeout=10,
+)
+resp.raise_for_status()
+assistant = resp.json()["assistant"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+The full assistant, same shape as [`GET /v1/assistants/{id}`](/dev/endpoints/assistants-get).
+
+### 400 Bad Request
+
+A field over its length limit, a non-`https` `avatar_url`, a malformed `ObjectId`, an unknown property, or `INVALID_MODEL` when the new model is not supported.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `assistants:write` scope.
+
+### 404 Not Found
+
+No assistant with that id in the token's company and project.
+
+### 502 Bad Gateway
+
+The assistant service is unreachable.
+
+## Operational notes
+
+- **`knowledge_node_ids` replaces, it does not append.** Sending one id leaves the assistant with exactly that one. Read the current list from [`GET /v1/assistants/{id}`](/dev/endpoints/assistants-get) and send the union if you mean to add.
+- **The model is only validated when it changes.** An assistant already configured with a model that has since been retired keeps working through updates that do not touch `model`, and starts failing validation the moment you send it explicitly.
+- **`is_active: false` is the reversible way to take an assistant out of service.** It keeps every block, version and knowledge assignment; [deleting](/dev/endpoints/assistants-delete) does not.
+- **Omitting a field and sending `null` are not the same.** Omit it to leave the value alone. `null` is not accepted for these fields.
+- **A change takes effect within about fifteen minutes at worst.** The rendered prompt and bound functions are cached per assistant; the cache is dropped on every write, but a request already in flight can still answer with the previous configuration.
