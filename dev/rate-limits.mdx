@@ -1,22 +1,25 @@
 ---
 title: "Rate limits and errors"
 sidebarTitle: "Rate limits"
-description: "Usage limits per token, error response format, and best practices for building reliable integrations against the Keebai public API."
+description: "Usage limits per project, error response format, and best practices for building reliable integrations against the Keebai public API."
 ---
 
 ## Rate limits
 
-Limits apply **per token** (not per user, not per IP) and are shared across **every endpoint** — the quota is one pool, so calls to `/v1/messages/text` and `/v1/crm/tickets` draw from the same budget.
+Limits apply **per project** (not per token, not per user, not per IP) and are shared across **every endpoint** — the quota is one pool, so calls to `/v1/messages/text` and `/v1/crm/tickets` draw from the same budget.
 
 | Window | Limit | Purpose |
 |---|---|---|
-| Per minute | 300 requests | Burst protection |
+| Per minute | 60 requests | Burst protection |
+| Per hour | 200 requests | Keeps a burst from eating the day |
 | **Per day** | **1,000 requests** | **Hard cap** |
 
-The daily cap is the one that matters. At a steady pace that is roughly **40 requests per hour**; a job that fires 300 requests in one minute is allowed, but it has just spent almost a third of the day's budget.
+The three windows stack, and the tightest one wins. The daily cap is the one that matters: at a steady pace it is roughly **40 requests per hour**, which is what the hourly window is sized around. The minute window lets a batch job move at 60 a minute for a short stretch; the hourly window is what stops that stretch from spending the whole day in a few minutes.
 
 <Warning>
-  **1,000 per day is a hard ceiling per token, not a soft target.** Once you hit it, every request returns `429` until the window rolls over. Size your polling intervals and batch jobs against it before you go to production.
+  **1,000 per day is a hard ceiling per project, not a soft target.** Once you hit it, every request returns `429` until the window rolls over. Size your polling intervals and batch jobs against it before you go to production.
+
+  **Minting a second token does not double your quota.** All tokens issued against the same project share one budget. To isolate a noisy job from your transactional path, put them in **separate projects**.
 </Warning>
 
 If you cross a limit:
@@ -30,12 +33,12 @@ Content-Type: application/json
 {
   "error": {
     "code": "THROTTLED",
-    "message": "Rate limit exceeded: 1000 requests per day per token. Quota resets in 7h 12m."
+    "message": "Rate limit exceeded: 1000 requests per day per project. Quota resets in 7h 12m."
   }
 }
 ```
 
-The message names the window you hit and when it frees up, so you can tell a one-minute burst apart from a spent daily budget.
+The message names the window you hit and when it frees up, so you can tell a one-minute burst apart from a spent hourly allowance or a spent daily budget.
 
 <Note>
   **The [MCP server](/dev/mcp/overview) is outside these limits.** Tool calls on `POST /v1/mcp` are not counted against the per-minute or per-day quota. That is convenient and also a footgun: an agent stuck in a loop generates real upstream traffic with nothing stopping it, so cap it on your side.
@@ -52,12 +55,12 @@ Every response carries the state of each window, so you can self-throttle before
 | `X-RateLimit-Reset-day` | Seconds until the window rolls over. |
 | `Retry-After-day` | Only on `429`. Seconds to wait before retrying. |
 
-The same trio exists for `-minute`. A healthy integration watches `X-RateLimit-Remaining-day` and slows itself down as it approaches zero, rather than sprinting into a wall.
+The same trio exists for `-minute` and `-hour`. A healthy integration watches `X-RateLimit-Remaining-day` and slows itself down as it approaches zero, rather than sprinting into a wall.
 
-The window is **rolling**, not aligned to midnight: it opens on your first request and closes 24 hours later.
+Every window is **rolling**, not aligned to a clock boundary: each one opens on your first request and closes a minute, an hour or 24 hours later.
 
 <Tip>
-  Need more throughput (e.g. bulk-syncing a CRM with hundreds of thousands of contacts)? Email [support@keebai.com](mailto:support@keebai.com) with your expected volume and we'll raise the cap on your token.
+  Need more throughput (e.g. bulk-syncing a CRM with hundreds of thousands of contacts)? Email [support@keebai.com](mailto:support@keebai.com) with your expected volume and we'll raise the cap on your project.
 </Tip>
 
 ### What does not count
@@ -111,8 +114,8 @@ Don't tight-loop retries — you'll burn the rest of the quota on requests that 
   <Card title="Cache what rarely changes" icon="database">
     Channels, templates, branches, and services change on a human timescale. Fetch them once at boot, not once per message.
   </Card>
-  <Card title="One token per system" icon="key">
-    The quota is per token, so a noisy batch job cannot starve your transactional path if they hold separate tokens.
+  <Card title="One project per workload" icon="key">
+    The quota is per project, so tokens are not how you isolate. Give a noisy batch job its own project and it cannot starve your transactional path.
   </Card>
 </CardGroup>
 
