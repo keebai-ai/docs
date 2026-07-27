@@ -31,7 +31,7 @@ POST https://api.keebai.com/v1/messages
 | `channel` | `string` | Yes | `whatsapp`, `whatsapp_qr`, `instagram` or `messenger`. |
 | `channel_id` | `string` | No | Keebai channel id. Only needed when the project has more than one active channel of that type — otherwise the single one is resolved automatically. List them with [`GET /v1/channels`](/dev/endpoints/channels-list). |
 | `phone_number_id` | `string` | No | WhatsApp-only alias for `channel_id`: the numeric `phone_number_id` Meta issues for the sending number. List yours with [`GET /v1/whatsapp/numbers`](/dev/endpoints/whatsapp-numbers). |
-| `to` | `string` | Yes | Recipient in E.164 format. |
+| `to` | `string` | Yes | Recipient. E.164 phone number on `whatsapp` and `whatsapp_qr`; the Meta-scoped id (IGSID on Instagram, PSID on Messenger) on the other channels — the same value the inbound webhook delivered as `from`. |
 | `context.message_id` | `string` | No | Provider message id (`wamid.*` on WhatsApp) this message quotes as a reply. |
 | `meta_data` | `object` | No | Free-form metadata persisted with the message and returned on webhooks for correlation. |
 | `message` | `object` | Yes | The message itself, discriminated by `type`. See below. |
@@ -191,6 +191,215 @@ def send(message, **extra):
 send({"type": "text", "body": "Hola Juan"})
 send({"type": "document", "media_id": "1234567890", "filename": "factura.pdf"})
 ```
+
+## One body per type
+
+Copy any of these into the `message` field. The envelope (`channel`, `to`, …) is the same for all of them, and every one is also available as a named example in the [playground](https://api.keebai.com/v1/docs).
+
+<AccordionGroup>
+
+<Accordion title="text">
+```json
+{ "type": "text", "body": "Hola Juan, ¿pudiste revisar la propuesta?", "preview_url": true }
+```
+</Accordion>
+
+<Accordion title="image">
+```json
+{ "type": "image", "link": "https://cdn.example.com/promo.png", "caption": "Promo de marzo" }
+```
+Swap `link` for `media_id` to use a file uploaded through `POST /v1/media/upload`. Exactly one of the two.
+</Accordion>
+
+<Accordion title="video">
+```json
+{ "type": "video", "link": "https://cdn.example.com/demo.mp4", "caption": "Cómo activar tu cuenta" }
+```
+</Accordion>
+
+<Accordion title="audio">
+```json
+{ "type": "audio", "link": "https://cdn.example.com/nota.ogg", "voice": true }
+```
+`voice: true` sends a voice note (PTT). Omit it for a plain audio file.
+</Accordion>
+
+<Accordion title="document">
+```json
+{
+  "type": "document",
+  "media_id": "1234567890123456",
+  "filename": "factura-A-1042.pdf",
+  "caption": "Tu factura de marzo"
+}
+```
+</Accordion>
+
+<Accordion title="sticker">
+```json
+{ "type": "sticker", "link": "https://cdn.example.com/gracias.webp" }
+```
+Must be WebP.
+</Accordion>
+
+<Accordion title="location — WhatsApp only">
+```json
+{
+  "type": "location",
+  "latitude": -33.4489,
+  "longitude": -70.6693,
+  "name": "Sucursal Centro",
+  "address": "Av. Libertador 1234, Santiago"
+}
+```
+</Accordion>
+
+<Accordion title="contacts — WhatsApp only">
+```json
+{
+  "type": "contacts",
+  "contacts": [
+    {
+      "name": { "formatted_name": "Camila Rojas", "first_name": "Camila", "last_name": "Rojas" },
+      "phones": [{ "phone": "+56912345678", "type": "WORK" }],
+      "emails": [{ "email": "camila@example.com", "type": "WORK" }],
+      "org": { "company": "Keebai", "title": "Account Manager" }
+    }
+  ]
+}
+```
+Shares a contact card in the chat. It does **not** create a contact in Keebai — that is [`POST /v1/contacts`](/dev/endpoints/contacts-create).
+</Accordion>
+
+<Accordion title="reaction">
+```json
+{ "type": "reaction", "message_id": "wamid.HBgLNTQ5MTE1NTU1NTU1FQIAERgSN0EyRjc4", "emoji": "👍" }
+```
+An empty `emoji` clears a previous reaction.
+</Accordion>
+
+<Accordion title="template — WhatsApp only">
+```json
+{
+  "type": "template",
+  "name": "welcome_v2",
+  "language": "es",
+  "variables": { "nombre": "Juan", "monto": "1500" }
+}
+```
+The only type that reaches a closed 24-hour window. Add a `flow` block to bind one of its FLOW buttons:
+```json
+{
+  "type": "template",
+  "name": "encuesta_post_visita",
+  "language": "es",
+  "flow": { "flow_token": "csat-8f21c4", "button_index": 0, "flow_action_data": { "ticket_id": "A-1042" } }
+}
+```
+</Accordion>
+
+<Accordion title="buttons">
+```json
+{
+  "type": "buttons",
+  "body_text": "¿Confirmas tu reserva para el viernes a las 21:00?",
+  "buttons": [
+    { "id": "confirm", "title": "Confirmar" },
+    { "id": "reschedule", "title": "Reprogramar" },
+    { "id": "cancel", "title": "Cancelar" }
+  ],
+  "header": { "type": "text", "text": "Restaurante La Mela" },
+  "footer_text": "Responde antes de las 18:00"
+}
+```
+Max 3 buttons, titles up to 20 characters.
+</Accordion>
+
+<Accordion title="list">
+```json
+{
+  "type": "list",
+  "body_text": "Elige el horario que te acomode.",
+  "button_text": "Ver horarios",
+  "sections": [
+    {
+      "title": "Viernes 2",
+      "rows": [
+        { "id": "fri-20", "title": "20:00", "description": "Mesa junto a la ventana" },
+        { "id": "fri-21", "title": "21:00", "description": "Salón principal" }
+      ]
+    },
+    { "title": "Sábado 3", "rows": [{ "id": "sat-20", "title": "20:00" }] }
+  ]
+}
+```
+Max 10 sections, 10 rows each.
+</Accordion>
+
+<Accordion title="cta_url">
+```json
+{
+  "type": "cta_url",
+  "body_text": "Dejaste productos en tu carrito. Retoma la compra cuando quieras.",
+  "display_text": "Ir al carrito",
+  "url": "https://tienda.example.com/checkout/abc123",
+  "footer_text": "El carrito expira en 24 horas"
+}
+```
+</Accordion>
+
+<Accordion title="catalog — WhatsApp only">
+```json
+{
+  "type": "catalog",
+  "body_text": "Mira nuestro catálogo de otoño.",
+  "thumbnail_product_retailer_id": "SKU-1042",
+  "footer_text": "Envíos a todo el país"
+}
+```
+Requires a product catalog connected to the WhatsApp Business Account.
+</Accordion>
+
+<Accordion title="carousel">
+```json
+{
+  "type": "carousel",
+  "body_text": "Novedades de la semana",
+  "cards": [
+    {
+      "header": { "type": "image", "link": "https://cdn.example.com/producto-1.png" },
+      "body_text": "Zapatillas running — 20% off",
+      "action": { "display_text": "Ver", "url": "https://tienda.example.com/p/1" }
+    },
+    {
+      "header": { "type": "image", "link": "https://cdn.example.com/producto-2.png" },
+      "body_text": "Mochila urbana — 15% off",
+      "action": { "display_text": "Ver", "url": "https://tienda.example.com/p/2" }
+    }
+  ]
+}
+```
+Max 10 cards. Meta rejects `.webp` images on carousel headers — those cards are dropped.
+</Accordion>
+
+<Accordion title="flow — WhatsApp only">
+```json
+{
+  "type": "flow",
+  "flow_id": "1234567890123456",
+  "flow_token": "reserva-8f21c4",
+  "flow_cta": "Reservar",
+  "body_text": "Reserva tu mesa en menos de un minuto.",
+  "header_text": "Restaurante La Mela",
+  "footer_text": "Cupos limitados",
+  "flow_action": "navigate",
+  "flow_action_payload": { "screen": "WELCOME", "data": { "customer_name": "Juan" } }
+}
+```
+[Create and publish the Flow](/dev/messaging/flows) first. Add `"mode": "draft"` to test an unpublished one against a registered WABA tester.
+</Accordion>
+
+</AccordionGroup>
 
 ## Quoting a message
 
