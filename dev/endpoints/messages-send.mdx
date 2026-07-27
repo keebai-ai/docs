@@ -460,5 +460,6 @@ The token does not have the `messages:send` scope.
 ## Operational notes
 
 - **24-hour window**: free-form messages (everything except `template`) only reach a recipient whose last inbound message is under 24 hours old. Keebai attempts the send regardless; a closed window surfaces as the provider's own error passed through.
+- **The message lands in the Keebai inbox**: every send is persisted against the recipient's contact and pushed to the portal in realtime, on all four channels. It shows up with the `agent` role, since a PAT send is an integrator acting on the tenant's behalf rather than the AI assistant.
 - **`meta_data` round-trips**: whatever you put there is stored with the message and echoed back on delivery and read webhooks, which is the intended way to correlate a send with your own records.
 - **Markdown**: WhatsApp interprets `*text*` as bold, `_text_` as italic and `~text~` as strikethrough. A backslash escapes them.
