@@ -482,21 +482,7 @@
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Status",
-          "href": "https://status.keebai.com",
-          "icon": "heart-pulse"
-        },
-        {
-          "anchor": "Support",
-          "href": "mailto:support@keebai.com",
-          "icon": "life-ring"
-        }
-      ]
-    }
+    ]
   },
   "footer": {
     "socials": {
