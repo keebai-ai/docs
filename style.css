@@ -1,0 +1,13 @@
+#navbar div:has(> div > .nav-tabs) {
+  position: static;
+}
+
+@media (min-width: 1024px) {
+  #navbar .nav-tabs {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 3.5rem;
+  }
+}

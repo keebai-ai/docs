@@ -1,22 +1,44 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
+  "theme": "almond",
   "name": "KeebAI",
   "colors": {
-    "primary": "#FF73C2",
-    "light": "#FF73C2",
-    "dark": "#FF73C2"
+    "primary": "#0A0A0A",
+    "light": "#47BBF5",
+    "dark": "#47BBF5"
   },
   "appearance": {
-    "default": "light"
+    "default": "dark"
   },
   "favicon": "/favicon.svg",
   "api": {
-    "openapi": "https://api.keebai.com/v1/docs-json"
+    "openapi": "https://api.keebai.com/v1/docs-json",
+    "playground": {
+      "display": "interactive"
+    },
+    "examples": {
+      "prefill": true
+    }
   },
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
+  },
+  "fonts": {
+    "family": "Inter"
+  },
+  "styling": {
+    "eyebrows": "breadcrumbs",
+    "codeblocks": "system"
+  },
+  "contextual": {
+    "options": [
+      "copy"
+    ],
+    "display": "header"
+  },
+  "interaction": {
+    "drilldown": true
   },
   "navbar": {
     "links": [
@@ -466,12 +488,12 @@
         {
           "anchor": "Status",
           "href": "https://status.keebai.com",
-          "icon": "signal"
+          "icon": "heart-pulse"
         },
         {
           "anchor": "Support",
           "href": "mailto:support@keebai.com",
-          "icon": "envelope"
+          "icon": "life-ring"
         }
       ]
     }
