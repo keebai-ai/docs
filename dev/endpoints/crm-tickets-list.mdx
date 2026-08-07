@@ -100,11 +100,22 @@ tickets = resp.json()["data"]
       "chat_user": "66c1d2e3f4a5b6c7d8e9f0a1",
       "chat_user_name": "Juan Pérez",
       "chat_user_channel": "whatsapp",
-      "stage": "67d1e2f3a4b5c6d7e8f9a0b1",
+      "stage": {
+        "id": "67d1e2f3a4b5c6d7e8f9a0b1",
+        "name": "Negociación",
+        "order": 3,
+        "type": "human",
+        "is_human_stage": true
+      },
       "is_closed": false,
       "priority": "medium",
       "category": "soporte",
-      "assigned_to": "68e1f2a3b4c5d6e7f8a9b0c1",
+      "assigned_to": {
+        "id": "68e1f2a3b4c5d6e7f8a9b0c1",
+        "full_name": "Camila Rojas",
+        "email": "camila@empresa.cl"
+      },
+      "tags": [],
       "custom_fields": {},
       "amount": 150000,
       "amount_currency": "CLP",
