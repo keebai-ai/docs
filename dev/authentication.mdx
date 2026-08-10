@@ -16,6 +16,24 @@ Authorization: Bearer kbai_pk_a1b2c3d4e5f6...
 - Send the full token, including the `kbai_pk_` prefix.
 - HTTPS is required. Plain HTTP requests are rejected in production.
 
+## The token decides the tenant
+
+`Authorization` is the **only** header that determines which company and project your request touches. Both are resolved from the token server-side, on every request, and neither is overridable by the caller.
+
+<Warning>
+  **Never send `company`, `company_id`, or `project` — not in a body, not in a query string, not as a header.** There is no `x-company` header on the public API. Sending any of them returns `400`, because endpoints reject properties they do not declare rather than ignoring them.
+
+  This is deliberate. If tenancy were something the caller could assert, a leaked token would be a leaked *platform*, not a leaked project. Failing loudly on the attempt is what keeps a mistake in your code from becoming a cross-tenant write.
+</Warning>
+
+They are absent from responses too. Records come back without tenant identifiers, so a payload you log or forward carries nothing about which company produced it.
+
+<Note>
+  Snippets that pass `company` in a header or a body come from Keebai's **internal** service-to-service calls, which run on a private network and predate the public surface. They do not apply here — if you inherited one, drop the header and mint a token instead.
+</Note>
+
+To see which company and project your token resolves to, call [`GET /v1/me`](/dev/endpoints/me).
+
 ## Examples
 
 <CodeGroup>

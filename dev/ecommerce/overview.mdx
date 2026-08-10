@@ -63,6 +63,39 @@ A cart with `abandoned_at` set and `completed_at` absent is the recoverable case
 
 `recovery_url` is the link that puts the customer back in checkout with the cart intact. Sending it over WhatsApp with [a `cta_url` message](/dev/endpoints/messages-send) is the intended pairing.
 
+<Warning>
+  **`recovery_status` is not advanced by this API.** It is set by whoever does the following up — the portal, the assistant, or an integration writing through the platform. Reading `pending` does not mean nobody has acted; it means nothing has recorded that they did.
+
+  If your own outreach chases abandoned carts, you are responsible for keeping your side's state, because you cannot write this field back.
+</Warning>
+
+A cart becomes abandoned on a timer, not on an explicit action, so `abandoned_at` trails the customer's last activity. Do not treat a cart as fresh just because `abandoned_at` is recent.
+
+## Identifiers
+
+All ids are MongoDB ObjectIds — 24 lowercase hex characters. That covers products, carts, sales, and the `customer_id` that carts and sales carry when Keebai could resolve the buyer to a [contact](/dev/endpoints/contacts-list).
+
+`external_id` is different: it is the id the record has **in the source platform** (Shopify, WooCommerce, Justo), in that platform's own format. Use it to join back to your storefront; never pass it where Keebai expects an `ObjectId`.
+
+## Tenancy is implicit
+
+Company comes from your token and is never sent. Sending `company` returns `400`.
+
+As the warning above notes, reads span the whole company rather than one project — a token minted for project A lists products, carts, and sales created under project B.
+
+## Correlating with the rest of the platform
+
+Ecommerce records are deliberately loosely coupled, which means joining them is your job:
+
+| From | To | Join on |
+|---|---|---|
+| Cart or sale | A messaging contact | `customer_id`, or fall back to phone / email |
+| Cart | Sale | Nothing direct — match the customer plus a time window |
+| Sale | A [CRM ticket](/dev/crm/overview) | Nothing direct — the `ecommerce.order_created` [CRM event](/dev/crm/events) lands on the contact's ticket, which is the supported path |
+| Product | Your storefront | `external_id` + `integration_id` |
+
+If you need a hard link between a sale and a CRM ticket, [emit a CRM event](/dev/endpoints/crm-events-emit) carrying your order id in a ticket-scoped custom field. That writes the id onto the ticket, which is the closest thing to a foreign key the platform offers.
+
 ## Money is stored in minor units
 
 Every amount — `price`, `unit_price`, `subtotal`, `total`, and the whole `amounts` block on a sale — is an integer in the currency's smallest unit. Read `currency` alongside it, and never assume two decimals: `JPY` and `CLP` have none.
@@ -89,7 +122,25 @@ List endpoints take `limit` and `offset` and return the same envelope as the res
 | `401` | Missing, invalid, revoked, or expired token. |
 | `403` | The token lacks the scope the endpoint requires. |
 | `404` | No record with that id, or it belongs to a different company. |
+| `429` | You hit a [rate limit](/dev/rate-limits). |
 | `502` | The ecommerce service could not answer. |
+
+Branch on `error.code`, not on the message text.
+
+## Rate limits
+
+These endpoints draw from the shared [per-project quota](/dev/rate-limits): 1,000 requests a day across the whole public API.
+
+That is the binding constraint for anyone mirroring a catalog. A 4,000-product catalog at `limit=200` is 20 requests — fine. The same catalog re-synced every 15 minutes is 1,920 a day — not fine.
+
+<CardGroup cols={2}>
+  <Card title="Sync on a webhook, not a timer" icon="bell">
+    `ecommerce.sale.created` / `.paid` / `.cancelled` tell you when something changed. Polling the sales list to discover it costs a request every time nothing happened.
+  </Card>
+  <Card title="Page at the ceiling" icon="layer-group">
+    `limit=200` is four times cheaper than the default 50 for the same data.
+  </Card>
+</CardGroup>
 
 ## Next steps
 
@@ -99,5 +150,11 @@ List endpoints take `limit` and `offset` and return the same envelope as the res
   </Card>
   <Card title="React to sales" icon="bell" href="/dev/webhooks/events#ecommerce">
     Subscribe to `ecommerce.sale.paid` and push it into your accounting system.
+  </Card>
+  <Card title="Chase abandoned carts" icon="cart-shopping" href="/dev/endpoints/ecommerce-carts-list">
+    Filter for `abandoned_at` and send `recovery_url` over WhatsApp.
+  </Card>
+  <Card title="Record it on the CRM" icon="bolt" href="/dev/crm/events">
+    Emit a CRM event so the order shows up on the contact's timeline and the assistant knows about it.
   </Card>
 </CardGroup>

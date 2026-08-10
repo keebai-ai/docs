@@ -1,0 +1,154 @@
+---
+title: "CRM events"
+sidebarTitle: "Events"
+description: "Record what happens outside Keebai onto a contact's ticket timeline — event types, the fields that compose their payload, and how those values write through to the ticket and the contact."
+---
+
+A **CRM event** is something that happened to a contact, recorded on their ticket's timeline. Keebai already emits its own — an appointment was confirmed, a payment link went out — and this surface lets **your** systems emit theirs: an order closed in your ERP, a visit registered at the front desk, a delivery completed.
+
+Events matter for two reasons. They give whoever picks up the conversation the full history of the customer in one place, and they give the AI assistant the same context, so it stops asking about things your systems already know.
+
+## The shape of an event
+
+Every event has three parts:
+
+<CardGroup cols={3}>
+  <Card title="A type" icon="tag">
+    The `key` you send, like `custom.pedido_confirmado`. It carries the name, icon, and colour the timeline renders, and it decides which fields the payload may contain.
+  </Card>
+  <Card title="A target" icon="user">
+    The contact it happened to. The event is stored on that contact's open ticket — Keebai opens one if they have none.
+  </Card>
+  <Card title="A payload" icon="brackets-curly">
+    The `data` object: values for the fields the type declares. Validated on write, then written onto the ticket and the contact.
+  </Card>
+</CardGroup>
+
+An event is **append-only**. It records what was true at that moment and is never edited afterwards, which is what makes the timeline trustworthy as a history.
+
+## Event types are configured in the portal
+
+There is no public endpoint for creating event types — they live under **CRM → Event types** in the portal. That screen is also where you get everything you need to emit one: the ingest URL, a generated API key scoped to `crm:events:write`, and the exact request body for that specific type.
+
+Every company starts with 13 **system types**, seeded on first use. They cannot be deleted, and Keebai's own services emit them:
+
+| Key | Category |
+|---|---|
+| `scheduling.appointment_created` | Scheduling |
+| `scheduling.appointment_confirmed` | Scheduling |
+| `scheduling.appointment_cancelled` | Scheduling |
+| `ecommerce.cart_item_added` | Ecommerce |
+| `ecommerce.payment_link_generated` | Ecommerce |
+| `ecommerce.order_created` | Ecommerce |
+| `meeting.scheduled` | Meeting |
+| `meeting.cancelled` | Meeting |
+| `meeting.completed` | Meeting |
+| `operator_instruction` | CRM |
+| `reengagement.attempt_sent` | CRM |
+| `task.committed` | CRM |
+| `task.fulfilled` | CRM |
+
+Types you create yourself get a `custom.` prefix automatically when the key you type has no dot in it — `pedido_confirmado` becomes `custom.pedido_confirmado`. Emit the full key, prefix included.
+
+<Note>
+  A type's `key` is immutable after creation. Renaming the *name* is free and changes nothing for integrators; the key is the contract.
+</Note>
+
+## Fields compose the payload
+
+An event type does not define its own private field format. It **associates the CRM fields you already have** — the same ticket and client custom fields you manage in the portal — and those become its payload contract.
+
+That has two consequences worth understanding before you build against it.
+
+### Validation happens on write
+
+When an event arrives, its `data` is checked against the associated fields:
+
+- Every field marked **required** must be present, or the request fails with `MISSING_REQUIRED_FIELDS`.
+- Every value present must match its field's type, or the request fails with `INVALID_FIELD_VALUE`.
+
+Both errors carry the offending keys in `error.details.fields`. The event is rejected before anything is written, so a malformed payload never leaves a half-recorded event behind.
+
+| Field type | Accepted in `data` |
+|---|---|
+| `text` | A string. |
+| `number` | A number, or a string that parses as one. |
+| `boolean` | A real `true` / `false`, not `"true"`. |
+| `date` | An ISO 8601 string, or a date. |
+| `select` | A string that is one of the field's configured options. |
+
+`null` passes for any type, and a field that is not required may simply be omitted.
+
+### Values are written through
+
+This is the part that makes associating *real* fields worthwhile rather than declaring a private schema: **the values reach where the field lives.**
+
+| The field's scope | Where the value lands |
+|---|---|
+| Ticket | `custom_fields` on the ticket the event was recorded against. |
+| Client | `custom_fields` on the contact — and on the CRM customer too, when the event resolved one. |
+
+So an event carrying `{"monto": 15000}`, where `monto` is a ticket field, records the event **and** updates the ticket. The ticket's own `crm.ticket.updated` [outbound webhook](/dev/webhooks/events) fires as a result, and the portal reflects the change in realtime.
+
+<Warning>
+  **The write overwrites.** A field that already had a value is replaced, not merged and not skipped. If two systems emit events touching the same field, the last one to arrive wins.
+
+  The event's own payload is untouched by this — it keeps the exact values it carried, so the history stays intact even after the ticket has moved on.
+</Warning>
+
+Keys in `data` that do not correspond to an associated field are kept on the event and written nowhere else. They are not an error.
+
+## Targeting a contact
+
+You identify the contact with exactly one of four fields, resolved in this order:
+
+<Steps>
+  <Step title="ticket_id">
+    Names the ticket directly. Nothing else is looked up. The ticket must be open.
+  </Step>
+  <Step title="chat_user_id">
+    The contact's `ObjectId`, as returned by [`GET /v1/contacts`](/dev/endpoints/contacts-list).
+  </Step>
+  <Step title="customer_id">
+    A CRM customer's `ObjectId`. Resolves to the contact linked to it.
+  </Step>
+  <Step title="phone">
+    Digits only, country code included, no `+`. The only identifier that requires a lookup outside the CRM, and the only one your external system usually has.
+  </Step>
+</Steps>
+
+If the contact does not exist, the request fails with `NO_CONTACT` — Keebai will not invent one from a phone number. Create it with [`POST /v1/contacts`](/dev/endpoints/contacts-create) first, or send an id you already hold.
+
+If the contact exists but has no open ticket, **one is opened** in the default pipeline's first stage and the event lands on it. This is specific to the public ingest: Keebai's internal producers skip instead, because they fire best-effort and an external caller does not.
+
+## Idempotency
+
+Send an `idempotency_key` — your own unique identifier for the event, up to 200 characters. Replaying the same key returns the original event with `duplicated: true` and writes nothing.
+
+It is scoped to your company, so the key only has to be unique within your own account. Use whatever id the event already carries in your system: an order number, a transaction id, a row primary key.
+
+Without it, a network retry records the event twice, and the second one also re-runs the write-through.
+
+## Events versus outbound webhooks
+
+Both involve HTTP and both are about things happening, so they are easy to confuse:
+
+| | CRM events | [Outbound webhooks](/dev/webhooks/overview) |
+|---|---|---|
+| Direction | You → Keebai | Keebai → you |
+| Endpoint | `POST /v1/webhook/events` | Your URL, registered at `/v1/webhooks` |
+| Purpose | Record history onto a ticket | Notify your systems of a change |
+| Scope | `crm:events:write` | `webhooks:read` / `webhooks:manage` |
+
+They compose: emitting an event that writes a ticket field causes `crm.ticket.updated` to be delivered to your subscribers.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Emit an event" icon="bolt" href="/dev/endpoints/crm-events-emit">
+    The full request and response reference, including every `422` code.
+  </Card>
+  <Card title="Find the contact" icon="address-book" href="/dev/endpoints/contacts-list">
+    Look a contact up by phone before emitting, if you would rather not rely on the phone lookup.
+  </Card>
+</CardGroup>

@@ -44,6 +44,18 @@ The message names the window you hit and when it frees up, so you can tell a one
   **The [MCP server](/dev/mcp/overview) is outside these limits.** Tool calls on `POST /v1/mcp` are not counted against the per-minute or per-day quota. That is convenient and also a footgun: an agent stuck in a loop generates real upstream traffic with nothing stopping it, so cap it on your side.
 </Note>
 
+### Routes with their own allowance
+
+One route is sized for machine traffic rather than interactive use and carries its own, much larger budget:
+
+| Route | Per minute | Per hour | Per day |
+|---|---|---|---|
+| [`POST /v1/webhook/events`](/dev/endpoints/crm-events-emit) | 300 | 5,000 | 50,000 |
+
+Still per project, and still shared across every token in that project. The reasoning is the shape of the traffic: an ingest fed by a POS or an ERP produces a steady stream of small writes all day, and the 1,000-a-day ceiling would be gone before lunch.
+
+Everything else — including the rest of the [CRM](/dev/crm/overview) endpoints — uses the shared pool above.
+
 ### Read the headers instead of waiting for the 429
 
 Every response carries the state of each window, so you can self-throttle before you get blocked:

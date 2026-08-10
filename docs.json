@@ -208,6 +208,13 @@
             ]
           },
           {
+            "group": "Events",
+            "pages": [
+              "dev/crm/events",
+              "dev/endpoints/crm-events-emit"
+            ]
+          },
+          {
             "group": "Customers",
             "pages": [
               "dev/endpoints/crm-customers-list",

@@ -36,11 +36,43 @@ The knowledge base is the corpus your Keebai assistants answer from. It is a tre
 
 An external app that only uses Keebai as a retrieval backend needs `knowledge:read` and `knowledge:query` — nothing else. Keep `knowledge:delete` out of any token a sync job holds.
 
+## Tenancy is implicit
+
+Every node belongs to a company, derived from your token. **You never send `company`** — and sending it returns `400`, because the public API rejects unknown properties rather than ignoring them.
+
+The tree you get from [`GET /v1/knowledge/tree`](/dev/endpoints/knowledge-tree) is the whole company's, not one project's. Knowledge is company-level by design: an assistant serving one project can still be assigned a document another project published.
+
 ## Everything is a node
 
 Folders and documents are both **nodes** in one tree, which is why deletion is a single endpoint rather than one per type.
 
 That has a consequence worth stating plainly: [deleting a folder deletes its descendants](/dev/endpoints/knowledge-node-delete). There is no "move children up" behaviour and no recycle bin.
+
+Node ids are MongoDB ObjectIds — 24 lowercase hex characters, like `65a1f2b3c4d5e6f7a8b9c0d1`. The same id space covers folders and documents, so a `node_id` you captured from a search result can be passed straight to delete or assign.
+
+| Field | Applies to | Notes |
+|---|---|---|
+| `parent_id` | Both | Omit to create at the root. Must be a folder. |
+| `title` | Both | Up to 200 characters on documents. |
+| `markdown` | Documents | At least 1 character. Converted on write. |
+
+## Retrieval has three modes
+
+[Search](/dev/endpoints/knowledge-search) takes a `mode`, and the three answer different questions:
+
+| Mode | How it matches | Use it when |
+|---|---|---|
+| `full` | Full-text over the stored content. | The user's words appear literally in the corpus — product names, SKUs, error codes. |
+| `vector` | Semantic similarity over embeddings. | The user phrases things their own way and the wording will not match. |
+| `hybrid` | Both, combined and re-ranked. | You do not know which of the two applies, which is most of the time. |
+
+`top_k` caps at **25** and defaults to 5; a higher value returns `400`. Narrow the search to part of the tree with `node_ids` — up to 100 ids, folders or documents.
+
+Each result carries a `score` and a `source` (`full` or `vector`) telling you which half of a hybrid search produced it. Scores are comparable within one response and **not** across responses or modes — do not build a fixed cut-off threshold on them.
+
+<Tip>
+  Using Keebai purely as a retrieval backend for your own LLM is a supported pattern: `knowledge:query` alone is enough, and you never have to create an assistant.
+</Tip>
 
 ## Documents are written as markdown
 
@@ -53,6 +85,28 @@ Indexing happens on write, so a document is searchable shortly after creation ra
 Creating a document puts it in the tree. It does **not** make any assistant use it — [assignment](/dev/endpoints/knowledge-assign) is a separate, explicit step.
 
 A sync that creates documents and never assigns them produces a knowledge base that looks full in the portal and changes nothing about what your assistants say. The usual pipeline is: create folder → create documents → [list assistants](/dev/endpoints/assistants-list) → assign.
+
+## There is no update endpoint
+
+You can create a node and delete a node. You cannot edit one through the API.
+
+To change a published document, delete it and create it again. That means its `node_id` changes, so anything holding the old id — an assignment, a bookmark in your own database — has to be re-pointed.
+
+<Warning>
+  **Re-publishing loses the assignment.** The new document is not assigned to any assistant, even though the one it replaced was. A sync that re-publishes on every run and forgets to re-assign will silently empty out what your assistants can read.
+
+  Either keep a stable mapping of *your* id → Keebai `node_id` and re-assign after each replace, or only re-publish documents that actually changed.
+</Warning>
+
+## Rate limits and sizing
+
+Knowledge draws from the shared [per-project quota](/dev/rate-limits) — 1,000 requests a day across the whole public API. A first-time import is what usually collides with it:
+
+- One document per request. A 900-page corpus is 900 requests, and that is most of your day.
+- Split large imports across days, or ask support to raise the cap before you start.
+- Reads are cheap but not free. Fetch the tree once and cache it; it changes on a human timescale.
+
+Searches count as requests too. If you are using Keebai as a retrieval backend behind a chat UI, one user turn is one request — size your daily budget against expected conversation volume, not against your document count.
 
 ## Errors
 

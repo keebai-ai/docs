@@ -137,7 +137,7 @@ curl -X POST https://api.keebai.com/v1/webhooks/wh_01HXYZ/rotate-secret \
   -H "Authorization: Bearer kbai_pk_xxx"
 ```
 
-**Response 200** — same shape as `create`, with a new `secret`. **The old one is invalidated immediately.** For zero-downtime rotation, see [security](/dev/webhooks/security#rotación-de-secret).
+**Response 200** — same shape as `create`, with a new `secret`. **The old one is invalidated immediately.** For zero-downtime rotation, see [security](/dev/webhooks/security#secret-rotation).
 
 ## Dispatch a synthetic event (test)
 

@@ -12,6 +12,18 @@ There are **32 events** across five domains — WhatsApp, Instagram, conversatio
   Not to be confused with the **inbound** webhooks Meta sends to Keebai. Those are configured by Keebai in the Meta dashboard when you connect a channel via Embedded Signup; you don't touch them.
 </Note>
 
+## Which direction do you need?
+
+Three different things in Keebai are called a webhook. Picking the wrong one costs an afternoon, so:
+
+| You want to… | Use | Direction |
+|---|---|---|
+| Be told when something changes in Keebai | **This page** — `/v1/webhooks` subscriptions | Keebai → you |
+| Tell Keebai something happened in your system | [CRM event ingest](/dev/crm/events) — `POST /v1/webhook/events` | You → Keebai |
+| Let an assistant call your own API mid-conversation | [Assistant functions](/dev/endpoints/functions-create) | Keebai → you, during a conversation |
+
+Note the path collision: `/v1/webhooks` (plural) is the subscription CRUD on this page, and `/v1/webhook/events` (singular) is the inbound ingest. They are unrelated surfaces with different scopes.
+
 ## Use cases
 
 <CardGroup cols={2}>
@@ -139,6 +151,26 @@ Every `POST` to your endpoint includes:
     We don't accept `http://` URLs. Use a valid certificate (Let's Encrypt works).
   </Card>
 </CardGroup>
+
+### Subscribe narrowly
+
+A subscription lists the events it wants, and the temptation is to take everything "just in case". Resist it: `whatsapp.message.received` alone can be thousands of deliveries a day on a busy account, and every one of them costs you a request to process and an idempotency check.
+
+Subscribe to what you act on. Add events later — [`PATCH /v1/webhooks/:id`](/dev/webhooks/manage#update-a-subscription) changes the list without rotating the secret or losing history.
+
+### Deliveries do not count against your quota
+
+Webhooks are Keebai calling you, so they cost nothing from your [rate limit](/dev/rate-limits). That is precisely why the [quota page](/dev/rate-limits#staying-under-1-000-a-day) recommends webhooks over polling: a poll every minute is 1,440 requests a day and a subscription is zero.
+
+Note the asymmetry, though — if you *respond* to a webhook by calling the API back, those calls do count.
+
+### Beware the write-back loop
+
+The most common production incident on this surface is a loop: you subscribe to `crm.ticket.updated`, react by writing to the ticket, which emits `crm.ticket.updated` again.
+
+It has more entry points than people expect, because writes are indirect. [Emitting a CRM event](/dev/crm/events) writes its values onto the ticket, so an ingest that fires all day produces ticket webhooks all day.
+
+Guard on your side: dedupe by `event_id`, and skip changes whose resulting state already matches what you were about to write.
 
 ## Next steps
 

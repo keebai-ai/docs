@@ -77,6 +77,7 @@ The catalog lives in the `api_scopes` MongoDB collection. The portal pulls it vi
 | `crm:notes:read` | crm | [List](/dev/endpoints/crm-notes-list) and [read](/dev/endpoints/crm-note-get) CRM notes. |
 | `crm:notes:write` | crm | [Create](/dev/endpoints/crm-note-create) and [update](/dev/endpoints/crm-note-update) notes. The author is the token's owner. |
 | `crm:notes:delete` | crm | [Delete notes](/dev/endpoints/crm-note-delete). Permanent. |
+| `crm:events:write` | crm | [Emit CRM events](/dev/endpoints/crm-events-emit) onto a contact's timeline. Opens a ticket if the contact has none, and writes the event's values onto the ticket and the contact. No read counterpart. |
 | `ecommerce:products:read` | ecommerce | [List](/dev/endpoints/ecommerce-products-list) and [read](/dev/endpoints/ecommerce-product-get) the product catalog. |
 | `ecommerce:carts:read` | ecommerce | [List](/dev/endpoints/ecommerce-carts-list) and [read](/dev/endpoints/ecommerce-cart-get) carts, including abandoned ones. |
 | `ecommerce:sales:read` | ecommerce | [List](/dev/endpoints/ecommerce-sales-list) and [read](/dev/endpoints/ecommerce-sale-get) sales, with amounts and payment state. |

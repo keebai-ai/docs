@@ -225,4 +225,10 @@ Read and write the configuration of the assistants themselves: the [blocks that 
 
 Scheduling, templates, channels, webhooks, tenants, and setup links have no MCP tools yet. Use the [REST API](/dev/overview) for those.
 
+[CRM events](/dev/crm/events) are not tools either, and that one is on purpose rather than pending. Emitting an event is a system-of-record write from a system that *knows* something happened — an order closed, a delivery completed. A model deciding to emit one is a model asserting a fact it cannot verify. Call [`POST /v1/webhook/events`](/dev/endpoints/crm-events-emit) from the system that owns the fact.
+
+<Note>
+  Keebai's own assistants *can* emit events, through an internal tool gated by an `ai_triggerable` flag you set per event type in the portal. That flag defaults to off and does not apply to this MCP server, which is your agent talking to the API, not Keebai's assistant talking to itself.
+</Note>
+
 The binary Apple `.pkpass` has no tool either, for the same reason as media download: it is a file, not JSON. The Apple link tool covers the same use case.

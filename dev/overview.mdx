@@ -119,8 +119,11 @@ Full details in [Webhooks → Overview](/dev/webhooks/overview).
 | `POST` | `/v1/crm/notes` | `crm:notes:write` | [Log a note](/dev/endpoints/crm-note-create), call, email, or meeting. |
 | `PATCH` | `/v1/crm/notes/:id` | `crm:notes:write` | Edit a note's text or type. |
 | `DELETE` | `/v1/crm/notes/:id` | `crm:notes:delete` | Delete a note. |
+| `POST` | `/v1/webhook/events` | `crm:events:write` | [Emit a CRM event](/dev/endpoints/crm-events-emit) onto a contact's ticket timeline. |
 
 Full details in [CRM → Overview](/dev/crm/overview). Note that CRM reads span the whole company while writes stay scoped to the token's project.
+
+`POST /v1/webhook/events` is the one **inbound** route on the platform — your systems calling Keebai to record history, as opposed to the outbound webhooks above where Keebai calls you. It sits outside the `/v1/crm` prefix and carries [its own rate limit](/dev/rate-limits#routes-with-their-own-allowance). See [CRM events](/dev/crm/events).
 
 ### Loyalty
 

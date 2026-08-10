@@ -145,6 +145,70 @@ The stored balance on a membership is maintained as movements happen; it is not 
 
 The `loyalty` feature flag gates the portal, not the API. A company without loyalty enabled that calls with a scoped token gets empty lists, not a `403`.
 
+## Identifiers
+
+Three id spaces, only one of which is yours:
+
+| Id | Format | Owner |
+|---|---|---|
+| Program, template, membership `_id` | MongoDB `ObjectId`, 24 hex chars | Keebai |
+| `customer.id` / `customer_id` | Any string you choose | **You** |
+| Pass object / serial | Google or Apple's own format | The wallet provider |
+
+`company` is derived from your token and must never be sent — it returns `400`.
+
+## Errors
+
+```json
+{
+  "error": {
+    "code": "INSUFFICIENT_SCOPE",
+    "message": "Forbidden",
+    "details": {
+      "required": ["loyalty:write"],
+      "missing": ["loyalty:write"]
+    }
+  }
+}
+```
+
+| Status | When |
+|---|---|
+| `400` | Invalid body, a movement that would drive the balance negative, or a property the endpoint does not accept. |
+| `401` | Missing, invalid, revoked, or expired token. |
+| `403` | The token lacks `loyalty:read` or `loyalty:write`. |
+| `404` | The program, membership, or template does not exist, or belongs to another company. |
+| `409` | The customer is already enrolled in that program. |
+| `429` | You hit a [rate limit](/dev/rate-limits). |
+| `502` | The loyalty service is unreachable. Retry with backoff. |
+
+Branch on `error.code`, never on the message text.
+
+<Note>
+  **`409` on enroll is the happy path for a retry.** It means the membership already exists, which is exactly what you wanted. Catch it, then `GET /v1/loyalty/memberships?customer_id=<yours>` to fetch the one that is already there rather than treating it as a failure.
+</Note>
+
+## Rate limits
+
+Loyalty shares the [per-project quota](/dev/rate-limits): 1,000 requests a day across the whole public API.
+
+A POS that accrues on every sale is the workload to size for. One sale is one `POST .../ledger` — a store doing 300 transactions a day spends a third of the quota on loyalty alone, before anything else your integration does.
+
+<CardGroup cols={2}>
+  <Card title="Accrue once per transaction" icon="coins">
+    Not once per line item. It is also the only way to stay safe against the concurrency caveat above.
+  </Card>
+  <Card title="Cache programs and templates" icon="database">
+    They are authored in the portal and change rarely. Fetch at boot, not per sale.
+  </Card>
+  <Card title="Skip the balance read" icon="gauge">
+    The response to a ledger write already carries `balance_after`. A follow-up `GET` on the membership is a wasted request.
+  </Card>
+  <Card title="Own project for the POS" icon="key">
+    The quota is per project, so a busy till cannot starve your transactional path if it lives in its own.
+  </Card>
+</CardGroup>
+
 ## Next steps
 
 <CardGroup cols={2}>

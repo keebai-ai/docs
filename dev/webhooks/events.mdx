@@ -445,6 +445,9 @@ Two things worth knowing about the ordering:
 
 - **`crm.ticket.closed` comes with `crm.ticket.updated`, not instead of it.** Closing a ticket is an update that also happens to close it, so you get both. `closed` only fires on the transition from open to closed, never on a re-save of an already-closed ticket.
 - **A stage move that escalates also emits [`conversation.escalated_to_human`](#conversation-escalated-to-human).** Same underlying change, two events, because they answer different questions.
+- **`crm.ticket.updated` also fires when nobody edited the ticket.** [Emitting a CRM event](/dev/crm/events#values-are-written-through) whose type declares ticket-scoped fields writes those values onto the ticket, and that write is an update like any other. An ingest running all day produces these all day. If you write back to tickets in response, [guard against the loop](/dev/webhooks/overview#beware-the-write-back-loop).
+
+There is no `crm.event.*` webhook. Events are the inbound direction — to be told about them, subscribe to the ticket events they cause.
 
 ### Tasks
 

@@ -119,6 +119,32 @@ A single send through [`POST /v1/messages`](/dev/endpoints/messages-send) gives 
 
 This also makes the cost model clear: one broadcast to 5,000 recipients is **one** request against your [daily quota](/dev/rate-limits); a loop over 5,000 single sends is 5,000.
 
+## Tenancy is implicit
+
+Company and project come from your token. **You never send either**, and sending them returns `400`.
+
+Contacts are company-level: a token minted for one project lists the contacts created under every project of your tenant. The channel you send from is the real scoping decision — see above.
+
+## Identifiers
+
+Three different id spaces show up in this surface, and confusing them is the most common source of a `400`:
+
+| Id | Format | Where it comes from |
+|---|---|---|
+| Contact `_id`, channel `_id`, broadcast id | MongoDB `ObjectId`, 24 hex chars | Keebai |
+| `phone_number_id` | Numeric string | Meta. Read it from [`GET /v1/whatsapp/numbers`](/dev/endpoints/whatsapp-numbers). |
+| `message_id` | `wamid.` + base64 | Meta, returned on send and echoed in the delivery webhooks |
+
+Phone numbers are digits only, country code included, **no `+` and no separators**. `56912345678`, never `+56 9 1234 5678`. Keebai normalizes what it can, but the canonical stored form is the bare digits — match on that when you correlate with your own database.
+
+## Delivery is asynchronous
+
+A `202` means Keebai accepted the message and handed it to the provider. It does **not** mean it arrived.
+
+The real outcome lands on your [webhook subscription](/dev/webhooks/events): `whatsapp.message.sent`, `.delivered`, `.read`, or `.failed`, each carrying the `message_id` you got back from the send. A message that Meta rejects — an invalid number, a template that lost approval, a closed window — fails there, not in the HTTP response.
+
+If your product needs to know whether a message landed, subscribe. Polling is not an option; there is no per-message status endpoint outside of broadcasts.
+
 ## Errors
 
 ```json
@@ -135,9 +161,22 @@ This also makes the cost model clear: one broadcast to 5,000 recipients is **one
 | `400` | Invalid body, bad phone format, or a property the endpoint does not accept. |
 | `401` | Missing, invalid, revoked, or expired token. |
 | `403` | The token lacks the scope the endpoint requires. |
+| `404` | The channel, contact, or broadcast does not exist, or belongs to another company. |
 | `429` | You hit a [rate limit](/dev/rate-limits). |
+| `502` | The messaging service or Meta was unreachable. Retry with backoff — but dedupe, because the send may have gone through. |
 
 Branch on `error.code`, not on the message text.
+
+## Rate limits
+
+Messaging shares the [per-project quota](/dev/rate-limits): 60 a minute, 200 an hour, 1,000 a day across the whole public API.
+
+Two things make that go further than it looks:
+
+- A [bulk broadcast](/dev/endpoints/messages-bulk) is **one** request no matter how many recipients — up to 5,000.
+- Channels and templates change on a human timescale. Fetch them at boot and cache.
+
+Meta enforces its own limits on top, independent of ours: a per-number messaging tier and a template quality rating. Neither surfaces as a Keebai `429` — they show up as a failed delivery webhook.
 
 ## Next steps
 

@@ -123,6 +123,54 @@ Two things about them are worth reading before your first write: [how secret val
 
 Two tokens on two projects of the same company see different assistants and different blocks, and neither can read the other's by id. They see the same functions.
 
+`company` and `project` are both derived from the token and must never appear in a request body — sending either returns `400`.
+
+## Identifiers
+
+Assistant, block, version, and function ids are all MongoDB ObjectIds — 24 lowercase hex characters.
+
+A block's id is stable across content edits: saving new content appends a **version** and repoints the block, so the block id you stored keeps working and always resolves to the current text. Version ids, by contrast, are per-save — capture one only if you intend to restore it later.
+
+## Errors
+
+```json
+{
+  "error": {
+    "code": "INSUFFICIENT_SCOPE",
+    "message": "Forbidden",
+    "details": {
+      "required": ["assistants:write"],
+      "missing": ["assistants:write"]
+    }
+  }
+}
+```
+
+| Status | When |
+|---|---|
+| `400` | Invalid body, a block type that refuses free text, a rejected function URL, or a property the endpoint does not accept. |
+| `401` | Missing, invalid, revoked, or expired token. |
+| `403` | The token lacks `assistants:read` or `assistants:write`. |
+| `404` | The assistant, block, version, or function does not exist, belongs to another company, or belongs to **another project of your company**. |
+| `409` | A name collision — most often a function, which collides company-wide. |
+| `429` | You hit a [rate limit](/dev/rate-limits). |
+
+Branch on `error.code`, not on the message text.
+
+<Note>
+  **A `404` on a block you know exists usually means the wrong project.** Assistants and blocks are project-scoped, so a token minted for project A cannot read project B's block even by exact id. Check which project your token belongs to with [`GET /v1/me`](/dev/endpoints/me) before assuming the record is gone.
+</Note>
+
+## Rate limits
+
+Assistant configuration draws from the shared [per-project quota](/dev/rate-limits): 1,000 requests a day across the whole public API.
+
+This surface is normally low-volume — you configure an assistant once and edit it occasionally — with one exception: a prompt-management tool that saves on every keystroke will burn the quota fast, because every save appends a version. Debounce writes, and batch block edits rather than issuing one request per field.
+
+<Note>
+  **Conversations do not count.** The quota covers *configuring* assistants through this API. The messages an assistant actually exchanges with customers, and the functions it calls while doing so, are not requests you make and are not billed against it.
+</Note>
+
 ## Endpoints
 
 ### Assistants
@@ -187,7 +235,7 @@ BLOCK=$(curl -s $API/assistants/$ASSISTANT/blocks -H "$AUTH" \
   | jq -r '.data[] | select(.type=="personification") ._id')
 
 curl -s -X PUT $API/blocks/$BLOCK/content -H "$AUTH" -H "$JSON" \
-  -d '{"content":"Sos la recepción de una barbería.\n- Tuteás al cliente.\n- No prometés descuentos."}'
+  -d '{"content":"Eres la recepción de una barbería.\n- Tuteas al cliente.\n- No prometes descuentos."}'
 
 # 3. Add a procedure as a new block and wire it in.
 STEPS=$(curl -s -X POST $API/blocks/steps -H "$AUTH" -H "$JSON" \

@@ -4,7 +4,7 @@ sidebarTitle: "Overview"
 description: "Customers, tickets, tasks, and notes over the Keebai public API — data model, implicit tenancy, and pagination."
 ---
 
-The CRM surface exposes the four core entities of Keebai's customer relationship data — **customers**, **tickets**, **tasks**, and **notes** — as a plain REST API under `/v1/crm`. Every endpoint authenticates with a [Personal Access Token](/dev/api-keys) and is gated by its own [scope](/dev/scopes).
+The CRM surface exposes the core entities of Keebai's customer relationship data — **customers**, **tickets**, **tasks**, and **notes** — as a plain REST API under `/v1/crm`, plus an **event** ingest that records what happens in your own systems onto a contact's timeline. Every endpoint authenticates with a [Personal Access Token](/dev/api-keys) and is gated by its own [scope](/dev/scopes).
 
 ## Data model
 
@@ -20,6 +20,12 @@ The CRM surface exposes the four core entities of Keebai's customer relationship
   </Card>
   <Card title="Notes" icon="note-sticky" href="/dev/endpoints/crm-notes-list">
     A free-text annotation, optionally typed as a call, email, or meeting, and optionally attached to a chat user or a ticket.
+  </Card>
+  <Card title="Events" icon="bolt" href="/dev/crm/events">
+    Something that happened to a contact, appended to their ticket's timeline. Unlike the four above, events are **append-only** and their payload is validated against the fields their type declares.
+  </Card>
+  <Card title="Custom fields" icon="input-text" href="/dev/crm/events#fields-compose-the-payload">
+    Tickets and customers both carry a `custom_fields` object. The same field definitions compose the payload of an event type, which is how an event's values end up on the ticket.
   </Card>
 </CardGroup>
 
@@ -41,8 +47,11 @@ Customers and tickets are separate records that are not linked by a foreign key.
 | `crm:notes:read` | [List](/dev/endpoints/crm-notes-list) and [read](/dev/endpoints/crm-note-get) notes. |
 | `crm:notes:write` | [Create](/dev/endpoints/crm-note-create) and [update](/dev/endpoints/crm-note-update) notes. |
 | `crm:notes:delete` | [Delete notes](/dev/endpoints/crm-note-delete). Permanent. |
+| `crm:events:write` | [Emit CRM events](/dev/endpoints/crm-events-emit) onto a contact's timeline. There is no read counterpart on the public API. |
 
 The `delete` scopes are split out on purpose: a sync job that keeps records in step with an external system should be able to create and update without being able to destroy.
+
+`crm:events:write` deserves its own token. It is the only CRM scope an external system needs to push history in, and it writes to tickets and contacts as a side effect — keeping it separate from your read tokens means you can revoke the ingest without blinding your dashboards.
 
 ## Tenancy is implicit
 
@@ -51,7 +60,7 @@ Every CRM record belongs to a company, and most also belong to a project. **You 
 | Field | Source | Applies to |
 |---|---|---|
 | `company` | The company that owns the token | Every CRM record |
-| `project` | The project the token was minted for | Customers, tickets, notes |
+| `project` | The project the token was minted for | Customers, tickets, notes, and the ticket an event opens |
 | `created_by` | The user who owns the token | Notes |
 
 Sending any of these in the request body returns `400 Bad Request` — the public API rejects unknown properties rather than silently ignoring them. This is deliberate: it makes an attempt to write into another tenant fail loudly instead of quietly doing nothing.
@@ -98,6 +107,47 @@ Two fields on tickets are worth calling out, because they behave differently fro
 
 Use the incremental pair whenever more than one system writes tags to the same ticket.
 
+## Custom fields
+
+Tickets and customers both carry a `custom_fields` object — a flat map keyed by the field's `key`, holding whatever your company configured in the portal under **CRM → Fields**.
+
+There is no public endpoint for reading the field definitions, so an integration has to know the keys it writes. Read them from the portal once and treat them as part of your contract.
+
+| Definition property | Effect on the API |
+|---|---|
+| `type` | `text`, `number`, `select`, `date`, `boolean`. Only enforced on the paths that validate — see below. |
+| `options` | For `select`, the allowed values. |
+| `is_required` | Enforced when the field composes an [event type's payload](/dev/crm/events), not on plain ticket or customer writes. |
+| `scope` | `ticket` or `client`. Decides which record the field belongs to. |
+
+<Warning>
+  **`custom_fields` is merged, not replaced.** A `PATCH` carrying `{"custom_fields": {"a": 1}}` leaves every other key alone. There is no way to delete a key through the API — set it to `null`.
+
+  **Values are not type-checked on ticket and customer writes.** Sending a string into a `number` field stores the string. The one path that does validate is the [event ingest](/dev/crm/events#validation-happens-on-write), which rejects the whole request rather than storing a bad value.
+</Warning>
+
+## Writes have side effects
+
+CRM writes are not inert. Each one can trigger work you should know about before you build a sync loop:
+
+| What you do | What else happens |
+|---|---|
+| Create or update a ticket | `crm.ticket.updated` (and `crm.ticket.closed` when it closes) is delivered to your [webhook subscribers](/dev/webhooks/events), the portal updates in realtime, and the record is queued for write-back to any connected external CRM. |
+| Move a ticket's stage | `crm.ticket.stage_changed`, plus `conversation.escalated_to_human` when the destination stage is human-attended. |
+| [Emit an event](/dev/endpoints/crm-events-emit) | The event's values are written onto the ticket and the contact, which in turn fires the ticket webhooks above. |
+
+<Note>
+  **Beware of loops.** If your integration both subscribes to `crm.ticket.updated` and writes tickets in response, an event ingest that touches a ticket field will call you back. Guard with an idempotency check on your side, or filter out changes your own token produced.
+</Note>
+
+## Rate limits
+
+The CRM endpoints draw from the shared [per-project quota](/dev/rate-limits) — 60 a minute, 200 an hour, 1,000 a day across every endpoint of the public API.
+
+The one exception is [`POST /v1/webhook/events`](/dev/endpoints/crm-events-emit), which carries a far higher allowance of its own (300 a minute, 50,000 a day) because an ingest is not interactive traffic.
+
+If you are syncing a CRM with tens of thousands of records, the daily cap is the binding constraint. Prefer [outbound webhooks](/dev/webhooks/overview) over polling, and email support before you start rather than after the first `429`.
+
 ## Errors
 
 The CRM surface uses the same error envelope as the rest of the public API:
@@ -121,7 +171,11 @@ The CRM surface uses the same error envelope as the rest of the public API:
 | `401` | Missing, invalid, revoked, or expired token. |
 | `403` | The token lacks the scope the endpoint requires. |
 | `404` | The record does not exist, or belongs to another company. |
+| `422` | Only on the [event ingest](/dev/endpoints/crm-events-emit): the request was valid but the event was not recorded. `error.code` says why. |
+| `429` | You hit a [rate limit](/dev/rate-limits). |
 | `502` | The CRM service is unreachable. Retry with backoff. |
+
+Branch on `error.code`, never on `error.message` — the wording is not stable and some of it is in Spanish.
 
 ## Next steps
 
@@ -131,5 +185,11 @@ The CRM surface uses the same error envelope as the rest of the public API:
   </Card>
   <Card title="Open a ticket" icon="ticket" href="/dev/endpoints/crm-ticket-create">
     Start a case in a pipeline and move it through its stages.
+  </Card>
+  <Card title="Emit an event" icon="bolt" href="/dev/crm/events">
+    Push what happened in your ERP, POS, or backoffice onto the contact's timeline.
+  </Card>
+  <Card title="Subscribe to changes" icon="bell" href="/dev/webhooks/events">
+    Get `crm.ticket.*` delivered to your server instead of polling for them.
   </Card>
 </CardGroup>
