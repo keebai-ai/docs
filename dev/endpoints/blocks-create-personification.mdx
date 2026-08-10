@@ -49,7 +49,7 @@ curl -X POST https://api.keebai.com/v1/blocks/personification \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Personalidad",
-    "content": "Sos la recepción de una barbería en Providencia.\n- Tuteás al cliente.\n- Sos breve y directo, sin ser seco.\n- No prometés descuentos que no estén en el catálogo."
+    "content": "Eres la recepción de una barbería en Providencia.\n- Tuteas al cliente.\n- Eres breve y directo, sin ser seco.\n- No prometes descuentos que no estén en el catálogo."
   }'
 ```
 
@@ -62,7 +62,7 @@ const resp = await fetch("https://api.keebai.com/v1/blocks/personification", {
   },
   body: JSON.stringify({
     name: "Personalidad",
-    content: "Sos la recepción de una barbería en Providencia.\n- Tuteás al cliente.\n- Sos breve y directo, sin ser seco.\n- No prometés descuentos que no estén en el catálogo.",
+    content: "Eres la recepción de una barbería en Providencia.\n- Tuteas al cliente.\n- Eres breve y directo, sin ser seco.\n- No prometes descuentos que no estén en el catálogo.",
   }),
 });
 
@@ -85,7 +85,7 @@ import os, requests
 resp = requests.post(
     "https://api.keebai.com/v1/blocks/personification",
     headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
-    json={"name": "Personalidad", "content": "Sos la recepción de una barbería en Providencia.\n- Tuteás al cliente.\n- Sos breve y directo."},
+    json={"name": "Personalidad", "content": "Eres la recepción de una barbería en Providencia.\n- Tuteas al cliente.\n- Eres breve y directo."},
     timeout=10,
 )
 resp.raise_for_status()
