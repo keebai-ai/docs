@@ -57,6 +57,63 @@
       "href": "https://app.keebai.com"
     }
   },
+  "redirects": [
+    {
+      "source": "/dev/assistants/overview",
+      "destination": "/dev/agents/overview",
+      "permanent": true
+    },
+    {
+      "source": "/dev/assistants/webhook-security",
+      "destination": "/dev/agents/webhook-security",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/assistants-list",
+      "destination": "/dev/endpoints/agents-list",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/assistants-get",
+      "destination": "/dev/endpoints/agents-get",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/assistants-create",
+      "destination": "/dev/endpoints/agents-create",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/assistants-update",
+      "destination": "/dev/endpoints/agents-update",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/assistants-delete",
+      "destination": "/dev/endpoints/agents-delete",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/assistants-blocks-list",
+      "destination": "/dev/endpoints/agents-blocks-list",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/assistants-blocks-set",
+      "destination": "/dev/endpoints/agents-blocks-set",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/assistants-block-attach",
+      "destination": "/dev/endpoints/agents-block-attach",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/assistants-block-detach",
+      "destination": "/dev/endpoints/agents-block-detach",
+      "permanent": true
+    }
+  ],
   "navigation": {
     "tabs": [
       {
