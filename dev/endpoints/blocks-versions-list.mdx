@@ -17,7 +17,7 @@ GET https://api.keebai.com/v1/blocks/{id}/versions
 
 ## Required scope
 
-`assistants:read`
+`agents:read`
 
 ## Headers
 
@@ -109,7 +109,7 @@ Missing, invalid, revoked, or expired token.
 
 ### 403 Forbidden
 
-The token does not have the `assistants:read` scope.
+The token does not have the `agents:read` scope.
 
 ### 404 Not Found
 
@@ -117,12 +117,12 @@ No block with that id in the token's company and project.
 
 ### 502 Bad Gateway
 
-The assistant service is unreachable.
+The agent service is unreachable.
 
 ## Operational notes
 
 - **There is no `total`.** The upstream store exposes no count for versions, and returning the page length as if it were the size of the set would make a client stop paginating early. Page until `has_more` is `false`.
-- **`is_current` marks the version the block points at**, which is what an unpinned assistant renders. Exactly one version per block has it.
+- **`is_current` marks the version the block points at**, which is what an unpinned agent renders. Exactly one version per block has it.
 - **`version_number` is monotonic and never reused.** A [restore](/dev/endpoints/blocks-version-restore) appends a new number rather than reviving the old one, so restoring version 2 onto a block at version 5 gives you version 6 with version 2's content.
-- **Versions are never deleted.** Not by [archiving the block](/dev/endpoints/blocks-archive), not by [deleting the assistant](/dev/endpoints/assistants-delete), and there is no endpoint that removes one.
-- **An assistant may render a version that is not current**, if it was pinned. Compare against `pinned_version_id` from [its block list](/dev/endpoints/assistants-blocks-list).
+- **Versions are never deleted.** Not by [archiving the block](/dev/endpoints/blocks-archive), not by [deleting the agent](/dev/endpoints/agents-delete), and there is no endpoint that removes one.
+- **An agent may render a version that is not current**, if it was pinned. Compare against `pinned_version_id` from [its block list](/dev/endpoints/agents-blocks-list).

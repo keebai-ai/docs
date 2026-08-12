@@ -1,0 +1,121 @@
+---
+title: "POST /v1/agents/{id}/blocks"
+sidebarTitle: "POST agents/:id/blocks"
+description: "Attach one existing block to an agent without touching the rest of its wiring."
+openapi: "POST /v1/agents/{id}/blocks"
+---
+
+Adds one block to the agent's list, leaving every other block where it is. The cheap counterpart to [`PUT /v1/agents/{id}/blocks`](/dev/endpoints/agents-blocks-set), which replaces everything.
+
+The block has to exist already. Create it with one of the [per-type endpoints](/dev/agents/overview#block-types) first, or reuse one from [the catalogue](/dev/endpoints/blocks-list).
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/agents/{id}/blocks
+```
+
+## Required scope
+
+`agents:write`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | `ObjectId` of the agent. |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `block_id` | `string` | Yes | `ObjectId` of a block in the same company. |
+| `pinned_version_id` | `string` | No | Freeze this agent to one version. Omit to follow the block's current version. |
+| `order` | `integer` | No | Position in the prompt. Defaults to the end of the list. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/blocks \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{ "block_id": "6650bbbb2222cccc3333ffff", "order": 2 }'
+```
+
+```js JavaScript
+const base = "https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0";
+
+const resp = await fetch(`${base}/blocks`, {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ block_id: "6650bbbb2222cccc3333ffff", order: 2 }),
+});
+
+if (resp.status === 400) {
+  const { error } = await resp.json();
+  if (error.code === "ASSISTANT_DUPLICATE_IDENTITY_BLOCK") {
+    // The agent already has an identity block of this type.
+  }
+}
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/blocks",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={"block_id": "6650bbbb2222cccc3333ffff", "order": 2},
+    timeout=10,
+)
+if resp.status_code == 400 and resp.json()["error"]["code"] == "ASSISTANT_DUPLICATE_IDENTITY_BLOCK":
+    ...  # already has one of this type
+resp.raise_for_status()
+```
+
+</CodeGroup>
+
+## Response
+
+### 201 Created
+
+The full agent, same shape as [`GET /v1/agents/{id}`](/dev/endpoints/agents-get), with the block added.
+
+### 400 Bad Request
+
+A malformed `ObjectId` or an unknown property. `error.code` is `ASSISTANT_DUPLICATE_IDENTITY_BLOCK` when the agent already holds an identity block of that type.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `agents:write` scope.
+
+### 404 Not Found
+
+The agent does not exist in the token's company and project, or `error.code` is `ASSISTANT_BLOCK_NOT_FOUND` because the block does not exist or belongs to another company.
+
+### 502 Bad Gateway
+
+The agent service is unreachable.
+
+## Operational notes
+
+- **Attaching is not idempotent.** Calling it twice with the same `block_id` adds a second reference to the same block, which renders it twice in the prompt. Check the current list first, or use [`PUT`](/dev/endpoints/agents-blocks-set), which is naturally idempotent.
+- **Omitting `order` appends.** The block lands after everything currently attached. To insert in the middle you have to renumber, which means [`PUT`](/dev/endpoints/agents-blocks-set).
+- **The duplicate-identity check looks at the resulting list**, not just at what you sent, so it catches the case where the agent already has a `personification` and you attach another.
+- **One block, many agents.** Attaching does not move or copy anything: the same block can be wired into any number of agents, each with its own `order` and pin.

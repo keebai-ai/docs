@@ -100,7 +100,7 @@ The practical consequence: **an agent may attempt a tool it is not allowed to us
 The whole scope catalogue is on the [Scopes](/dev/scopes) page. Some useful shapes for an agent:
 
 <CardGroup cols={2}>
-  <Card title="Read-only assistant">
+  <Card title="Read-only agent">
     Answers questions about your data, changes nothing.
 
     `knowledge:read`, `knowledge:query`, `contacts:read`, `crm:customers:read`, `crm:tickets:read`, `crm:tasks:read`, `crm:notes:read`.
@@ -115,7 +115,7 @@ The whole scope catalogue is on the [Scopes](/dev/scopes) page. Some useful shap
 
     All `crm:*:read` and `crm:*:write`, `contacts:read`, `contacts:write`.
   </Card>
-  <Card title="Sales assistant">
+  <Card title="Sales agent">
     Answers questions about the catalog and past purchases, and nothing else.
 
     `ecommerce:products:read`, `ecommerce:sales:read`, `contacts:read`.

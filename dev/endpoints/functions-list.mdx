@@ -5,9 +5,9 @@ description: "List the webhook functions of your company, with secret values mas
 openapi: "GET /v1/functions"
 ---
 
-Lists the webhook functions an assistant can call. Each one is an HTTPS endpoint of yours: you describe what it does, the model decides when to call it, and Keebai makes the request.
+Lists the webhook functions an agent can call. Each one is an HTTPS endpoint of yours: you describe what it does, the model decides when to call it, and Keebai makes the request.
 
-Header and query-string **values come back masked** as `***`; the keys stay visible so you can see the shape of the request. See [webhook security](/dev/assistants/webhook-security#secrets-are-write-only).
+Header and query-string **values come back masked** as `***`; the keys stay visible so you can see the shape of the request. See [webhook security](/dev/agents/webhook-security#secrets-are-write-only).
 
 ## Endpoint
 
@@ -17,7 +17,7 @@ GET https://api.keebai.com/v1/functions
 
 ## Required scope
 
-`assistants:read`
+`agents:read`
 
 ## Headers
 
@@ -118,16 +118,16 @@ Missing, invalid, revoked, or expired token.
 
 ### 403 Forbidden
 
-The token does not have the `assistants:read` scope.
+The token does not have the `agents:read` scope.
 
 ### 502 Bad Gateway
 
-The assistant service is unreachable.
+The agent service is unreachable.
 
 ## Operational notes
 
-- **Functions are company-wide, not project-scoped.** Unlike assistants and blocks, two tokens on two projects of the same company see the same list. A name collision is a company-level collision.
-- **Only webhook functions appear here.** Keebai also has calendar, ecommerce and block-generated functions; none of them are exposed, and asking for one by id returns `404`. See [why](/dev/assistants/webhook-security#only-webhook-functions-are-exposed).
+- **Functions are company-wide, not project-scoped.** Unlike agents and blocks, two tokens on two projects of the same company see the same list. A name collision is a company-level collision.
+- **Only webhook functions appear here.** Keebai also has calendar, ecommerce and block-generated functions; none of them are exposed, and asking for one by id returns `404`. See [why](/dev/agents/webhook-security#only-webhook-functions-are-exposed).
 - **`used_by_blocks` is what makes a delete recoverable.** While it is non-empty, [deleting the function](/dev/endpoints/functions-delete) returns `409` — this field names the blocks to unbind first.
 - **`context.body` is not masked.** It is the request template the model fills in, not a place credentials normally live, and hiding it would remove the main reason to read a function.
 - **`total` is a real count**, unlike the block endpoints: the upstream returns the full set, so the page is sliced here.

@@ -1,23 +1,23 @@
 ---
-title: "POST /v1/assistants"
-sidebarTitle: "POST assistants"
-description: "Create an assistant. It comes with an empty personality block and an empty response-policy block already attached."
-openapi: "POST /v1/assistants"
+title: "POST /v1/agents"
+sidebarTitle: "POST agents"
+description: "Create an agent. It comes with an empty personality block and an empty response-policy block already attached."
+openapi: "POST /v1/agents"
 ---
 
-Creates an assistant in the token's project and returns it with its `_id` and its starting blocks.
+Creates an agent in the token's project and returns it with its `_id` and its starting blocks.
 
-The assistant is **not born empty**: it comes with a `personification` block and a `response_policy` block already created and attached, both with no content. Without those two an assistant has no identity and no rule about when to answer, so it would not say anything useful. Your next call is normally [`PUT /v1/blocks/{id}/content`](/dev/endpoints/blocks-content-save) on the personality block.
+The agent is **not born empty**: it comes with a `personification` block and a `response_policy` block already created and attached, both with no content. Without those two an agent has no identity and no rule about when to answer, so it would not say anything useful. Your next call is normally [`PUT /v1/blocks/{id}/content`](/dev/endpoints/blocks-content-save) on the personality block.
 
 ## Endpoint
 
 ```
-POST https://api.keebai.com/v1/assistants
+POST https://api.keebai.com/v1/agents
 ```
 
 ## Required scope
 
-`assistants:write`
+`agents:write`
 
 ## Headers
 
@@ -42,7 +42,7 @@ POST https://api.keebai.com/v1/assistants
 <CodeGroup>
 
 ```bash curl
-curl -X POST https://api.keebai.com/v1/assistants \
+curl -X POST https://api.keebai.com/v1/agents \
   -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
@@ -54,7 +54,7 @@ curl -X POST https://api.keebai.com/v1/assistants \
 ```
 
 ```js JavaScript
-const resp = await fetch("https://api.keebai.com/v1/assistants", {
+const resp = await fetch("https://api.keebai.com/v1/agents", {
   method: "POST",
   headers: {
     Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
@@ -67,22 +67,22 @@ const resp = await fetch("https://api.keebai.com/v1/assistants", {
   }),
 });
 
-const { assistant } = await resp.json();
+const { agent } = await resp.json();
 // The personality block it was born with:
-const personality = assistant.blocks[0].block_id;
+const personality = agent.blocks[0].block_id;
 ```
 
 ```python Python
 import os, requests
 
 resp = requests.post(
-    "https://api.keebai.com/v1/assistants",
+    "https://api.keebai.com/v1/agents",
     headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
     json={"name": "Recepción", "model": "gemini-2.5-flash"},
     timeout=10,
 )
 resp.raise_for_status()
-assistant = resp.json()["assistant"]
+agent = resp.json()["agent"]
 ```
 
 </CodeGroup>
@@ -93,7 +93,7 @@ assistant = resp.json()["assistant"]
 
 ```json
 {
-  "assistant": {
+  "agent": {
     "_id": "6650a1b2c3d4e5f6a7b8c9d0",
     "name": "Recepción",
     "description": "Atiende reservas y consultas de horario",
@@ -122,16 +122,16 @@ Missing, invalid, revoked, or expired token.
 
 ### 403 Forbidden
 
-The token does not have the `assistants:write` scope.
+The token does not have the `agents:write` scope.
 
 ### 502 Bad Gateway
 
-The assistant service is unreachable.
+The agent service is unreachable.
 
 ## Operational notes
 
-- **The two starting blocks are real catalogue blocks**, `order: 0` is the `personification` and `order: 1` the `response_policy`. They belong to the project like any other, so they show up in [`GET /v1/blocks`](/dev/endpoints/blocks-list) and can be renamed, archived or reused. Read their type from [`GET /v1/assistants/{id}/blocks`](/dev/endpoints/assistants-blocks-list) rather than trusting the array position.
-- **Creation is not idempotent.** There is no uniqueness constraint on `name`, so a retry after a timeout creates a second assistant. Check with [the list endpoint](/dev/endpoints/assistants-list) filtered by `q` before retrying.
-- **The assistant is created in the token's project.** There is no `project` field to send; it comes from the token, and a token scoped to another project creates it there instead.
-- **Sending `metadata`, `company`, `project`, `blocks` or `is_active` is rejected**, not ignored — unknown properties return `400`. Blocks are wired with [the block endpoints](/dev/endpoints/assistants-block-attach) after creation.
-- **A new assistant is active immediately** and will answer on any channel it gets routed to. Create it, configure it, then route it — not the other way round.
+- **The two starting blocks are real catalogue blocks**, `order: 0` is the `personification` and `order: 1` the `response_policy`. They belong to the project like any other, so they show up in [`GET /v1/blocks`](/dev/endpoints/blocks-list) and can be renamed, archived or reused. Read their type from [`GET /v1/agents/{id}/blocks`](/dev/endpoints/agents-blocks-list) rather than trusting the array position.
+- **Creation is not idempotent.** There is no uniqueness constraint on `name`, so a retry after a timeout creates a second agent. Check with [the list endpoint](/dev/endpoints/agents-list) filtered by `q` before retrying.
+- **The agent is created in the token's project.** There is no `project` field to send; it comes from the token, and a token scoped to another project creates it there instead.
+- **Sending `metadata`, `company`, `project`, `blocks` or `is_active` is rejected**, not ignored — unknown properties return `400`. Blocks are wired with [the block endpoints](/dev/endpoints/agents-block-attach) after creation.
+- **A new agent is active immediately** and will answer on any channel it gets routed to. Create it, configure it, then route it — not the other way round.

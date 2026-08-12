@@ -1,27 +1,27 @@
 ---
-title: "PUT /v1/assistants/{id}/blocks"
-sidebarTitle: "PUT assistants/:id/blocks"
-description: "Replace the whole block list of an assistant. The only way to reorder blocks or pin versions."
-openapi: "PUT /v1/assistants/{id}/blocks"
+title: "PUT /v1/agents/{id}/blocks"
+sidebarTitle: "PUT agents/:id/blocks"
+description: "Replace the whole block list of an agent. The only way to reorder blocks or pin versions."
+openapi: "PUT /v1/agents/{id}/blocks"
 ---
 
-Sets the assistant's entire block list in one call. This is the only endpoint that can **reorder** blocks or change which **version** each one is pinned to.
+Sets the agent's entire block list in one call. This is the only endpoint that can **reorder** blocks or change which **version** each one is pinned to.
 
 Because it replaces rather than merges, read the current list first and send the whole thing back with your change applied. Any block you leave out is detached.
 
 <Warning>
-  Send a partial list and you detach everything missing from it. Start from [`GET /v1/assistants/{id}/blocks`](/dev/endpoints/assistants-blocks-list), not from memory.
+  Send a partial list and you detach everything missing from it. Start from [`GET /v1/agents/{id}/blocks`](/dev/endpoints/agents-blocks-list), not from memory.
 </Warning>
 
 ## Endpoint
 
 ```
-PUT https://api.keebai.com/v1/assistants/{id}/blocks
+PUT https://api.keebai.com/v1/agents/{id}/blocks
 ```
 
 ## Required scope
 
-`assistants:write`
+`agents:write`
 
 ## Headers
 
@@ -34,7 +34,7 @@ PUT https://api.keebai.com/v1/assistants/{id}/blocks
 
 | Parameter | Type | Description |
 |---|---|---|
-| `id` | `string` | `ObjectId` of the assistant. |
+| `id` | `string` | `ObjectId` of the agent. |
 
 ## Body
 
@@ -42,7 +42,7 @@ PUT https://api.keebai.com/v1/assistants/{id}/blocks
 |---|---|---|---|
 | `blocks` | `object[]` | Yes | The complete list, up to 50 entries. |
 | `blocks[].block_id` | `string` | Yes | `ObjectId` of a block in the same company. |
-| `blocks[].pinned_version_id` | `string` | No | Freeze this assistant to one version. Omit to follow the block's current version. |
+| `blocks[].pinned_version_id` | `string` | No | Freeze this agent to one version. Omit to follow the block's current version. |
 | `blocks[].order` | `integer` | No | Position in the prompt, `0` or greater. Defaults to `0`. |
 
 ## Example request
@@ -50,7 +50,7 @@ PUT https://api.keebai.com/v1/assistants/{id}/blocks
 <CodeGroup>
 
 ```bash curl
-curl -X PUT https://api.keebai.com/v1/assistants/6650a1b2c3d4e5f6a7b8c9d0/blocks \
+curl -X PUT https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/blocks \
   -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
@@ -64,7 +64,7 @@ curl -X PUT https://api.keebai.com/v1/assistants/6650a1b2c3d4e5f6a7b8c9d0/blocks
 ```
 
 ```js JavaScript
-const base = "https://api.keebai.com/v1/assistants/6650a1b2c3d4e5f6a7b8c9d0";
+const base = "https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0";
 const auth = { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` };
 
 // Read the current wiring, then move one block to the front.
@@ -87,7 +87,7 @@ await fetch(`${base}/blocks`, {
 ```python Python
 import os, requests
 
-base = "https://api.keebai.com/v1/assistants/6650a1b2c3d4e5f6a7b8c9d0"
+base = "https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0"
 auth = {"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"}
 
 current = requests.get(f"{base}/blocks", headers=auth, timeout=10).json()["data"]
@@ -110,11 +110,11 @@ resp.raise_for_status()
 
 ### 200 OK
 
-The full assistant, same shape as [`GET /v1/assistants/{id}`](/dev/endpoints/assistants-get), with the new `blocks` array.
+The full agent, same shape as [`GET /v1/agents/{id}`](/dev/endpoints/agents-get), with the new `blocks` array.
 
 ### 400 Bad Request
 
-More than 50 entries, a malformed `ObjectId`, or an unknown property. `error.code` is `ASSISTANT_DUPLICATE_IDENTITY_BLOCK` when the list would give the assistant two identity blocks of the same type.
+More than 50 entries, a malformed `ObjectId`, or an unknown property. `error.code` is `ASSISTANT_DUPLICATE_IDENTITY_BLOCK` when the list would give the agent two identity blocks of the same type.
 
 ### 401 Unauthorized
 
@@ -122,20 +122,20 @@ Missing, invalid, revoked, or expired token.
 
 ### 403 Forbidden
 
-The token does not have the `assistants:write` scope.
+The token does not have the `agents:write` scope.
 
 ### 404 Not Found
 
-The assistant does not exist in the token's company and project, or `error.code` is `ASSISTANT_BLOCK_NOT_FOUND` because one of the `block_id` values does not exist or belongs to another company.
+The agent does not exist in the token's company and project, or `error.code` is `ASSISTANT_BLOCK_NOT_FOUND` because one of the `block_id` values does not exist or belongs to another company.
 
 ### 502 Bad Gateway
 
-The assistant service is unreachable.
+The agent service is unreachable.
 
 ## Operational notes
 
 - **At most one `personification`, one `objective` and one `response_format`.** Those three are the identity family and a duplicate is a `400`. Instruction blocks — `steps`, `cases_possible`, `do_not`, `response_policy` — have no such limit.
 - **A block from another company is a `404`, not a `403`.** Cross-company block ids are checked before anything is written, so a rejected call changes nothing.
 - **`order` decides the prompt, and gaps are fine.** Blocks are composed in ascending `order` within their family; the families themselves always render identity, then instructions, then information. Reordering across families does nothing.
-- **Pinning is how you freeze an assistant against edits.** With `pinned_version_id` set, later [content saves](/dev/endpoints/blocks-content-save) on that block do not reach this assistant. Useful when one block is shared by a production and a staging assistant.
+- **Pinning is how you freeze an agent against edits.** With `pinned_version_id` set, later [content saves](/dev/endpoints/blocks-content-save) on that block do not reach this agent. Useful when one block is shared by a production and a staging agent.
 - **Detaching does not archive.** Blocks dropped from the list stay in [the catalogue](/dev/endpoints/blocks-list) and keep their history.

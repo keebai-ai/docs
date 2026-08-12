@@ -7,7 +7,7 @@ openapi: "GET /v1/blocks/{id}/versions/{versionId}"
 
 Returns the content of a specific version, in the same shape as [reading the current content](/dev/endpoints/blocks-content-get).
 
-Two reasons to use it: checking what a [restore](/dev/endpoints/blocks-version-restore) would bring back, and reading the version an assistant is actually pinned to when that is not the current one.
+Two reasons to use it: checking what a [restore](/dev/endpoints/blocks-version-restore) would bring back, and reading the version an agent is actually pinned to when that is not the current one.
 
 ## Endpoint
 
@@ -17,7 +17,7 @@ GET https://api.keebai.com/v1/blocks/{id}/versions/{versionId}
 
 ## Required scope
 
-`assistants:read`
+`agents:read`
 
 ## Headers
 
@@ -91,7 +91,7 @@ Missing, invalid, revoked, or expired token.
 
 ### 403 Forbidden
 
-The token does not have the `assistants:read` scope.
+The token does not have the `agents:read` scope.
 
 ### 404 Not Found
 
@@ -99,7 +99,7 @@ The block does not exist in the token's company and project, or `error.code` is 
 
 ### 502 Bad Gateway
 
-The assistant service is unreachable.
+The agent service is unreachable.
 
 ## Operational notes
 

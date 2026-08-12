@@ -7,7 +7,7 @@ openapi: "PUT /v1/functions/{id}"
 
 Partial update: only the fields present in the body change.
 
-The subtlety is inside `context`. Because [header and query-string values are masked on read](/dev/assistants/webhook-security#secrets-are-write-only), you cannot round-trip them, so this endpoint merges instead.
+The subtlety is inside `context`. Because [header and query-string values are masked on read](/dev/agents/webhook-security#secrets-are-write-only), you cannot round-trip them, so this endpoint merges instead.
 
 | What you send | What happens |
 |---|---|
@@ -26,7 +26,7 @@ PUT https://api.keebai.com/v1/functions/{id}
 
 ## Required scope
 
-`assistants:write`
+`agents:write`
 
 ## Headers
 
@@ -143,7 +143,7 @@ Missing, invalid, revoked, or expired token.
 
 ### 403 Forbidden
 
-The token does not have the `assistants:write` scope.
+The token does not have the `agents:write` scope.
 
 ### 404 Not Found
 
@@ -155,7 +155,7 @@ The new `name` is already taken by another function in the company.
 
 ### 502 Bad Gateway
 
-The assistant service is unreachable.
+The agent service is unreachable.
 
 ## Operational notes
 

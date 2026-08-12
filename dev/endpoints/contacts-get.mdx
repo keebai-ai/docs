@@ -112,6 +112,6 @@ The messaging service could not answer.
 
 ## Operational notes
 
-- **The activity timestamps tell you who spoke last.** `last_user_message_at` is the contact, `last_bot_response_at` is the assistant, and `last_agent_response_at` is a human agent. Comparing them is the cheapest way to tell whether a conversation is waiting on you.
+- **The activity timestamps tell you who spoke last.** `last_user_message_at` is the contact, `last_bot_response_at` is the agent, and `last_agent_response_at` is a human agent. Comparing them is the cheapest way to tell whether a conversation is waiting on you.
 - **`is_attended`** flips to `true` when a human takes over the conversation in the portal.
 - **`tags` are ids, not labels.** There is no public endpoint yet to resolve a tag id to its name.

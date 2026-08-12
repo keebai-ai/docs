@@ -17,7 +17,7 @@ GET https://api.keebai.com/v1/functions/{id}
 
 ## Required scope
 
-`assistants:read`
+`agents:read`
 
 ## Headers
 
@@ -110,7 +110,7 @@ Missing, invalid, revoked, or expired token.
 
 ### 403 Forbidden
 
-The token does not have the `assistants:read` scope.
+The token does not have the `agents:read` scope.
 
 ### 404 Not Found
 
@@ -118,11 +118,11 @@ No function with that id in the token's company, **or** the id belongs to a func
 
 ### 502 Bad Gateway
 
-The assistant service is unreachable.
+The agent service is unreachable.
 
 ## Operational notes
 
 - **A non-webhook function reads as `404`, not `403`.** An id you cannot manage is deliberately indistinguishable from one that does not exist.
-- **The masked values are not a permissions thing.** Every caller sees `***`, including one with `assistants:write`. The stored value is never returned by any endpoint.
+- **The masked values are not a permissions thing.** Every caller sees `***`, including one with `agents:write`. The stored value is never returned by any endpoint.
 - **`is_active: false` means the model will not be offered the function**, but the configuration is intact. It is the reversible way to switch one off.
 - **`type` is always `webhook`** on this surface, and is included so the field is not silently absent from a contract that upstream considers polymorphic.

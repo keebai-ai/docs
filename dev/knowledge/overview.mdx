@@ -1,10 +1,10 @@
 ---
 title: "Knowledge overview"
 sidebarTitle: "Overview"
-description: "The knowledge base your AI assistants read from — tree structure, document ingestion, retrieval, and how content reaches an assistant."
+description: "The knowledge base your AI agents read from — tree structure, document ingestion, retrieval, and how content reaches an agent."
 ---
 
-The knowledge base is the corpus your Keebai assistants answer from. It is a tree of folders and documents that you can write to from your own systems, query as a retrieval backend, and assign to specific assistants.
+The knowledge base is the corpus your Keebai agents answer from. It is a tree of folders and documents that you can write to from your own systems, query as a retrieval backend, and assign to specific agents.
 
 ## What you can do
 
@@ -18,8 +18,8 @@ The knowledge base is the corpus your Keebai assistants answer from. It is a tre
   <Card title="Retrieve" icon="magnifying-glass" href="/dev/endpoints/knowledge-search">
     Full-text, vector, and hybrid search — usable as retrieval for your own LLM, not just Keebai's.
   </Card>
-  <Card title="Assign to assistants" icon="robot" href="/dev/endpoints/knowledge-assign">
-    Decide which assistants can read which nodes.
+  <Card title="Assign to agents" icon="robot" href="/dev/endpoints/knowledge-assign">
+    Decide which agents can read which nodes.
   </Card>
 </CardGroup>
 
@@ -31,8 +31,8 @@ The knowledge base is the corpus your Keebai assistants answer from. It is a tre
 | `knowledge:write` | Create [folders](/dev/endpoints/knowledge-folder-create) and [documents](/dev/endpoints/knowledge-document-create). |
 | `knowledge:delete` | [Delete nodes](/dev/endpoints/knowledge-node-delete), folders and documents alike. |
 | `knowledge:query` | [Search](/dev/endpoints/knowledge-search) by full text, vector, or hybrid. |
-| `knowledge:assign` | [Assign nodes](/dev/endpoints/knowledge-assign) to an assistant's workers. |
-| `assistants:read` | [List assistants](/dev/endpoints/assistants-list) so you know what to assign to. Their full configuration lives in the [Assistants](/dev/assistants/overview) tab. |
+| `knowledge:assign` | [Assign nodes](/dev/endpoints/knowledge-assign) to an agent's workers. |
+| `agents:read` | [List agents](/dev/endpoints/agents-list) so you know what to assign to. Their full configuration lives in the [Agents](/dev/agents/overview) tab. |
 
 An external app that only uses Keebai as a retrieval backend needs `knowledge:read` and `knowledge:query` — nothing else. Keep `knowledge:delete` out of any token a sync job holds.
 
@@ -40,7 +40,7 @@ An external app that only uses Keebai as a retrieval backend needs `knowledge:re
 
 Every node belongs to a company, derived from your token. **You never send `company`** — and sending it returns `400`, because the public API rejects unknown properties rather than ignoring them.
 
-The tree you get from [`GET /v1/knowledge/tree`](/dev/endpoints/knowledge-tree) is the whole company's, not one project's. Knowledge is company-level by design: an assistant serving one project can still be assigned a document another project published.
+The tree you get from [`GET /v1/knowledge/tree`](/dev/endpoints/knowledge-tree) is the whole company's, not one project's. Knowledge is company-level by design: an agent serving one project can still be assigned a document another project published.
 
 ## Everything is a node
 
@@ -71,7 +71,7 @@ Node ids are MongoDB ObjectIds — 24 lowercase hex characters, like `65a1f2b3c4
 Each result carries a `score` and a `source` (`full` or `vector`) telling you which half of a hybrid search produced it. Scores are comparable within one response and **not** across responses or modes — do not build a fixed cut-off threshold on them.
 
 <Tip>
-  Using Keebai purely as a retrieval backend for your own LLM is a supported pattern: `knowledge:query` alone is enough, and you never have to create an assistant.
+  Using Keebai purely as a retrieval backend for your own LLM is a supported pattern: `knowledge:query` alone is enough, and you never have to create an agent.
 </Tip>
 
 ## Documents are written as markdown
@@ -80,11 +80,11 @@ You publish markdown; Keebai converts it to BlockNote (the editor format the por
 
 Indexing happens on write, so a document is searchable shortly after creation rather than instantly. Do not write a document and assert on a search result in the same breath.
 
-## Publishing does not mean an assistant can read it
+## Publishing does not mean an agent can read it
 
-Creating a document puts it in the tree. It does **not** make any assistant use it — [assignment](/dev/endpoints/knowledge-assign) is a separate, explicit step.
+Creating a document puts it in the tree. It does **not** make any agent use it — [assignment](/dev/endpoints/knowledge-assign) is a separate, explicit step.
 
-A sync that creates documents and never assigns them produces a knowledge base that looks full in the portal and changes nothing about what your assistants say. The usual pipeline is: create folder → create documents → [list assistants](/dev/endpoints/assistants-list) → assign.
+A sync that creates documents and never assigns them produces a knowledge base that looks full in the portal and changes nothing about what your agents say. The usual pipeline is: create folder → create documents → [list agents](/dev/endpoints/agents-list) → assign.
 
 ## There is no update endpoint
 
@@ -93,7 +93,7 @@ You can create a node and delete a node. You cannot edit one through the API.
 To change a published document, delete it and create it again. That means its `node_id` changes, so anything holding the old id — an assignment, a bookmark in your own database — has to be re-pointed.
 
 <Warning>
-  **Re-publishing loses the assignment.** The new document is not assigned to any assistant, even though the one it replaced was. A sync that re-publishes on every run and forgets to re-assign will silently empty out what your assistants can read.
+  **Re-publishing loses the assignment.** The new document is not assigned to any agent, even though the one it replaced was. A sync that re-publishes on every run and forgets to re-assign will silently empty out what your agents can read.
 
   Either keep a stable mapping of *your* id → Keebai `node_id` and re-assign after each replace, or only re-publish documents that actually changed.
 </Warning>

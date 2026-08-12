@@ -17,7 +17,7 @@ PATCH https://api.keebai.com/v1/blocks/{id}
 
 ## Required scope
 
-`assistants:write`
+`agents:write`
 
 ## Headers
 
@@ -99,7 +99,7 @@ Missing, invalid, revoked, or expired token.
 
 ### 403 Forbidden
 
-The token does not have the `assistants:write` scope.
+The token does not have the `agents:write` scope.
 
 ### 404 Not Found
 
@@ -107,11 +107,11 @@ No block with that id in the token's company and project.
 
 ### 502 Bad Gateway
 
-The assistant service is unreachable.
+The agent service is unreachable.
 
 ## Operational notes
 
 - **This works on all twelve types, including the read-only five.** Renaming and archiving do not touch content, so `product_info` and friends are editable here even though [saving their content](/dev/endpoints/blocks-content-save) is not.
 - **`is_archived: false` is the undo for [`DELETE /v1/blocks/{id}`](/dev/endpoints/blocks-archive).** They write the same field.
-- **Archiving does not detach.** Assistants referencing the block keep using it, and its content keeps rendering into their prompts. [Detach it](/dev/endpoints/assistants-block-detach) if that is what you meant.
+- **Archiving does not detach.** Agents referencing the block keep using it, and its content keeps rendering into their prompts. [Detach it](/dev/endpoints/agents-block-detach) if that is what you meant.
 - **`type` cannot be changed.** A block created as `steps` is a `steps` block forever; create a new one of the right type and move the content across.

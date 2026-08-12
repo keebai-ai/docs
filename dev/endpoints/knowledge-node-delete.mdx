@@ -75,5 +75,5 @@ No body. The delete is idempotent only within the same request: if the node was 
 - `404 NOT_FOUND`: the node doesn't exist, was already deleted, or belongs to another company.
 
 <Warning>
-  Worker assignments (see [`POST /v1/knowledge/assignments`](/dev/endpoints/knowledge-assign)) keep pointing to the deleted node. Since the chunk is removed from the index on the next rebuild, the assistant loses access to the content even if the `knowledge_node_id` is still referenced.
+  Worker assignments (see [`POST /v1/knowledge/assignments`](/dev/endpoints/knowledge-assign)) keep pointing to the deleted node. Since the chunk is removed from the index on the next rebuild, the agent loses access to the content even if the `knowledge_node_id` is still referenced.
 </Warning>

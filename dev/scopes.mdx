@@ -54,9 +54,9 @@ The catalog lives in the `api_scopes` MongoDB collection. The portal pulls it vi
 | `knowledge:write` | knowledge | Create [folders](/dev/endpoints/knowledge-folder-create) and [documents](/dev/endpoints/knowledge-document-create) (markdown → BlockNote). |
 | `knowledge:delete` | knowledge | [Delete nodes](/dev/endpoints/knowledge-node-delete) (folders and documents) from the knowledge base. |
 | `knowledge:query` | knowledge | Query the knowledge base with [full-text, vector, or hybrid search](/dev/endpoints/knowledge-search). |
-| `knowledge:assign` | knowledge | [Assign nodes](/dev/endpoints/knowledge-assign) of the knowledge base to an assistant's workers. |
-| `assistants:read` | assistants | [List assistants](/dev/endpoints/assistants-list), [read the blocks that make up their prompt](/dev/endpoints/assistants-blocks-list), [read block content](/dev/endpoints/blocks-content-get) and [version history](/dev/endpoints/blocks-versions-list), and [list webhook functions](/dev/endpoints/functions-list). |
-| `assistants:write` | assistants | [Create](/dev/endpoints/assistants-create) and [configure assistants](/dev/endpoints/assistants-update), [create](/dev/endpoints/blocks-create-personification) and [edit prompt blocks](/dev/endpoints/blocks-content-save), and [manage the webhook functions](/dev/endpoints/functions-create) they can call. |
+| `knowledge:assign` | knowledge | [Assign nodes](/dev/endpoints/knowledge-assign) of the knowledge base to an agent's workers. |
+| `agents:read` | agents | [List agents](/dev/endpoints/agents-list), [read the blocks that make up their prompt](/dev/endpoints/agents-blocks-list), [read block content](/dev/endpoints/blocks-content-get) and [version history](/dev/endpoints/blocks-versions-list), and [list webhook functions](/dev/endpoints/functions-list). |
+| `agents:write` | agents | [Create](/dev/endpoints/agents-create) and [configure agents](/dev/endpoints/agents-update), [create](/dev/endpoints/blocks-create-personification) and [edit prompt blocks](/dev/endpoints/blocks-content-save), and [manage the webhook functions](/dev/endpoints/functions-create) they can call. |
 | `scheduling:branches:read` | scheduling | [List branches](/dev/endpoints/scheduling-branches-list) and [get details](/dev/endpoints/scheduling-branch-get). |
 | `scheduling:services:read` | scheduling | [List services](/dev/endpoints/scheduling-services-list) and [details](/dev/endpoints/scheduling-service-get) (duration, restrictions, allowed professionals). |
 | `scheduling:professionals:read` | scheduling | [List professionals](/dev/endpoints/scheduling-professionals-list) and [details](/dev/endpoints/scheduling-professional-get) by branch or service. |
@@ -150,9 +150,9 @@ Pick the smallest scope set that does the job. Splitting `messages:send` and `me
     `webhooks:read`, `webhooks:manage`, `channels:read`.
   </Card>
   <Card title="Knowledge-base sync">
-    Your CMS or docs pipeline publishes documents and assigns them to assistants automatically.
+    Your CMS or docs pipeline publishes documents and assigns them to agents automatically.
 
-    `knowledge:read`, `knowledge:write`, `knowledge:delete`, `knowledge:assign`, `assistants:read`.
+    `knowledge:read`, `knowledge:write`, `knowledge:delete`, `knowledge:assign`, `agents:read`.
   </Card>
   <Card title="External RAG / search">
     An external app queries your knowledge base as retrieval for its own LLM.
@@ -209,15 +209,15 @@ Pick the smallest scope set that does the job. Splitting `messages:send` and `me
 
     `loyalty:read`.
   </Card>
-  <Card title="Assistant provisioning">
-    Your onboarding flow creates an assistant per client and writes its prompt blocks from a template you keep in git.
+  <Card title="Agent provisioning">
+    Your onboarding flow creates an agent per client and writes its prompt blocks from a template you keep in git.
 
-    `assistants:read`, `assistants:write`.
+    `agents:read`, `agents:write`.
   </Card>
   <Card title="Prompt auditor">
-    A reviewer reads every assistant's blocks and their history to check what the bots are told to say. Cannot change a word, and webhook secrets stay masked.
+    A reviewer reads every agent's blocks and their history to check what the bots are told to say. Cannot change a word, and webhook secrets stay masked.
 
-    `assistants:read`.
+    `agents:read`.
   </Card>
   <Card title="Contact sync">
     Your CRM or ERP keeps the contact directory in step with Keebai. Deletes stay out so a sync bug cannot erase people.

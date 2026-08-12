@@ -117,5 +117,5 @@ document = resp.json()
 - `404 NOT_FOUND`: `parent_id` doesn't exist or belongs to another company.
 
 <Tip>
-  To make sure the document is available to assistants, assign it with [`POST /v1/knowledge/assignments`](/dev/endpoints/knowledge-assign). The content is always searchable via the `knowledge:query` scope even if it isn't assigned to any assistant.
+  To make sure the document is available to agents, assign it with [`POST /v1/knowledge/assignments`](/dev/endpoints/knowledge-assign). The content is always searchable via the `knowledge:query` scope even if it isn't assigned to any agent.
 </Tip>

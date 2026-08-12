@@ -1,13 +1,13 @@
 ---
 title: "POST /v1/knowledge/assignments"
 sidebarTitle: "POST assign"
-description: "Assign knowledge base nodes to all of an assistant's workers."
+description: "Assign knowledge base nodes to all of an agent's workers."
 openapi: "POST /v1/knowledge/assignments"
 ---
 
-Associates one or more knowledge base nodes with an assistant. The assignment propagates to **all of the assistant's workers** (except `supervisor` workers), adding the given `node_id` values to their list of accessible knowledge. The operation is idempotent: if a node was already assigned, it isn't duplicated.
+Associates one or more knowledge base nodes with an agent. The assignment propagates to **all of the agent's workers** (except `supervisor` workers), adding the given `node_id` values to their list of accessible knowledge. The operation is idempotent: if a node was already assigned, it isn't duplicated.
 
-To list available assistants use [`GET /v1/assistants`](/dev/endpoints/assistants-list). To get validated `node_id` values for your folders and documents use [`GET /v1/knowledge/tree`](/dev/endpoints/knowledge-tree).
+To list available agents use [`GET /v1/agents`](/dev/endpoints/agents-list). To get validated `node_id` values for your folders and documents use [`GET /v1/knowledge/tree`](/dev/endpoints/knowledge-tree).
 
 After the assignment, a reindex is enqueued to refresh the workers' cached embeddings.
 
@@ -32,7 +32,7 @@ POST https://api.keebai.com/v1/knowledge/assignments
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `assistant_id` | `string` | Yes | `ObjectId` of the target assistant. |
+| `assistant_id` | `string` | Yes | `ObjectId` of the target agent. |
 | `node_ids` | `string[]` | Yes | `ObjectId` values of the nodes to assign. Minimum 1, maximum 200. |
 
 ## Example request
@@ -100,7 +100,7 @@ print(resp.json()["workers_updated"])
 
 | Field | Type | Description |
 |---|---|---|
-| `workers_updated` | `number` | Number of assistant workers that received the assignment. `0` means the assistant has no non-supervisor workers. |
+| `workers_updated` | `number` | Number of agent workers that received the assignment. `0` means the agent has no non-supervisor workers. |
 
 ### 400 / 401 / 403 / 404 / 429
 

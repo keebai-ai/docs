@@ -5,7 +5,7 @@ description: "Read the current content of a block, as plain text for free blocks
 openapi: "GET /v1/blocks/{id}/content"
 ---
 
-The last step of the drill-down: [assistants](/dev/endpoints/assistants-list) → [their blocks](/dev/endpoints/assistants-blocks-list) → **this block's content**.
+The last step of the drill-down: [agents](/dev/endpoints/agents-list) → [their blocks](/dev/endpoints/agents-blocks-list) → **this block's content**.
 
 Returns the content of whichever version the block currently points at, together with that version's id and number.
 
@@ -17,7 +17,7 @@ GET https://api.keebai.com/v1/blocks/{id}/content
 
 ## Required scope
 
-`assistants:read`
+`agents:read`
 
 ## Headers
 
@@ -109,7 +109,7 @@ Missing, invalid, revoked, or expired token.
 
 ### 403 Forbidden
 
-The token does not have the `assistants:read` scope.
+The token does not have the `agents:read` scope.
 
 ### 404 Not Found
 
@@ -117,12 +117,12 @@ No block with that id in the token's company and project, or `error.code` is `BL
 
 ### 502 Bad Gateway
 
-The assistant service is unreachable.
+The agent service is unreachable.
 
 ## Operational notes
 
 - **`edit_mode` tells you which field to read.** `free` gives you `content` as text and no `payload`; `assisted` gives you `payload` as an object and no `content`. Every block written through this API is `free`.
 - **The `payload` of an assisted block is an opaque object** whose shape depends on the block type. It is returned as stored so you can inspect it, but it is not writable here — [saving those types](/dev/endpoints/blocks-content-save) returns `409`.
 - **Rich formatting authored in the portal flattens to text.** Bold, italics, colours and inline function chips do not survive the round trip: you get the words, not the styling. If a block was carefully styled in the portal, prefer editing it there.
-- **This reads the block's current version, which is not necessarily what a given assistant sees.** An assistant with a `pinned_version_id` renders that version instead; read it with [`GET /v1/blocks/{id}/versions/{versionId}`](/dev/endpoints/blocks-version-get).
+- **This reads the block's current version, which is not necessarily what a given agent sees.** An agent with a `pinned_version_id` renders that version instead; read it with [`GET /v1/blocks/{id}/versions/{versionId}`](/dev/endpoints/blocks-version-get).
 - **`created_by` is never returned.** It is an internal user id.

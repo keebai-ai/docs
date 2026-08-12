@@ -82,7 +82,7 @@ Retrieval and authoring against the tenant knowledge base. See the [Knowledge ov
 | `keebai_knowledge_folder_create` | `knowledge:write` | Create a folder. |
 | `keebai_knowledge_document_create` | `knowledge:write` | Create a document from Markdown. Triggers a reindex. |
 | 🔴 `keebai_knowledge_node_delete` | `knowledge:delete` | Delete a node. Deleting a folder takes its contents with it. |
-| `keebai_knowledge_assign` | `knowledge:assign` | Assign nodes to every worker of an assistant. |
+| `keebai_knowledge_assign` | `knowledge:assign` | Assign nodes to every worker of an agent. |
 
 ## Messaging
 
@@ -178,47 +178,47 @@ Points, stamps, and wallet cards. See the [loyalty overview](/dev/loyalty/overvi
   Neither is destructive, so neither carries the 🔴 marker, but hand `loyalty:write` to an agent with the same care you would give `messages:send`.
 </Warning>
 
-## Assistants
+## Agents
 
-Read and write the configuration of the assistants themselves: the [blocks that make up their prompt](/dev/assistants/overview) and the webhook functions they can call. Thirty tools, all on `assistants:read` or `assistants:write`.
+Read and write the configuration of the agents themselves: the [blocks that make up their prompt](/dev/agents/overview) and the webhook functions they can call. Thirty tools, all on `agents:read` or `agents:write`.
 
 | Tool | Scope | What it does |
 |---|---|---|
-| `keebai_assistants_list` | `assistants:read` | List the active assistants of the project. Start here for the id everything else needs. |
-| `keebai_assistant_get` | `assistants:read` | One assistant with its model, knowledge nodes, and ordered block references. |
-| `keebai_assistant_create` | `assistants:write` | Create one. It is born with an empty personality and response-policy block attached. |
-| `keebai_assistant_update` | `assistants:write` | Partial update of name, description, avatar, model, active flag, knowledge nodes. |
-| 🔴 `keebai_assistant_delete` | `assistants:write` | Delete permanently. Its blocks survive in the catalogue. |
-| `keebai_assistant_blocks_list` | `assistants:read` | The blocks wired into one assistant, in prompt order, metadata only. |
-| `keebai_assistant_blocks_set` | `assistants:write` | Replace the whole block list. The only way to reorder or pin. Blocks left out get detached. |
-| `keebai_assistant_block_attach` | `assistants:write` | Attach one block. Fails on a cross-company block or a duplicate identity block. |
-| `keebai_assistant_block_detach` | `assistants:write` | Detach one block. The block itself is untouched. |
-| `keebai_assistant_blocks_catalog` | `assistants:read` | Every block in the project, attached or not, filtered by type or family. |
-| `keebai_assistant_block_get` | `assistants:read` | One block's metadata, including whether its content is writable. |
-| `keebai_assistant_block_create_personification` | `assistants:write` | Create a personality block: role, tone, how it addresses people. |
-| `keebai_assistant_block_create_objective` | `assistants:write` | Create an objective block: what to achieve and how you know it did. |
-| `keebai_assistant_block_create_response_format` | `assistants:write` | Create a format block: length, emoji usage, formatting rules. |
-| `keebai_assistant_block_create_steps` | `assistants:write` | Create a steps block: the procedure, in order. |
-| `keebai_assistant_block_create_cases_possible` | `assistants:write` | Create a cases block: situations and how to answer each. |
-| `keebai_assistant_block_create_do_not` | `assistants:write` | Create a restrictions block: what it must never do. |
-| `keebai_assistant_block_create_response_policy` | `assistants:write` | Create a policy block: when to stay silent, when to react. |
-| `keebai_assistant_block_update` | `assistants:write` | Rename a block or flip its archived flag. |
-| `keebai_assistant_block_archive` | `assistants:write` | Archive a block. Reversible; assistants still attached keep using it. |
-| `keebai_assistant_block_content_get` | `assistants:read` | Read a block's current content. Free blocks come back as text. |
-| `keebai_assistant_block_content_save` | `assistants:write` | Replace the content, creating a new version. The five catalogue types refuse. |
-| `keebai_assistant_block_versions_list` | `assistants:read` | Version history, newest first, without the payloads. |
-| `keebai_assistant_block_version_get` | `assistants:read` | Read one historical version, to check it before restoring. |
-| `keebai_assistant_block_version_restore` | `assistants:write` | Restore an old version by appending it as a new one. Nothing is lost. |
-| `keebai_assistant_functions_list` | `assistants:read` | The company's webhook functions. Secret values come back masked. |
-| `keebai_assistant_function_get` | `assistants:read` | One function with its URL, parameters, and the blocks referencing it. |
-| ⚠️ `keebai_assistant_function_create` | `assistants:write` | Create a webhook the assistant can call. The URL must be a public https host. |
-| ⚠️ `keebai_assistant_function_update` | `assistants:write` | Partial update. Omitting headers keeps the stored ones; never echo back a `***`. |
-| 🔴 `keebai_assistant_function_delete` | `assistants:write` | Delete permanently. Fails while a block still references it. |
+| `keebai_agents_list` | `agents:read` | List the active agents of the project. Start here for the id everything else needs. |
+| `keebai_agent_get` | `agents:read` | One agent with its model, knowledge nodes, and ordered block references. |
+| `keebai_agent_create` | `agents:write` | Create one. It is born with an empty personality and response-policy block attached. |
+| `keebai_agent_update` | `agents:write` | Partial update of name, description, avatar, model, active flag, knowledge nodes. |
+| 🔴 `keebai_agent_delete` | `agents:write` | Delete permanently. Its blocks survive in the catalogue. |
+| `keebai_agent_blocks_list` | `agents:read` | The blocks wired into one agent, in prompt order, metadata only. |
+| `keebai_agent_blocks_set` | `agents:write` | Replace the whole block list. The only way to reorder or pin. Blocks left out get detached. |
+| `keebai_agent_block_attach` | `agents:write` | Attach one block. Fails on a cross-company block or a duplicate identity block. |
+| `keebai_agent_block_detach` | `agents:write` | Detach one block. The block itself is untouched. |
+| `keebai_agent_blocks_catalog` | `agents:read` | Every block in the project, attached or not, filtered by type or family. |
+| `keebai_agent_block_get` | `agents:read` | One block's metadata, including whether its content is writable. |
+| `keebai_agent_block_create_personification` | `agents:write` | Create a personality block: role, tone, how it addresses people. |
+| `keebai_agent_block_create_objective` | `agents:write` | Create an objective block: what to achieve and how you know it did. |
+| `keebai_agent_block_create_response_format` | `agents:write` | Create a format block: length, emoji usage, formatting rules. |
+| `keebai_agent_block_create_steps` | `agents:write` | Create a steps block: the procedure, in order. |
+| `keebai_agent_block_create_cases_possible` | `agents:write` | Create a cases block: situations and how to answer each. |
+| `keebai_agent_block_create_do_not` | `agents:write` | Create a restrictions block: what it must never do. |
+| `keebai_agent_block_create_response_policy` | `agents:write` | Create a policy block: when to stay silent, when to react. |
+| `keebai_agent_block_update` | `agents:write` | Rename a block or flip its archived flag. |
+| `keebai_agent_block_archive` | `agents:write` | Archive a block. Reversible; agents still attached keep using it. |
+| `keebai_agent_block_content_get` | `agents:read` | Read a block's current content. Free blocks come back as text. |
+| `keebai_agent_block_content_save` | `agents:write` | Replace the content, creating a new version. The five catalogue types refuse. |
+| `keebai_agent_block_versions_list` | `agents:read` | Version history, newest first, without the payloads. |
+| `keebai_agent_block_version_get` | `agents:read` | Read one historical version, to check it before restoring. |
+| `keebai_agent_block_version_restore` | `agents:write` | Restore an old version by appending it as a new one. Nothing is lost. |
+| `keebai_agent_functions_list` | `agents:read` | The company's webhook functions. Secret values come back masked. |
+| `keebai_agent_function_get` | `agents:read` | One function with its URL, parameters, and the blocks referencing it. |
+| ⚠️ `keebai_agent_function_create` | `agents:write` | Create a webhook the agent can call. The URL must be a public https host. |
+| ⚠️ `keebai_agent_function_update` | `agents:write` | Partial update. Omitting headers keeps the stored ones; never echo back a `***`. |
+| 🔴 `keebai_agent_function_delete` | `agents:write` | Delete permanently. Fails while a block still references it. |
 
 <Warning>
-  **Writing here changes what your bots say to customers.** An agent with `assistants:write` can rewrite any prompt block and create webhook functions that make Keebai's infrastructure call an external host — the URL is validated against loopback, private ranges and internal names, but a public host of the agent's choosing is allowed. Treat it as a higher-privilege scope than the read side, and read [webhook security](/dev/assistants/webhook-security) before handing it out.
+  **Writing here changes what your bots say to customers.** An agent with `agents:write` can rewrite any prompt block and create webhook functions that make Keebai's infrastructure call an external host — the URL is validated against loopback, private ranges and internal names, but a public host of the agent's choosing is allowed. Treat it as a higher-privilege scope than the read side, and read [webhook security](/dev/agents/webhook-security) before handing it out.
 
-  **Functions are company-wide**, unlike assistants and blocks, which are scoped to the token's project.
+  **Functions are company-wide**, unlike agents and blocks, which are scoped to the token's project.
 </Warning>
 
 ## Not exposed as tools
@@ -228,7 +228,7 @@ Scheduling, templates, channels, webhooks, tenants, and setup links have no MCP 
 [CRM events](/dev/crm/events) are not tools either, and that one is on purpose rather than pending. Emitting an event is a system-of-record write from a system that *knows* something happened — an order closed, a delivery completed. A model deciding to emit one is a model asserting a fact it cannot verify. Call [`POST /v1/webhook/events`](/dev/endpoints/crm-events-emit) from the system that owns the fact.
 
 <Note>
-  Keebai's own assistants *can* emit events, through an internal tool gated by an `ai_triggerable` flag you set per event type in the portal. That flag defaults to off and does not apply to this MCP server, which is your agent talking to the API, not Keebai's assistant talking to itself.
+  Keebai's own agents *can* emit events, through an internal tool gated by an `ai_triggerable` flag you set per event type in the portal. That flag defaults to off and does not apply to this MCP server, which is your agent talking to the API, not Keebai's agent talking to itself.
 </Note>
 
 The binary Apple `.pkpass` has no tool either, for the same reason as media download: it is a file, not JSON. The Apple link tool covers the same use case.

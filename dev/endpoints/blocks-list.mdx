@@ -1,11 +1,11 @@
 ---
 title: "GET /v1/blocks"
 sidebarTitle: "GET blocks"
-description: "List every block in the project, attached to an assistant or not, with metadata and no content."
+description: "List every block in the project, attached to an agent or not, with metadata and no content."
 openapi: "GET /v1/blocks"
 ---
 
-The project's whole block catalogue. Blocks are not owned by an assistant: they live here and any number of assistants can reference them, so this is where you look for something to reuse.
+The project's whole block catalogue. Blocks are not owned by an agent: they live here and any number of agents can reference them, so this is where you look for something to reuse.
 
 Metadata only, no content — for that, [read one block's content](/dev/endpoints/blocks-content-get).
 
@@ -17,7 +17,7 @@ GET https://api.keebai.com/v1/blocks
 
 ## Required scope
 
-`assistants:read`
+`agents:read`
 
 ## Headers
 
@@ -98,16 +98,16 @@ Missing, invalid, revoked, or expired token.
 
 ### 403 Forbidden
 
-The token does not have the `assistants:read` scope.
+The token does not have the `agents:read` scope.
 
 ### 502 Bad Gateway
 
-The assistant service is unreachable.
+The agent service is unreachable.
 
 ## Operational notes
 
 - **There is no `total`, and that is deliberate.** The upstream store exposes no count for blocks, so rather than return the length of the current page as if it were the size of the set — which would make a client stop paginating early — the response carries `has_more`. Page until it is `false`.
-- **Archived blocks are hidden by default but still active.** `include_archived=false` only affects this listing: an archived block that is still attached to an assistant keeps rendering into its prompt. To take it out of an assistant, [detach it](/dev/endpoints/assistants-block-detach).
+- **Archived blocks are hidden by default but still active.** `include_archived=false` only affects this listing: an archived block that is still attached to an agent keeps rendering into its prompt. To take it out of an agent, [detach it](/dev/endpoints/agents-block-detach).
 - **`content_writable: false` marks the five catalogue types** — `product_info`, `store_info`, `reservation_info`, `tables_info`, `tags`. You can read, rename and archive them here; [saving their content](/dev/endpoints/blocks-content-save) returns `409`.
 - **Scoped to the token's project.** A block created under another project of the same company does not appear and cannot be read by id.
 - **A block with `current_version_id: null` has never been saved.** Reading its content returns `404 BLOCK_CONTENT_NOT_FOUND`.

@@ -17,7 +17,7 @@ POST https://api.keebai.com/v1/blocks/{id}/versions/{versionId}/restore
 
 ## Required scope
 
-`assistants:write`
+`agents:write`
 
 ## Headers
 
@@ -99,7 +99,7 @@ Missing, invalid, revoked, or expired token.
 
 ### 403 Forbidden
 
-The token does not have the `assistants:write` scope.
+The token does not have the `agents:write` scope.
 
 ### 404 Not Found
 
@@ -111,12 +111,12 @@ The block does not exist in the token's company and project, or `error.code` is 
 
 ### 502 Bad Gateway
 
-The assistant service is unreachable.
+The agent service is unreachable.
 
 ## Operational notes
 
-- **Restoring is a write, so it needs `assistants:write`** and is subject to the same type restriction as [saving content](/dev/endpoints/blocks-content-save): the five catalogue types refuse it.
+- **Restoring is a write, so it needs `agents:write`** and is subject to the same type restriction as [saving content](/dev/endpoints/blocks-content-save): the five catalogue types refuse it.
 - **Restoring is not idempotent.** Calling it twice appends two identical versions. Harmless, but the history grows.
-- **Assistants pinned to another version are unaffected.** Restoring moves the block's current version; a pinned assistant keeps rendering what it was pinned to.
+- **Agents pinned to another version are unaffected.** Restoring moves the block's current version; a pinned agent keeps rendering what it was pinned to.
 - **Restoring is reversible by restoring again.** The version you just moved away from is still in the history with its own id.
 - **Check before you restore.** [Read the version](/dev/endpoints/blocks-version-get) first — the history list deliberately carries no content, so `version_number` alone tells you nothing about what you are bringing back.

@@ -381,32 +381,32 @@
         ]
       },
       {
-        "tab": "Assistants",
+        "tab": "Agents",
         "icon": "robot",
         "groups": [
           {
             "group": "Get started",
             "pages": [
-              "dev/assistants/overview"
+              "dev/agents/overview"
             ]
           },
           {
-            "group": "Assistants",
+            "group": "Agents",
             "pages": [
-              "dev/endpoints/assistants-list",
-              "dev/endpoints/assistants-get",
-              "dev/endpoints/assistants-create",
-              "dev/endpoints/assistants-update",
-              "dev/endpoints/assistants-delete"
+              "dev/endpoints/agents-list",
+              "dev/endpoints/agents-get",
+              "dev/endpoints/agents-create",
+              "dev/endpoints/agents-update",
+              "dev/endpoints/agents-delete"
             ]
           },
           {
-            "group": "Assistant blocks",
+            "group": "Agent blocks",
             "pages": [
-              "dev/endpoints/assistants-blocks-list",
-              "dev/endpoints/assistants-blocks-set",
-              "dev/endpoints/assistants-block-attach",
-              "dev/endpoints/assistants-block-detach"
+              "dev/endpoints/agents-blocks-list",
+              "dev/endpoints/agents-blocks-set",
+              "dev/endpoints/agents-block-attach",
+              "dev/endpoints/agents-block-detach"
             ]
           },
           {
@@ -458,7 +458,7 @@
           {
             "group": "Reference",
             "pages": [
-              "dev/assistants/webhook-security"
+              "dev/agents/webhook-security"
             ]
           }
         ]

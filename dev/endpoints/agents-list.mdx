@@ -1,23 +1,23 @@
 ---
-title: "GET /v1/assistants"
-sidebarTitle: "GET assistants"
-description: "List the active assistants in your project. Filterable by name and paginated."
-openapi: "GET /v1/assistants"
+title: "GET /v1/agents"
+sidebarTitle: "GET agents"
+description: "List the active agents in your project. Filterable by name and paginated."
+openapi: "GET /v1/agents"
 ---
 
-Returns the active assistants in your project. This is the index: start here to find the `id` every other endpoint in this tab needs, and the one [`POST /v1/knowledge/assignments`](/dev/endpoints/knowledge-assign) takes as `assistant_id`.
+Returns the active agents in your project. This is the index: start here to find the `id` every other endpoint in this tab needs, and the one [`POST /v1/knowledge/assignments`](/dev/endpoints/knowledge-assign) takes as `assistant_id`.
 
-The listing carries basic metadata only — no blocks, no functions. To see how an assistant is actually configured, follow it with [`GET /v1/assistants/:id/blocks`](/dev/endpoints/assistants-blocks-list).
+The listing carries basic metadata only — no blocks, no functions. To see how an agent is actually configured, follow it with [`GET /v1/agents/:id/blocks`](/dev/endpoints/agents-blocks-list).
 
 ## Endpoint
 
 ```
-GET https://api.keebai.com/v1/assistants
+GET https://api.keebai.com/v1/agents
 ```
 
 ## Required scope
 
-`assistants:read`
+`agents:read`
 
 ## Headers
 
@@ -38,13 +38,13 @@ GET https://api.keebai.com/v1/assistants
 <CodeGroup>
 
 ```bash curl
-curl "https://api.keebai.com/v1/assistants?q=ventas&limit=10" \
+curl "https://api.keebai.com/v1/agents?q=ventas&limit=10" \
   -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
 ```js JavaScript
 const params = new URLSearchParams({ q: "ventas", limit: "10" });
-const resp = await fetch(`https://api.keebai.com/v1/assistants?${params}`, {
+const resp = await fetch(`https://api.keebai.com/v1/agents?${params}`, {
   headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` },
 });
 const { items } = await resp.json();
@@ -54,7 +54,7 @@ const { items } = await resp.json();
 import os, requests
 
 resp = requests.get(
-    "https://api.keebai.com/v1/assistants",
+    "https://api.keebai.com/v1/agents",
     params={"q": "ventas", "limit": 10},
     headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
     timeout=10,
@@ -76,7 +76,7 @@ items = resp.json()["items"]
       "id": "65f3a1b2c3d4e5f6a7b8c9aa",
       "name": "Ventas",
       "description": "Califica leads y agenda demos.",
-      "avatar_url": "https://cdn.keebai.com/assistants/ventas.png",
+      "avatar_url": "https://cdn.keebai.com/agents/ventas.png",
       "model": "gpt-4o-mini",
       "voice_response_enabled": false,
       "created_at": "2026-03-12T10:15:00.000Z"
@@ -90,7 +90,7 @@ items = resp.json()["items"]
 
 | Field | Type | Description |
 |---|---|---|
-| `items[].id` | `string` | `ObjectId` of the assistant. This is what you use as `assistant_id` in other endpoints. |
+| `items[].id` | `string` | `ObjectId` of the agent. This is what you use as `assistant_id` in other endpoints. |
 | `items[].name` | `string` | Name. |
 | `items[].description` | `string` | Short description shown in the portal. |
 | `items[].avatar_url` | `string` | Public URL of the avatar, if uploaded. |
@@ -104,15 +104,15 @@ Missing, invalid, revoked, or expired token.
 
 ### 403 Forbidden
 
-The token does not have the `assistants:read` scope.
+The token does not have the `agents:read` scope.
 
 ### 502 Bad Gateway
 
-The assistant service is unreachable.
+The agent service is unreachable.
 
 ## Operational notes
 
 - **This endpoint uses a different envelope from the rest of the API.** It returns `items` with a 1-based `page` and an `id` field, where everything else paginated returns `data` with `offset` and `_id`. It predates that convention and is deliberately left alone so existing integrations keep working — the other endpoints in this tab use the current shape.
-- **Only active assistants appear.** There is no parameter to include inactive ones. Fetch a known id with [`GET /v1/assistants/:id`](/dev/endpoints/assistants-get), which returns it either way and includes `is_active`.
-- **Scoped to the token's project**, not the whole company. A token issued against another project sees another list. Blocks follow the same rule; [functions do not](/dev/assistants/overview#scoping).
+- **Only active agents appear.** There is no parameter to include inactive ones. Fetch a known id with [`GET /v1/agents/:id`](/dev/endpoints/agents-get), which returns it either way and includes `is_active`.
+- **Scoped to the token's project**, not the whole company. A token issued against another project sees another list. Blocks follow the same rule; [functions do not](/dev/agents/overview#scoping).
 - **`voice_response_enabled` is a flag, not the configuration.** The underlying provider settings, including voice ids, are not exposed.

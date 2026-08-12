@@ -10,7 +10,7 @@ Deletes the function. This is a hard delete and it cannot be undone.
 It is refused while any block still references the function, and the error names them — so the normal sequence is: read [`used_by_blocks`](/dev/endpoints/functions-get), unbind those blocks in the portal, then delete.
 
 <Warning>
-  If you only want the assistant to stop calling it, [`PUT` it with `is_active: false`](/dev/endpoints/functions-update) instead. That is reversible and keeps the URL, headers and parameters intact.
+  If you only want the agent to stop calling it, [`PUT` it with `is_active: false`](/dev/endpoints/functions-update) instead. That is reversible and keeps the URL, headers and parameters intact.
 </Warning>
 
 ## Endpoint
@@ -21,7 +21,7 @@ DELETE https://api.keebai.com/v1/functions/{id}
 
 ## Required scope
 
-`assistants:write`
+`agents:write`
 
 ## Headers
 
@@ -87,7 +87,7 @@ Missing, invalid, revoked, or expired token.
 
 ### 403 Forbidden
 
-The token does not have the `assistants:write` scope.
+The token does not have the `agents:write` scope.
 
 ### 404 Not Found
 
@@ -99,12 +99,12 @@ No webhook function with that id in the token's company. A repeated delete lands
 
 ### 502 Bad Gateway
 
-The assistant service is unreachable.
+The agent service is unreachable.
 
 ## Operational notes
 
-- **The `409` is the useful part of this endpoint.** It is what stops you silently breaking an assistant mid-conversation, and it tells you exactly which blocks to fix.
+- **The `409` is the useful part of this endpoint.** It is what stops you silently breaking an agent mid-conversation, and it tells you exactly which blocks to fix.
 - **Unbinding a function from a block is done in the portal.** This API can save a block's text but not its function bindings, so the last step of a clean removal is a portal action.
-- **Deleting is company-wide.** A function used by an assistant in another project of the same company counts as in use and blocks the delete.
+- **Deleting is company-wide.** A function used by an agent in another project of the same company counts as in use and blocks the delete.
 - **A retry is safe**: the second call is a `404`, never a partial delete.
 - **`is_active: false` is the reversible alternative** and is usually what you want when retiring an integration gradually.

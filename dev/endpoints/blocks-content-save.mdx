@@ -10,7 +10,7 @@ Writes new content for a block. This is where prompts actually get edited.
 The write is a **replace**, not a patch: send the whole text. Nothing is overwritten in storage, though — the content is appended as a new immutable version, the block is pointed at it, and the previous version stays in [the history](/dev/endpoints/blocks-versions-list) where it can be [restored](/dev/endpoints/blocks-version-restore).
 
 <Warning>
-  **Only the seven free types accept content here.** `product_info`, `store_info`, `reservation_info`, `tables_info` and `tags` return `409 BLOCK_TYPE_NOT_WRITABLE`. Check `content_writable` on the block before calling, and read [why](/dev/assistants/overview#catalogue-blocks-are-read-only-here) if the refusal is surprising.
+  **Only the seven free types accept content here.** `product_info`, `store_info`, `reservation_info`, `tables_info` and `tags` return `409 BLOCK_TYPE_NOT_WRITABLE`. Check `content_writable` on the block before calling, and read [why](/dev/agents/overview#catalogue-blocks-are-read-only-here) if the refusal is surprising.
 </Warning>
 
 ## Endpoint
@@ -21,7 +21,7 @@ PUT https://api.keebai.com/v1/blocks/{id}/content
 
 ## Required scope
 
-`assistants:write`
+`agents:write`
 
 ## Headers
 
@@ -133,7 +133,7 @@ Missing, invalid, revoked, or expired token.
 
 ### 403 Forbidden
 
-The token does not have the `assistants:write` scope.
+The token does not have the `agents:write` scope.
 
 ### 404 Not Found
 
@@ -145,12 +145,12 @@ No block with that id in the token's company and project.
 
 ### 502 Bad Gateway
 
-The assistant service is unreachable.
+The agent service is unreachable.
 
 ## Operational notes
 
 - **Every save is a new version, so history grows.** There is no way to edit a version in place and no way to delete one. A block edited hundreds of times keeps hundreds of versions; [the history endpoint](/dev/endpoints/blocks-versions-list) is paginated for that reason.
 - **The write is not idempotent.** A retry after a timeout appends a second identical version and bumps `version_number` again. Harmless, but check the history before retrying if that matters to you.
-- **Assistants pinned to an older version do not see this.** A save moves the block's current version; an assistant with `pinned_version_id` set keeps rendering the version it was pinned to until you [repin it](/dev/endpoints/assistants-blocks-set).
+- **Agents pinned to an older version do not see this.** A save moves the block's current version; an agent with `pinned_version_id` set keeps rendering the version it was pinned to until you [repin it](/dev/endpoints/agents-blocks-set).
 - **The text you send is what you get back.** Reading the content returns the same text, modulo runs of blank lines collapsing to one. Formatting beyond the three conventions above is not preserved because it is not stored.
-- **The change reaches live conversations within about fifteen minutes at worst.** The composed prompt is cached per assistant and the cache is dropped on every save, but a conversation already mid-turn finishes with the previous version.
+- **The change reaches live conversations within about fifteen minutes at worst.** The composed prompt is cached per agent and the cache is dropped on every save, but a conversation already mid-turn finishes with the previous version.

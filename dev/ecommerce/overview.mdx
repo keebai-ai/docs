@@ -1,7 +1,7 @@
 ---
 title: "Ecommerce overview"
 sidebarTitle: "Overview"
-description: "Read your catalog, carts, and sales — the data behind what the assistant sells, and the events that fire when it does."
+description: "Read your catalog, carts, and sales — the data behind what the agent sells, and the events that fire when it does."
 ---
 
 The ecommerce surface is read-only. It exposes what Keebai knows about your **catalog**, the **carts** your customers built (including the ones they abandoned), and the **sales** that closed — everything under the `/v1/ecommerce` prefix, authenticated with a [PAT](/dev/api-keys) and gated by [scope](/dev/scopes).
@@ -25,7 +25,7 @@ Writes stay in the portal and in the integrations. If you need to create a sale 
   </Card>
 </CardGroup>
 
-A cart is **not** the draft of a sale. They are separate records with no foreign key between them: a cart is what a customer assembled on a storefront, a sale is what your team or the assistant closed. Correlate on the customer's phone or email, or on `customer_id`, which both carry when Keebai could resolve the contact.
+A cart is **not** the draft of a sale. They are separate records with no foreign key between them: a cart is what a customer assembled on a storefront, a sale is what your team or the agent closed. Correlate on the customer's phone or email, or on `customer_id`, which both carry when Keebai could resolve the contact.
 
 ## Scopes
 
@@ -57,14 +57,14 @@ A cart with `abandoned_at` set and `completed_at` absent is the recoverable case
 | Status | Meaning |
 |---|---|
 | `pending` | Nobody has followed up. |
-| `contacted` | Someone reached out — a person or the assistant. |
+| `contacted` | Someone reached out — a person or the agent. |
 | `recovered` | The customer came back and completed. |
 | `discarded` | Written off. |
 
 `recovery_url` is the link that puts the customer back in checkout with the cart intact. Sending it over WhatsApp with [a `cta_url` message](/dev/endpoints/messages-send) is the intended pairing.
 
 <Warning>
-  **`recovery_status` is not advanced by this API.** It is set by whoever does the following up — the portal, the assistant, or an integration writing through the platform. Reading `pending` does not mean nobody has acted; it means nothing has recorded that they did.
+  **`recovery_status` is not advanced by this API.** It is set by whoever does the following up — the portal, the agent, or an integration writing through the platform. Reading `pending` does not mean nobody has acted; it means nothing has recorded that they did.
 
   If your own outreach chases abandoned carts, you are responsible for keeping your side's state, because you cannot write this field back.
 </Warning>
@@ -155,6 +155,6 @@ That is the binding constraint for anyone mirroring a catalog. A 4,000-product c
     Filter for `abandoned_at` and send `recovery_url` over WhatsApp.
   </Card>
   <Card title="Record it on the CRM" icon="bolt" href="/dev/crm/events">
-    Emit a CRM event so the order shows up on the contact's timeline and the assistant knows about it.
+    Emit a CRM event so the order shows up on the contact's timeline and the agent knows about it.
   </Card>
 </CardGroup>

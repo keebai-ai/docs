@@ -7,7 +7,7 @@ openapi: "GET /v1/blocks/{id}"
 
 Returns one block's metadata. **No content**: a block document holds none. The text lives in its versions, which is why [reading it](/dev/endpoints/blocks-content-get) is a separate call.
 
-Use this when you have a `block_id` from an assistant's `blocks` array and want to know what it is before deciding whether to read or edit it.
+Use this when you have a `block_id` from an agent's `blocks` array and want to know what it is before deciding whether to read or edit it.
 
 ## Endpoint
 
@@ -17,7 +17,7 @@ GET https://api.keebai.com/v1/blocks/{id}
 
 ## Required scope
 
-`assistants:read`
+`agents:read`
 
 ## Headers
 
@@ -92,7 +92,7 @@ Missing, invalid, revoked, or expired token.
 
 ### 403 Forbidden
 
-The token does not have the `assistants:read` scope.
+The token does not have the `agents:read` scope.
 
 ### 404 Not Found
 
@@ -100,7 +100,7 @@ No block with that id in the token's company **and project**.
 
 ### 502 Bad Gateway
 
-The assistant service is unreachable.
+The agent service is unreachable.
 
 ## Operational notes
 

@@ -506,7 +506,7 @@ Six events covering the appointment lifecycle. The payload carries the branch, s
 
 ### `scheduling.appointment.created`
 
-A new appointment was booked — from the portal, the public API, the assistant, or an external calendar sync.
+A new appointment was booked — from the portal, the public API, the agent, or an external calendar sync.
 
 ```json
 {
@@ -553,7 +553,7 @@ A new appointment was booked — from the portal, the public API, the assistant,
 |---|---|---|
 | `id` | string | UUID v4, not an `ObjectId` — scheduling uses a different id scheme from the rest of the API. |
 | `status` | enum | `pending` \| `confirmed` \| `completed` \| `cancelled` \| `blocked` \| `waitlist` \| `no_show`. |
-| `source` | enum | `agenda` (staff), `web` (public booking), `ia` (the assistant booked it). |
+| `source` | enum | `agenda` (staff), `web` (public booking), `ia` (the agent booked it). |
 | `professional` | object \| absent | Absent when the appointment has no assigned professional. |
 | `customer` | object \| absent | Absent on blocks and internal reservations. |
 
@@ -618,7 +618,7 @@ Three events on the sale lifecycle. The payload carries the customer, the line i
 
 ### `ecommerce.sale.created`
 
-A sale was closed — from the portal, the point of sale, or the assistant.
+A sale was closed — from the portal, the point of sale, or the agent.
 
 ```json
 {

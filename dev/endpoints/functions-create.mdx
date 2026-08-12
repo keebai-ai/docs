@@ -1,13 +1,13 @@
 ---
 title: "POST /v1/functions"
 sidebarTitle: "POST functions"
-description: "Create a webhook function an assistant can call, with its URL, headers and parameters."
+description: "Create a webhook function an agent can call, with its URL, headers and parameters."
 openapi: "POST /v1/functions"
 ---
 
 Creates a webhook function. You describe what it does and which arguments it takes; the model decides when to call it and with what.
 
-Placeholders written `{{name}}` in the path, the query string or the body are filled at call time from the arguments the model chose, so `https://erp.example.com/stock/{{sku}}` with a `sku` parameter is the normal shape. **Not in the host** — read [why](/dev/assistants/webhook-security#placeholders-in-the-host-are-the-interesting-case).
+Placeholders written `{{name}}` in the path, the query string or the body are filled at call time from the arguments the model chose, so `https://erp.example.com/stock/{{sku}}` with a `sku` parameter is the normal shape. **Not in the host** — read [why](/dev/agents/webhook-security#placeholders-in-the-host-are-the-interesting-case).
 
 ## Endpoint
 
@@ -17,7 +17,7 @@ POST https://api.keebai.com/v1/functions
 
 ## Required scope
 
-`assistants:write`
+`agents:write`
 
 ## Headers
 
@@ -34,7 +34,7 @@ POST https://api.keebai.com/v1/functions
 | `display_name` | `string` | Yes | Up to 200 characters. Shown in the portal. |
 | `description` | `string` | Yes | Up to 1000 characters. **The model reads this to decide when to call the function** — write it for the model, not for a human. |
 | `context` | `object` | Yes | The HTTP request to make. |
-| `context.url` | `string` | Yes | Public `https` URL. Validated — see [the rules](/dev/assistants/webhook-security#which-urls-are-rejected). |
+| `context.url` | `string` | Yes | Public `https` URL. Validated — see [the rules](/dev/agents/webhook-security#which-urls-are-rejected). |
 | `context.method` | `string` | No | `GET`, `POST`, `PUT`, `PATCH` or `DELETE`. Defaults to `POST`. |
 | `context.headers` | `object` | No | String values. Write-only: reads return `***`. |
 | `context.params` | `object` | No | Query string. Write-only, same as headers. |
@@ -140,7 +140,7 @@ The function, same shape as [`GET /v1/functions/{id}`](/dev/endpoints/functions-
 
 A missing required field, a field over its limit, or an unknown property. Two specific codes:
 
-- `FUNCTION_URL_NOT_ALLOWED` — the URL failed validation. `details.reason` names the rule; see [the table](/dev/assistants/webhook-security#which-urls-are-rejected).
+- `FUNCTION_URL_NOT_ALLOWED` — the URL failed validation. `details.reason` names the rule; see [the table](/dev/agents/webhook-security#which-urls-are-rejected).
 - `FUNCTION_TIMEOUT_NOT_ALLOWED` — `timeout` outside 1–30 seconds.
 
 ### 401 Unauthorized
@@ -149,7 +149,7 @@ Missing, invalid, revoked, or expired token.
 
 ### 403 Forbidden
 
-The token does not have the `assistants:write` scope.
+The token does not have the `agents:write` scope.
 
 ### 409 Conflict
 
@@ -157,12 +157,12 @@ A function with that `name` already exists in the company.
 
 ### 502 Bad Gateway
 
-The assistant service is unreachable.
+The agent service is unreachable.
 
 ## Operational notes
 
 - **`description` is a prompt, not documentation.** It is the only thing the model reads when deciding whether to call the function, so say when to use it and when not to. "Devuelve el stock. Usar antes de prometer disponibilidad" beats "Endpoint de stock".
 - **A `tool_params` entry with no matching placeholder is still passed to the model**, which will supply it and see it go nowhere. Keep the two in sync.
 - **`name` is unique per company, not per project.** A `409` can come from a function created under a different project.
-- **Creating a function does not attach it to anything.** The model can only call functions bound to a block in the assistant's prompt; that binding is done in the portal.
+- **Creating a function does not attach it to anything.** The model can only call functions bound to a block in the agent's prompt; that binding is done in the portal.
 - **`type` is forced to `webhook`.** Sending anything else is rejected, and there is no way to create a calendar, ecommerce or block-managed function through this API.

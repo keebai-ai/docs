@@ -5,12 +5,12 @@ description: "Create a steps block with its content as plain text."
 openapi: "POST /v1/blocks/steps"
 ---
 
-The procedure the assistant follows, in order. Use it when the conversation has a shape: gather, confirm, act.
+The procedure the agent follows, in order. Use it when the conversation has a shape: gather, confirm, act.
 
-The block is created in the project catalogue and is **not attached to anything**. Wire it into an assistant with [`POST /v1/assistants/{id}/blocks`](/dev/endpoints/assistants-block-attach) afterwards.
+The block is created in the project catalogue and is **not attached to anything**. Wire it into an agent with [`POST /v1/agents/{id}/blocks`](/dev/endpoints/agents-block-attach) afterwards.
 
 <Note>
-  **Instruction block: an assistant can hold several.** Split long procedures into named blocks rather than one giant one — they are easier to reorder and to reuse.
+  **Instruction block: an agent can hold several.** Split long procedures into named blocks rather than one giant one — they are easier to reorder and to reuse.
 </Note>
 
 ## Endpoint
@@ -21,7 +21,7 @@ POST https://api.keebai.com/v1/blocks/steps
 
 ## Required scope
 
-`assistants:write`
+`agents:write`
 
 ## Headers
 
@@ -68,8 +68,8 @@ const resp = await fetch("https://api.keebai.com/v1/blocks/steps", {
 
 const { block } = await resp.json();
 
-// Then wire it into an assistant.
-await fetch("https://api.keebai.com/v1/assistants/6650a1b2c3d4e5f6a7b8c9d0/blocks", {
+// Then wire it into an agent.
+await fetch("https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/blocks", {
   method: "POST",
   headers: {
     Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
@@ -124,16 +124,16 @@ Missing, invalid, revoked, or expired token.
 
 ### 403 Forbidden
 
-The token does not have the `assistants:write` scope.
+The token does not have the `agents:write` scope.
 
 ### 502 Bad Gateway
 
-The assistant service is unreachable.
+The agent service is unreachable.
 
 ## Operational notes
 
 - Write each step on a line starting with a number so it renders as an ordered list. Indent a line by two spaces to nest it under the step above.
 - **Creating a block also creates its first version.** The response already carries a `current_version_id`, even when you omit `content` — the block starts with one empty version rather than none.
 - **Creation is not idempotent.** Nothing enforces unique names, so a retry after a timeout leaves you with two blocks. Check [the catalogue](/dev/endpoints/blocks-list) filtered by `type` before retrying.
-- **Content is plain text with three markdown conventions**: `-` for bullets, `1.` for numbered items, `#` for headings. Everything else is a paragraph. [More on how content is stored](/dev/assistants/overview#content-is-text).
+- **Content is plain text with three markdown conventions**: `-` for bullets, `1.` for numbered items, `#` for headings. Everything else is a paragraph. [More on how content is stored](/dev/agents/overview#content-is-text).
 - **The block belongs to the token's project**, and a token on another project can neither see it nor read it by id.
