@@ -1,13 +1,13 @@
 ---
 title: "DELETE /v1/tools/{id}"
-sidebarTitle: "DELETE functions/:id"
-description: "Delete a webhook tool permanently. Fails while any block still references it."
+sidebarTitle: "DELETE tools/:id"
+description: "Delete a webhook tool permanently. Fails while an agent still holds it."
 openapi: "DELETE /v1/tools/{id}"
 ---
 
-Deletes the function. This is a hard delete and it cannot be undone.
+Deletes the tool. This is a hard delete and it cannot be undone.
 
-It is refused while any block still references the function, and the error names them — so the normal sequence is: read [`used_by_blocks`](/dev/endpoints/tools-get), unbind those blocks in the portal, then delete.
+It is refused while an agent still holds the tool, and the error names which ones — so the normal sequence is: take the tool out of those agents with [`PATCH /v1/agents/{id}`](/dev/endpoints/agents-update), then delete.
 
 <Warning>
   If you only want the agent to stop calling it, [`PUT` it with `is_active: false`](/dev/endpoints/tools-update) instead. That is reversible and keeps the URL, headers and parameters intact.
@@ -33,7 +33,7 @@ DELETE https://api.keebai.com/v1/tools/{id}
 
 | Parameter | Type | Description |
 |---|---|---|
-| `id` | `string` | `ObjectId` of the function. |
+| `id` | `string` | `ObjectId` of the tool. |
 
 ## Example request
 
@@ -55,7 +55,7 @@ const resp = await fetch(
 
 if (resp.status === 409) {
   const { error } = await resp.json();
-  console.error("Still used by:", error.details.blocks);
+  console.error("Still used by:", error.details.agents);
 }
 ```
 
@@ -68,7 +68,7 @@ resp = requests.delete(
     timeout=10,
 )
 if resp.status_code == 409:
-    print("still used by:", resp.json()["error"]["details"]["blocks"])
+    print("still used by:", resp.json()["error"]["details"]["agents"])
 elif resp.status_code != 404:
     resp.raise_for_status()
 ```
@@ -95,7 +95,7 @@ No webhook tool with that id in the token's company. A repeated delete lands her
 
 ### 409 Conflict
 
-`error.code` is `AGENT_TOOL_IN_USE`. At least one block still references the function; `error.details.blocks` lists them.
+`error.code` is `AGENT_TOOL_IN_USE`. At least one agent still holds the tool; the error details list them.
 
 ### 502 Bad Gateway
 
@@ -103,8 +103,8 @@ The agent service is unreachable.
 
 ## Operational notes
 
-- **The `409` is the useful part of this endpoint.** It is what stops you silently breaking an agent mid-conversation, and it tells you exactly which blocks to fix.
-- **Unbinding a function from a block is done in the portal.** This API can save a block's text but not its function bindings, so the last step of a clean removal is a portal action.
-- **Deleting is company-wide.** A function used by an agent in another project of the same company counts as in use and blocks the delete.
+- **The `409` is the useful part of this endpoint.** It is what stops you silently breaking an agent mid-conversation, and it tells you exactly which agents to fix.
+- **Taking a tool off an agent is an [agent update](/dev/endpoints/agents-update)**, not a tool operation: send `tools` without that id.
+- **Deleting is company-wide.** A tool held by an agent in another project of the same company counts as in use and blocks the delete.
 - **A retry is safe**: the second call is a `404`, never a partial delete.
 - **`is_active: false` is the reversible alternative** and is usually what you want when retiring an integration gradually.

@@ -95,22 +95,22 @@
     },
     {
       "source": "/dev/endpoints/assistants-blocks-list",
-      "destination": "/dev/endpoints/agents-blocks-list",
+      "destination": "/dev/endpoints/agents-prompts-list",
       "permanent": true
     },
     {
       "source": "/dev/endpoints/assistants-blocks-set",
-      "destination": "/dev/endpoints/agents-blocks-set",
+      "destination": "/dev/endpoints/agents-prompt-set",
       "permanent": true
     },
     {
       "source": "/dev/endpoints/assistants-block-attach",
-      "destination": "/dev/endpoints/agents-block-attach",
+      "destination": "/dev/endpoints/agents-prompt-set",
       "permanent": true
     },
     {
       "source": "/dev/endpoints/assistants-block-detach",
-      "destination": "/dev/endpoints/agents-block-detach",
+      "destination": "/dev/endpoints/agents-prompt-delete",
       "permanent": true
     },
     {
@@ -211,31 +211,6 @@
     {
       "source": "/dev/endpoints/blocks-version-restore",
       "destination": "/dev/endpoints/agents-prompt-version-restore",
-      "permanent": true
-    },
-    {
-      "source": "/dev/endpoints/functions-list",
-      "destination": "/dev/endpoints/tools-list",
-      "permanent": true
-    },
-    {
-      "source": "/dev/endpoints/functions-get",
-      "destination": "/dev/endpoints/tools-get",
-      "permanent": true
-    },
-    {
-      "source": "/dev/endpoints/functions-create",
-      "destination": "/dev/endpoints/tools-create",
-      "permanent": true
-    },
-    {
-      "source": "/dev/endpoints/functions-update",
-      "destination": "/dev/endpoints/tools-update",
-      "permanent": true
-    },
-    {
-      "source": "/dev/endpoints/functions-delete",
-      "destination": "/dev/endpoints/tools-delete",
       "permanent": true
     }
   ],

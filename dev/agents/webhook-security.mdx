@@ -1,7 +1,7 @@
 ---
 title: "Webhook tool security"
 sidebarTitle: "Webhook security"
-description: "Which URLs a function may target, how header and query-string secrets are masked, and what the validator does not protect against."
+description: "Which URLs a tool may target, how header and query-string secrets are masked, and what the validator does not protect against."
 ---
 
 A [webhook tool](/dev/endpoints/tools-create) makes Keebai's infrastructure send an HTTPS request on your behalf, with arguments the model chose, to a host you configured. Two consequences follow, and this page is about both.
@@ -61,7 +61,7 @@ The validator inspects the URL you stored. It resolves nothing.
 }
 ```
 
-`context.body` is **not** masked. It is the request template the model fills in, not a place credentials normally live, and hiding it would remove the main reason to read a function at all.
+`context.body` is **not** masked. It is the request template the model fills in, not a place credentials normally live, and hiding it would remove the main reason to read a tool at all.
 
 ### Writing them back
 
@@ -73,7 +73,7 @@ The masking creates one hazard, and the API refuses rather than let you walk int
 | `context` with `headers` | The whole map is replaced with what you sent |
 | A value equal to `***` | `400 TOOL_MASKED_VALUE_WRITE`, naming the keys |
 
-The third row is the one that matters. The obvious client pattern — `GET`, change one field, `PUT` the whole object back — would otherwise store the literal string `***` over a live credential, and the function would start failing with a `401` from your own service for no visible reason. Instead it fails loudly and immediately.
+The third row is the one that matters. The obvious client pattern — `GET`, change one field, `PUT` the whole object back — would otherwise store the literal string `***` over a live credential, and the tool would start failing with a `401` from your own service for no visible reason. Instead it fails loudly and immediately.
 
 So to change the URL and keep the credentials, omit `headers`:
 
@@ -94,22 +94,22 @@ curl -X PUT https://api.keebai.com/v1/tools/6650cccc3333dddd4444eeee \
 ```
 
 <Warning>
-  **Updates are read-modify-write, so concurrent writers can lose each other's changes.** Merging the stored headers requires reading them first; two updates to the same function that overlap will leave whichever finished last. Serialise updates to one function.
+  **Updates are read-modify-write, so concurrent writers can lose each other's changes.** Merging the stored headers requires reading them first; two updates to the same tool that overlap will leave whichever finished last. Serialise updates to one tool.
 </Warning>
 
 ## Only webhook tools are exposed
 
-Keebai has other kinds of function — calendar integrations, ecommerce lookups, the ones generated automatically from a `product_info` block. None of them appear here. [`GET /v1/tools`](/dev/endpoints/tools-list) filters to webhooks, and asking for a non-webhook by id returns `404` rather than `403`, so an id you cannot manage is indistinguishable from one that does not exist.
+Keebai has other kinds of tool — calendar integrations, ecommerce lookups — that it generates itself. None of them appear here. [`GET /v1/tools`](/dev/endpoints/tools-list) filters to webhooks, and asking for a non-webhook by id returns `404` rather than `403`, so an id you cannot manage is indistinguishable from one that does not exist.
 
-Because auto-generated functions are never of type `webhook`, they fall outside this surface by construction: there is no way to create one, re-point one at a different block, or delete one through this API.
+Because auto-generated tools are never of type `webhook`, they fall outside this surface by construction: there is no way to create, re-point or delete one through this API.
 
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Create a function" icon="plus" href="/dev/endpoints/tools-create">
+  <Card title="Create a tool" icon="plus" href="/dev/endpoints/tools-create">
     The full body, with parameters and placeholders.
   </Card>
-  <Card title="Update a function" icon="pen" href="/dev/endpoints/tools-update">
+  <Card title="Update a tool" icon="pen" href="/dev/endpoints/tools-update">
     The merge rules, in detail.
   </Card>
 </CardGroup>

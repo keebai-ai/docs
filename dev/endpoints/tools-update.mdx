@@ -1,6 +1,6 @@
 ---
 title: "PUT /v1/tools/{id}"
-sidebarTitle: "PUT functions/:id"
+sidebarTitle: "PUT tools/:id"
 description: "Update a webhook tool. Omitting headers keeps the stored ones; sending them replaces the whole map."
 openapi: "PUT /v1/tools/{id}"
 ---
@@ -39,7 +39,7 @@ PUT https://api.keebai.com/v1/tools/{id}
 
 | Parameter | Type | Description |
 |---|---|---|
-| `id` | `string` | `ObjectId` of the function. |
+| `id` | `string` | `ObjectId` of the tool. |
 
 ## Body
 
@@ -53,7 +53,7 @@ Every field is optional. `context`, when present, must carry at least `url`.
 | `context` | `object` | Same shape as [on create](/dev/endpoints/tools-create#body). Merged per the table above. |
 | `tool_params` | `object[]` | Replaces the whole list. |
 | `tags` | `string[]` | Replaces the whole list. |
-| `is_active` | `boolean` | `false` stops the model being offered the function. |
+| `is_active` | `boolean` | `false` stops the model being offered the tool. |
 
 ## Example request
 
@@ -127,7 +127,7 @@ resp.raise_for_status()
 
 ### 200 OK
 
-The function, same shape as [`GET /v1/tools/{id}`](/dev/endpoints/tools-get).
+The tool, same shape as [`GET /v1/tools/{id}`](/dev/endpoints/tools-get).
 
 ### 400 Bad Request
 
@@ -151,7 +151,7 @@ No webhook tool with that id in the token's company.
 
 ### 409 Conflict
 
-The new `name` is already taken by another function in the company.
+The new `name` is already taken by another tool in the company.
 
 ### 502 Bad Gateway
 
@@ -160,7 +160,7 @@ The agent service is unreachable.
 ## Operational notes
 
 - **`context` is replace-within-merge.** Fields you omit inside `context` — `method`, `timeout`, `body`, `response_path` — go back to their defaults, not to their stored values. Only `headers` and `params` are preserved on omission, because they are the ones you cannot read back. Send the whole `context` you want, minus the secrets.
-- **Updates are read-modify-write, so concurrent writers lose each other.** Merging the stored secrets requires reading them first; two overlapping updates to one function leave whichever finished last. Serialise them.
-- **The URL is only re-validated when you send `context`.** A function created before a validation rule existed keeps working until you next touch its URL.
-- **Renaming breaks nothing immediately but changes what the model calls.** Blocks reference the function by id, not by name, so the binding survives — but any prompt text mentioning the old name is now wrong.
+- **Updates are read-modify-write, so concurrent writers lose each other.** Merging the stored secrets requires reading them first; two overlapping updates to one tool leave whichever finished last. Serialise them.
+- **The URL is only re-validated when you send `context`.** A tool created before a validation rule existed keeps working until you next touch its URL.
+- **Renaming breaks nothing immediately but changes what the model calls.** Blocks reference the tool by id, not by name, so the binding survives — but any prompt text mentioning the old name is now wrong.
 - **`tool_params` and `tags` replace, they do not append.** Read the current values first if you mean to add one.

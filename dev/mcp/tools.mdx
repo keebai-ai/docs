@@ -180,45 +180,35 @@ Points, stamps, and wallet cards. See the [loyalty overview](/dev/loyalty/overvi
 
 ## Agents
 
-Read and write the configuration of the agents themselves: the [blocks that make up their prompt](/dev/agents/overview) and the webhook functions they can call. Thirty tools, all on `agents:read` or `agents:write`.
+Read and write the configuration of the agents themselves: their goal, the [sections of their prompt](/dev/agents/configuration), the funnel, and the webhook tools they can call. Seventeen tools, all on `agents:read` or `agents:write`.
 
 | Tool | Scope | What it does |
 |---|---|---|
+| `keebai_agent_prompt_types` | `agents:read` | The catalogue: which sections, goals and channels exist. Read this before writing, instead of a hardcoded list. |
 | `keebai_agents_list` | `agents:read` | List the active agents of the project. Start here for the id everything else needs. |
-| `keebai_agent_get` | `agents:read` | One agent with its model, knowledge nodes, and ordered block references. |
-| `keebai_agent_create` | `agents:write` | Create one. It is born with an empty personality and response-policy block attached. |
-| `keebai_agent_update` | `agents:write` | Partial update of name, description, avatar, model, active flag, knowledge nodes. |
-| 🔴 `keebai_agent_delete` | `agents:write` | Delete permanently. Its blocks survive in the catalogue. |
-| `keebai_agent_blocks_list` | `agents:read` | The blocks wired into one agent, in prompt order, metadata only. |
-| `keebai_agent_blocks_set` | `agents:write` | Replace the whole block list. The only way to reorder or pin. Blocks left out get detached. |
-| `keebai_agent_block_attach` | `agents:write` | Attach one block. Fails on a cross-company block or a duplicate identity block. |
-| `keebai_agent_block_detach` | `agents:write` | Detach one block. The block itself is untouched. |
-| `keebai_agent_blocks_catalog` | `agents:read` | Every block in the project, attached or not, filtered by type or family. |
-| `keebai_agent_block_get` | `agents:read` | One block's metadata, including whether its content is writable. |
-| `keebai_agent_block_create_personification` | `agents:write` | Create a personality block: role, tone, how it addresses people. |
-| `keebai_agent_block_create_objective` | `agents:write` | Create an objective block: what to achieve and how you know it did. |
-| `keebai_agent_block_create_response_format` | `agents:write` | Create a format block: length, emoji usage, formatting rules. |
-| `keebai_agent_block_create_steps` | `agents:write` | Create a steps block: the procedure, in order. |
-| `keebai_agent_block_create_cases_possible` | `agents:write` | Create a cases block: situations and how to answer each. |
-| `keebai_agent_block_create_do_not` | `agents:write` | Create a restrictions block: what it must never do. |
-| `keebai_agent_block_create_response_policy` | `agents:write` | Create a policy block: when to stay silent, when to react. |
-| `keebai_agent_block_update` | `agents:write` | Rename a block or flip its archived flag. |
-| `keebai_agent_block_archive` | `agents:write` | Archive a block. Reversible; agents still attached keep using it. |
-| `keebai_agent_block_content_get` | `agents:read` | Read a block's current content. Free blocks come back as text. |
-| `keebai_agent_block_content_save` | `agents:write` | Replace the content, creating a new version. The five catalogue types refuse. |
-| `keebai_agent_block_versions_list` | `agents:read` | Version history, newest first, without the payloads. |
-| `keebai_agent_block_version_get` | `agents:read` | Read one historical version, to check it before restoring. |
-| `keebai_agent_block_version_restore` | `agents:write` | Restore an old version by appending it as a new one. Nothing is lost. |
-| `keebai_agent_functions_list` | `agents:read` | The company's webhook functions. Secret values come back masked. |
-| `keebai_agent_function_get` | `agents:read` | One function with its URL, parameters, and the blocks referencing it. |
-| ⚠️ `keebai_agent_function_create` | `agents:write` | Create a webhook the agent can call. The URL must be a public https host. |
-| ⚠️ `keebai_agent_function_update` | `agents:write` | Partial update. Omitting headers keeps the stored ones; never echo back a `***`. |
-| 🔴 `keebai_agent_function_delete` | `agents:write` | Delete permanently. Fails while a block still references it. |
+| `keebai_agent_get` | `agents:read` | One agent whole: goal, sections with their text, channels, tools, knowledge. |
+| `keebai_agent_create` | `agents:write` | Create one. `stages` creates a CRM pipeline named after the agent and limits it to those stages. |
+| `keebai_agent_update` | `agents:write` | Partial update of the config. Sending `prompts` replaces them all. |
+| 🔴 `keebai_agent_delete` | `agents:write` | Delete permanently, with its sections and their history. |
+| `keebai_agent_query` | `agents:read` | Write to the agent as a customer and read its answer. Always in test mode: write tools are simulated. |
+| `keebai_agent_prompts_list` | `agents:read` | The sections of one agent, with their text. |
+| `keebai_agent_prompt_set` | `agents:write` | Write ONE section, leaving the rest alone. Every save leaves a version. |
+| `keebai_agent_prompt_delete` | `agents:write` | Remove a section. Its history stays. |
+| `keebai_agent_prompt_versions_list` | `agents:read` | The history of a section, newest first. |
+| `keebai_agent_prompt_version_get` | `agents:read` | One version, to diff it before restoring. |
+| `keebai_agent_prompt_version_restore` | `agents:write` | Restore a version by writing a new one that copies it. Nothing is lost. |
+| `keebai_agent_tools_list` | `agents:read` | The company's webhook tools. Secret values come back masked. |
+| `keebai_agent_tool_get` | `agents:read` | One tool with its URL and parameters. |
+| ⚠️ `keebai_agent_tool_create` | `agents:write` | Create a webhook the agent can call. The URL must be a public https host. |
+| ⚠️ `keebai_agent_tool_update` | `agents:write` | Partial update. Omitting headers keeps the stored ones; never echo back a `***`. |
+| 🔴 `keebai_agent_tool_delete` | `agents:write` | Delete permanently. Fails while an agent still holds it. |
 
 <Warning>
-  **Writing here changes what your bots say to customers.** An agent with `agents:write` can rewrite any prompt block and create webhook functions that make Keebai's infrastructure call an external host — the URL is validated against loopback, private ranges and internal names, but a public host of the agent's choosing is allowed. Treat it as a higher-privilege scope than the read side, and read [webhook security](/dev/agents/webhook-security) before handing it out.
+  **Writing here changes what your bots say to customers.** An agent with `agents:write` can rewrite any prompt section and create webhook tools that make Keebai's infrastructure call an external host — the URL is validated against loopback, private ranges and internal names, but a public host of the agent's choosing is allowed. Treat it as a higher-privilege scope than the read side, and read [webhook security](/dev/agents/webhook-security) before handing it out.
 
-  **Functions are company-wide**, unlike agents and blocks, which are scoped to the token's project.
+  **Tools are company-wide**, unlike agents and their sections, which are scoped to the token's project.
+
+  **`keebai_agent_query` never touches real data.** It runs the turn with the write tools simulated, so an agent can verify its own change without booking anything.
 </Warning>
 
 ## Not exposed as tools

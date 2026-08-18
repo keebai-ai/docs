@@ -1,6 +1,6 @@
 ---
 title: "GET /v1/tools"
-sidebarTitle: "GET functions"
+sidebarTitle: "GET tools"
 description: "List the webhook tools of your company, with secret values masked."
 openapi: "GET /v1/tools"
 ---
@@ -29,7 +29,7 @@ GET https://api.keebai.com/v1/tools
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `active_only` | `boolean` | `false` | Return only functions with `is_active: true`. |
+| `active_only` | `boolean` | `false` | Return only tools with `is_active: true`. |
 | `limit` | `integer` | `50` | Records per page, 1–200. |
 | `offset` | `integer` | `0` | Records to skip. |
 
@@ -60,7 +60,7 @@ resp = requests.get(
     timeout=10,
 )
 resp.raise_for_status()
-functions = resp.json()["data"]
+tools = resp.json()["data"]
 ```
 
 </CodeGroup>
@@ -95,13 +95,6 @@ functions = resp.json()["data"]
       },
       "tags": ["erp"],
       "is_active": true,
-      "used_by_blocks": [
-        {
-          "block_id": "6650bbbb2222cccc3333dddd",
-          "name": "Reserva",
-          "type": "steps"
-        }
-      ],
       "created_at": "2026-07-22T08:12:04.221Z",
       "updated_at": "2026-07-25T16:30:19.008Z"
     }
@@ -126,8 +119,8 @@ The agent service is unreachable.
 
 ## Operational notes
 
-- **Functions are company-wide, not project-scoped.** Unlike agents and blocks, two tokens on two projects of the same company see the same list. A name collision is a company-level collision.
-- **Only webhook tools appear here.** Keebai also has calendar, ecommerce and block-generated functions; none of them are exposed, and asking for one by id returns `404`. See [why](/dev/agents/webhook-security#only-webhook-functions-are-exposed).
-- **`used_by_blocks` is what makes a delete recoverable.** While it is non-empty, [deleting the function](/dev/endpoints/tools-delete) returns `409` — this field names the blocks to unbind first.
-- **`context.body` is not masked.** It is the request template the model fills in, not a place credentials normally live, and hiding it would remove the main reason to read a function.
-- **`total` is a real count**, unlike the block endpoints: the upstream returns the full set, so the page is sliced here.
+- **Tools are company-wide, not project-scoped.** Unlike agents and their sections, two tokens on two projects of the same company see the same list. A name collision is a company-level collision.
+- **Only webhook tools appear here.** Keebai also has calendar and ecommerce tools that it generates itself; none of them are exposed, and asking for one by id returns `404`. See [why](/dev/agents/webhook-security).
+- **A tool held by an agent cannot be deleted.** [Deleting](/dev/endpoints/tools-delete) returns `409` while any agent still holds its id, and the error names them.
+- **`context.body` is not masked.** It is the request template the model fills in, not a place credentials normally live, and hiding it would remove the main reason to read a tool.
+- **`total` is a real count**: the upstream returns the full set, so the page is sliced here.
