@@ -1,8 +1,8 @@
 ---
-title: "PUT /v1/functions/{id}"
+title: "PUT /v1/tools/{id}"
 sidebarTitle: "PUT functions/:id"
-description: "Update a webhook function. Omitting headers keeps the stored ones; sending them replaces the whole map."
-openapi: "PUT /v1/functions/{id}"
+description: "Update a webhook tool. Omitting headers keeps the stored ones; sending them replaces the whole map."
+openapi: "PUT /v1/tools/{id}"
 ---
 
 Partial update: only the fields present in the body change.
@@ -14,14 +14,14 @@ The subtlety is inside `context`. Because [header and query-string values are ma
 | No `context` | Nothing about the request changes |
 | `context` without `headers` | The stored headers are kept |
 | `context` with `headers` | The whole map is replaced with what you sent |
-| A value equal to `***` | `400 FUNCTION_MASKED_VALUE_WRITE`, naming the keys |
+| A value equal to `***` | `400 TOOL_MASKED_VALUE_WRITE`, naming the keys |
 
 The last row exists so the obvious client pattern — `GET`, change one field, `PUT` it all back — fails loudly instead of writing the literal string `***` over a live credential.
 
 ## Endpoint
 
 ```
-PUT https://api.keebai.com/v1/functions/{id}
+PUT https://api.keebai.com/v1/tools/{id}
 ```
 
 ## Required scope
@@ -50,7 +50,7 @@ Every field is optional. `context`, when present, must carry at least `url`.
 | `name` | `string` | Machine name, unique per company. |
 | `display_name` | `string` | Up to 200 characters. |
 | `description` | `string` | Up to 1000 characters. |
-| `context` | `object` | Same shape as [on create](/dev/endpoints/functions-create#body). Merged per the table above. |
+| `context` | `object` | Same shape as [on create](/dev/endpoints/tools-create#body). Merged per the table above. |
 | `tool_params` | `object[]` | Replaces the whole list. |
 | `tags` | `string[]` | Replaces the whole list. |
 | `is_active` | `boolean` | `false` stops the model being offered the function. |
@@ -61,7 +61,7 @@ Every field is optional. `context`, when present, must carry at least `url`.
 
 ```bash curl
 # Change the URL, keep the stored credentials.
-curl -X PUT https://api.keebai.com/v1/functions/6650cccc3333dddd4444eeee \
+curl -X PUT https://api.keebai.com/v1/tools/6650cccc3333dddd4444eeee \
   -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
@@ -74,7 +74,7 @@ curl -X PUT https://api.keebai.com/v1/functions/6650cccc3333dddd4444eeee \
 ```
 
 ```js JavaScript
-const url = "https://api.keebai.com/v1/functions/6650cccc3333dddd4444eeee";
+const url = "https://api.keebai.com/v1/tools/6650cccc3333dddd4444eeee";
 const headers = {
   Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
   "Content-Type": "application/json",
@@ -105,7 +105,7 @@ await fetch(url, {
 import os, requests
 
 resp = requests.put(
-    "https://api.keebai.com/v1/functions/6650cccc3333dddd4444eeee",
+    "https://api.keebai.com/v1/tools/6650cccc3333dddd4444eeee",
     headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
     json={
         "context": {
@@ -116,7 +116,7 @@ resp = requests.put(
     },
     timeout=10,
 )
-if resp.status_code == 400 and resp.json()["error"]["code"] == "FUNCTION_MASKED_VALUE_WRITE":
+if resp.status_code == 400 and resp.json()["error"]["code"] == "TOOL_MASKED_VALUE_WRITE":
     ...  # you echoed a *** back; send the real value or omit the field
 resp.raise_for_status()
 ```
@@ -127,13 +127,13 @@ resp.raise_for_status()
 
 ### 200 OK
 
-The function, same shape as [`GET /v1/functions/{id}`](/dev/endpoints/functions-get).
+The function, same shape as [`GET /v1/tools/{id}`](/dev/endpoints/tools-get).
 
 ### 400 Bad Request
 
 A field over its limit or an unknown property, plus three specific codes:
 
-- `FUNCTION_MASKED_VALUE_WRITE` — a `headers` or `params` value was the literal `***`. `details.field` and `details.keys` name them.
+- `TOOL_MASKED_VALUE_WRITE` — a `headers` or `params` value was the literal `***`. `details.field` and `details.keys` name them.
 - `FUNCTION_URL_NOT_ALLOWED` — the URL failed validation. `details.reason` names the rule.
 - `FUNCTION_TIMEOUT_NOT_ALLOWED` — `timeout` outside 1–30 seconds.
 
@@ -147,7 +147,7 @@ The token does not have the `agents:write` scope.
 
 ### 404 Not Found
 
-No webhook function with that id in the token's company.
+No webhook tool with that id in the token's company.
 
 ### 409 Conflict
 

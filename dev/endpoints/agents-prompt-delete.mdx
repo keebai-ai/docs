@@ -1,0 +1,59 @@
+---
+title: "DELETE /v1/agents/{id}/prompts/{section}"
+sidebarTitle: "DELETE agents/:id/prompts/:section"
+description: "Remove one section from an agent's prompt."
+openapi: "DELETE /v1/agents/{id}/prompts/{section}"
+---
+
+Takes the section out of the agent's prompt. **Its version history stays**, so removing a section is not the same as losing what it said — you can still read it and [restore it](/dev/endpoints/agents-prompt-version-restore).
+
+## Endpoint
+
+```
+DELETE https://api.keebai.com/v1/agents/{id}/prompts/{section}
+```
+
+## Required scope
+
+`agents:write`
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | `ObjectId` of the agent. |
+| `section` | `string` | Section type to remove. |
+
+## Example request
+
+```bash curl
+curl -X DELETE https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/prompts/discard_rules \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+## Response
+
+### 200 OK
+
+Returns the agent without that section.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `agents:write` scope.
+
+### 404 Not Found
+
+No agent with that id in the token's company and project.
+
+### 502 Bad Gateway
+
+The agent service is unreachable.
+
+## Operational notes
+
+- **Removing a section the agent did not have succeeds.** It is idempotent: the end state is what you asked for.
+- **An empty section and a missing section behave the same to the agent.** If you only want to blank it, [writing an empty string](/dev/endpoints/agents-prompt-set) keeps the row and its label.

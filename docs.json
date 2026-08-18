@@ -112,6 +112,131 @@
       "source": "/dev/endpoints/assistants-block-detach",
       "destination": "/dev/endpoints/agents-block-detach",
       "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/agents-blocks-list",
+      "destination": "/dev/endpoints/agents-prompts-list",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/agents-blocks-set",
+      "destination": "/dev/endpoints/agents-prompt-set",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/agents-block-attach",
+      "destination": "/dev/endpoints/agents-prompt-set",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/agents-block-detach",
+      "destination": "/dev/endpoints/agents-prompt-delete",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/blocks-list",
+      "destination": "/dev/agents/overview",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/blocks-get",
+      "destination": "/dev/agents/overview",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/blocks-update",
+      "destination": "/dev/agents/overview",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/blocks-archive",
+      "destination": "/dev/agents/overview",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/blocks-create-personification",
+      "destination": "/dev/agents/overview",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/blocks-create-objective",
+      "destination": "/dev/agents/overview",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/blocks-create-response-format",
+      "destination": "/dev/agents/overview",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/blocks-create-steps",
+      "destination": "/dev/agents/overview",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/blocks-create-cases-possible",
+      "destination": "/dev/agents/overview",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/blocks-create-do-not",
+      "destination": "/dev/agents/overview",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/blocks-create-response-policy",
+      "destination": "/dev/agents/overview",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/blocks-content-get",
+      "destination": "/dev/endpoints/agents-prompts-list",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/blocks-content-save",
+      "destination": "/dev/endpoints/agents-prompt-set",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/blocks-versions-list",
+      "destination": "/dev/endpoints/agents-prompt-versions-list",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/blocks-version-get",
+      "destination": "/dev/endpoints/agents-prompt-version-get",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/blocks-version-restore",
+      "destination": "/dev/endpoints/agents-prompt-version-restore",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/functions-list",
+      "destination": "/dev/endpoints/tools-list",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/functions-get",
+      "destination": "/dev/endpoints/tools-get",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/functions-create",
+      "destination": "/dev/endpoints/tools-create",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/functions-update",
+      "destination": "/dev/endpoints/tools-update",
+      "permanent": true
+    },
+    {
+      "source": "/dev/endpoints/functions-delete",
+      "destination": "/dev/endpoints/tools-delete",
+      "permanent": true
     }
   ],
   "navigation": {
@@ -458,58 +583,30 @@
             ]
           },
           {
-            "group": "Agent blocks",
+            "group": "Prompt sections",
             "pages": [
-              "dev/endpoints/agents-blocks-list",
-              "dev/endpoints/agents-blocks-set",
-              "dev/endpoints/agents-block-attach",
-              "dev/endpoints/agents-block-detach"
+              "dev/endpoints/prompt-types-list",
+              "dev/endpoints/agents-prompts-list",
+              "dev/endpoints/agents-prompt-set",
+              "dev/endpoints/agents-prompt-delete"
             ]
           },
           {
-            "group": "Block catalogue",
+            "group": "Section history",
             "pages": [
-              "dev/endpoints/blocks-list",
-              "dev/endpoints/blocks-get",
-              "dev/endpoints/blocks-update",
-              "dev/endpoints/blocks-archive"
+              "dev/endpoints/agents-prompt-versions-list",
+              "dev/endpoints/agents-prompt-version-get",
+              "dev/endpoints/agents-prompt-version-restore"
             ]
           },
           {
-            "group": "Create a block",
+            "group": "Tools",
             "pages": [
-              "dev/endpoints/blocks-create-personification",
-              "dev/endpoints/blocks-create-objective",
-              "dev/endpoints/blocks-create-response-format",
-              "dev/endpoints/blocks-create-steps",
-              "dev/endpoints/blocks-create-cases-possible",
-              "dev/endpoints/blocks-create-do-not",
-              "dev/endpoints/blocks-create-response-policy"
-            ]
-          },
-          {
-            "group": "Block content",
-            "pages": [
-              "dev/endpoints/blocks-content-get",
-              "dev/endpoints/blocks-content-save"
-            ]
-          },
-          {
-            "group": "Versions",
-            "pages": [
-              "dev/endpoints/blocks-versions-list",
-              "dev/endpoints/blocks-version-get",
-              "dev/endpoints/blocks-version-restore"
-            ]
-          },
-          {
-            "group": "Functions",
-            "pages": [
-              "dev/endpoints/functions-list",
-              "dev/endpoints/functions-get",
-              "dev/endpoints/functions-create",
-              "dev/endpoints/functions-update",
-              "dev/endpoints/functions-delete"
+              "dev/endpoints/tools-list",
+              "dev/endpoints/tools-get",
+              "dev/endpoints/tools-create",
+              "dev/endpoints/tools-update",
+              "dev/endpoints/tools-delete"
             ]
           },
           {

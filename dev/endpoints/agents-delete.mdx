@@ -1,7 +1,7 @@
 ---
 title: "DELETE /v1/agents/{id}"
 sidebarTitle: "DELETE agents/:id"
-description: "Delete an agent permanently. Its blocks survive and stay in the project catalogue."
+description: "Delete an agent permanently. Its tools and knowledge nodes survive and stay in the project catalogue."
 openapi: "DELETE /v1/agents/{id}"
 ---
 
@@ -93,7 +93,7 @@ The agent service is unreachable.
 
 ## Operational notes
 
-- **The blocks are orphaned, not deleted.** They remain in [the catalogue](/dev/endpoints/blocks-list) with no agent referencing them. If they were only ever used by this agent, [archive them](/dev/endpoints/blocks-archive) afterwards or they accumulate.
+- **The sections go with the agent**, and so does their history: they belonged to it. The [tools](/dev/endpoints/tools-list) and knowledge nodes it referenced belong to the company and are left alone.
 - **Knowledge documents are untouched.** Deleting an agent removes its assignments, not the documents themselves.
 - **Anything still routing to this agent will stop working.** The delete does not check for inbound routes, channels or funnel stages pointing at it. Repoint them first.
 - **A retry is safe.** The operation is idempotent from the caller's point of view: the second call is a `404`, never a partial delete.

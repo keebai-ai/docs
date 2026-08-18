@@ -1,18 +1,18 @@
 ---
-title: "POST /v1/functions"
+title: "POST /v1/tools"
 sidebarTitle: "POST functions"
-description: "Create a webhook function an agent can call, with its URL, headers and parameters."
-openapi: "POST /v1/functions"
+description: "Create a webhook tool an agent can call, with its URL, headers and parameters."
+openapi: "POST /v1/tools"
 ---
 
-Creates a webhook function. You describe what it does and which arguments it takes; the model decides when to call it and with what.
+Creates a webhook tool. You describe what it does and which arguments it takes; the model decides when to call it and with what.
 
 Placeholders written `{{name}}` in the path, the query string or the body are filled at call time from the arguments the model chose, so `https://erp.example.com/stock/{{sku}}` with a `sku` parameter is the normal shape. **Not in the host** — read [why](/dev/agents/webhook-security#placeholders-in-the-host-are-the-interesting-case).
 
 ## Endpoint
 
 ```
-POST https://api.keebai.com/v1/functions
+POST https://api.keebai.com/v1/tools
 ```
 
 ## Required scope
@@ -54,7 +54,7 @@ POST https://api.keebai.com/v1/functions
 <CodeGroup>
 
 ```bash curl
-curl -X POST https://api.keebai.com/v1/functions \
+curl -X POST https://api.keebai.com/v1/tools \
   -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
@@ -76,7 +76,7 @@ curl -X POST https://api.keebai.com/v1/functions \
 ```
 
 ```js JavaScript
-const resp = await fetch("https://api.keebai.com/v1/functions", {
+const resp = await fetch("https://api.keebai.com/v1/tools", {
   method: "POST",
   headers: {
     Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
@@ -108,7 +108,7 @@ if (resp.status === 400) {
 import os, requests
 
 resp = requests.post(
-    "https://api.keebai.com/v1/functions",
+    "https://api.keebai.com/v1/tools",
     headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
     json={
         "name": "consultar_stock",
@@ -134,7 +134,7 @@ fn = resp.json()["function"]
 
 ### 201 Created
 
-The function, same shape as [`GET /v1/functions/{id}`](/dev/endpoints/functions-get), with the header values already masked.
+The function, same shape as [`GET /v1/tools/{id}`](/dev/endpoints/tools-get), with the header values already masked.
 
 ### 400 Bad Request
 

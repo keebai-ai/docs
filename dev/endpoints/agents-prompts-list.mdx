@@ -1,0 +1,104 @@
+---
+title: "GET /v1/agents/{id}/prompts"
+sidebarTitle: "GET agents/:id/prompts"
+description: "The sections of one agent's prompt, with their text."
+openapi: "GET /v1/agents/{id}/prompts"
+---
+
+Everything the business wrote into this agent: who it is, what it does not do, when it hands over to a person, its example conversations. **One call, text included** — unlike the block model this replaced, the text lives inside the agent.
+
+What each section is for, and what belongs in it, comes from [the catalogue](/dev/endpoints/prompt-types-list).
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/agents/{id}/prompts
+```
+
+## Required scope
+
+`agents:read`
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | `ObjectId` of the agent. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/prompts \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+```js JavaScript
+const resp = await fetch(
+  "https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/prompts",
+  { headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` } },
+);
+const { data } = await resp.json();
+
+const context = data.find((s) => s.section === "business_context");
+```
+
+```python Python
+import os, requests
+
+resp = requests.get(
+    "https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/prompts",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    timeout=10,
+)
+resp.raise_for_status()
+sections = resp.json()["data"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "data": [
+    {
+      "section": "business_context",
+      "label": "Contexto del negocio",
+      "markdown": "# Quiénes somos\n\nBarbería en Providencia. Atendemos con hora, de martes a sábado."
+    },
+    {
+      "section": "agent_limits",
+      "label": null,
+      "markdown": "Los precios los das del catálogo. Si no está, ofreces confirmarlo con el equipo."
+    }
+  ],
+  "total": 2
+}
+```
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `agents:read` scope.
+
+### 404 Not Found
+
+No agent with that id in the token's company and project.
+
+### 502 Bad Gateway
+
+The agent service is unreachable.
+
+## Operational notes
+
+- **A section that was never written is simply absent.** There is no empty placeholder row: the list holds what the business actually wrote, so `total` is the count of real sections, not of section types.
+- **`label` is optional.** When it is `null` the portal shows the catalogue's own label.
+- **This is not paginated.** An agent holds a handful of sections and the catalogue caps how many types exist.
+- **Order follows the catalogue**, which is the order the sections take in the assembled prompt.

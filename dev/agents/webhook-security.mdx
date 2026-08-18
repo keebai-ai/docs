@@ -1,10 +1,10 @@
 ---
-title: "Webhook function security"
+title: "Webhook tool security"
 sidebarTitle: "Webhook security"
 description: "Which URLs a function may target, how header and query-string secrets are masked, and what the validator does not protect against."
 ---
 
-A [webhook function](/dev/endpoints/functions-create) makes Keebai's infrastructure send an HTTPS request on your behalf, with arguments the model chose, to a host you configured. Two consequences follow, and this page is about both.
+A [webhook tool](/dev/endpoints/tools-create) makes Keebai's infrastructure send an HTTPS request on your behalf, with arguments the model chose, to a host you configured. Two consequences follow, and this page is about both.
 
 ## Which URLs are rejected
 
@@ -71,14 +71,14 @@ The masking creates one hazard, and the API refuses rather than let you walk int
 |---|---|
 | `context` without `headers` | The stored headers are kept |
 | `context` with `headers` | The whole map is replaced with what you sent |
-| A value equal to `***` | `400 FUNCTION_MASKED_VALUE_WRITE`, naming the keys |
+| A value equal to `***` | `400 TOOL_MASKED_VALUE_WRITE`, naming the keys |
 
 The third row is the one that matters. The obvious client pattern — `GET`, change one field, `PUT` the whole object back — would otherwise store the literal string `***` over a live credential, and the function would start failing with a `401` from your own service for no visible reason. Instead it fails loudly and immediately.
 
 So to change the URL and keep the credentials, omit `headers`:
 
 ```bash
-curl -X PUT https://api.keebai.com/v1/functions/6650cccc3333dddd4444eeee \
+curl -X PUT https://api.keebai.com/v1/tools/6650cccc3333dddd4444eeee \
   -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{ "context": { "url": "https://erp.example.com/v2/stock", "method": "POST" } }'
@@ -87,7 +87,7 @@ curl -X PUT https://api.keebai.com/v1/functions/6650cccc3333dddd4444eeee \
 And to rotate a credential, send the new value:
 
 ```bash
-curl -X PUT https://api.keebai.com/v1/functions/6650cccc3333dddd4444eeee \
+curl -X PUT https://api.keebai.com/v1/tools/6650cccc3333dddd4444eeee \
   -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{ "context": { "url": "https://erp.example.com/v2/stock", "headers": { "Authorization": "Bearer erp_live_NEW" } } }'
@@ -97,19 +97,19 @@ curl -X PUT https://api.keebai.com/v1/functions/6650cccc3333dddd4444eeee \
   **Updates are read-modify-write, so concurrent writers can lose each other's changes.** Merging the stored headers requires reading them first; two updates to the same function that overlap will leave whichever finished last. Serialise updates to one function.
 </Warning>
 
-## Only webhook functions are exposed
+## Only webhook tools are exposed
 
-Keebai has other kinds of function — calendar integrations, ecommerce lookups, the ones generated automatically from a `product_info` block. None of them appear here. [`GET /v1/functions`](/dev/endpoints/functions-list) filters to webhooks, and asking for a non-webhook by id returns `404` rather than `403`, so an id you cannot manage is indistinguishable from one that does not exist.
+Keebai has other kinds of function — calendar integrations, ecommerce lookups, the ones generated automatically from a `product_info` block. None of them appear here. [`GET /v1/tools`](/dev/endpoints/tools-list) filters to webhooks, and asking for a non-webhook by id returns `404` rather than `403`, so an id you cannot manage is indistinguishable from one that does not exist.
 
 Because auto-generated functions are never of type `webhook`, they fall outside this surface by construction: there is no way to create one, re-point one at a different block, or delete one through this API.
 
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Create a function" icon="plus" href="/dev/endpoints/functions-create">
+  <Card title="Create a function" icon="plus" href="/dev/endpoints/tools-create">
     The full body, with parameters and placeholders.
   </Card>
-  <Card title="Update a function" icon="pen" href="/dev/endpoints/functions-update">
+  <Card title="Update a function" icon="pen" href="/dev/endpoints/tools-update">
     The merge rules, in detail.
   </Card>
 </CardGroup>

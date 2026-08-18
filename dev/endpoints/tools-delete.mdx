@@ -1,22 +1,22 @@
 ---
-title: "DELETE /v1/functions/{id}"
+title: "DELETE /v1/tools/{id}"
 sidebarTitle: "DELETE functions/:id"
-description: "Delete a webhook function permanently. Fails while any block still references it."
-openapi: "DELETE /v1/functions/{id}"
+description: "Delete a webhook tool permanently. Fails while any block still references it."
+openapi: "DELETE /v1/tools/{id}"
 ---
 
 Deletes the function. This is a hard delete and it cannot be undone.
 
-It is refused while any block still references the function, and the error names them — so the normal sequence is: read [`used_by_blocks`](/dev/endpoints/functions-get), unbind those blocks in the portal, then delete.
+It is refused while any block still references the function, and the error names them — so the normal sequence is: read [`used_by_blocks`](/dev/endpoints/tools-get), unbind those blocks in the portal, then delete.
 
 <Warning>
-  If you only want the agent to stop calling it, [`PUT` it with `is_active: false`](/dev/endpoints/functions-update) instead. That is reversible and keeps the URL, headers and parameters intact.
+  If you only want the agent to stop calling it, [`PUT` it with `is_active: false`](/dev/endpoints/tools-update) instead. That is reversible and keeps the URL, headers and parameters intact.
 </Warning>
 
 ## Endpoint
 
 ```
-DELETE https://api.keebai.com/v1/functions/{id}
+DELETE https://api.keebai.com/v1/tools/{id}
 ```
 
 ## Required scope
@@ -40,13 +40,13 @@ DELETE https://api.keebai.com/v1/functions/{id}
 <CodeGroup>
 
 ```bash curl
-curl -X DELETE https://api.keebai.com/v1/functions/6650cccc3333dddd4444eeee \
+curl -X DELETE https://api.keebai.com/v1/tools/6650cccc3333dddd4444eeee \
   -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
 ```js JavaScript
 const resp = await fetch(
-  "https://api.keebai.com/v1/functions/6650cccc3333dddd4444eeee",
+  "https://api.keebai.com/v1/tools/6650cccc3333dddd4444eeee",
   {
     method: "DELETE",
     headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` },
@@ -63,7 +63,7 @@ if (resp.status === 409) {
 import os, requests
 
 resp = requests.delete(
-    "https://api.keebai.com/v1/functions/6650cccc3333dddd4444eeee",
+    "https://api.keebai.com/v1/tools/6650cccc3333dddd4444eeee",
     headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
     timeout=10,
 )
@@ -91,7 +91,7 @@ The token does not have the `agents:write` scope.
 
 ### 404 Not Found
 
-No webhook function with that id in the token's company. A repeated delete lands here, so treat `404` as "already gone".
+No webhook tool with that id in the token's company. A repeated delete lands here, so treat `404` as "already gone".
 
 ### 409 Conflict
 

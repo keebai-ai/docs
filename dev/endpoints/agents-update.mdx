@@ -1,13 +1,13 @@
 ---
 title: "PATCH /v1/agents/{id}"
 sidebarTitle: "PATCH agents/:id"
-description: "Update an agent's name, description, avatar, model, knowledge nodes, or active flag."
+description: "Update an agent's config: name, model, language, goal, channels, reengagement, tools, knowledge nodes or active flag."
 openapi: "PATCH /v1/agents/{id}"
 ---
 
 Partial update. Only the fields present in the body change; everything else is left alone.
 
-Blocks are **not** editable here. Use [`PUT /v1/agents/{id}/blocks`](/dev/endpoints/agents-blocks-set) to reorder or repin them, and [`PUT /v1/blocks/{id}/content`](/dev/endpoints/blocks-content-save) to change what one says.
+**To change one prompt section, use [`PUT /v1/agents/{id}/prompts/{section}`](/dev/endpoints/agents-prompt-set) instead.** Sending `prompts` here replaces them all, which is what you want when your system owns the whole prompt and a mistake when it does not.
 
 ## Endpoint
 
@@ -40,8 +40,13 @@ Every field is optional.
 |---|---|---|
 | `name` | `string` | Up to 150 characters, non-empty. |
 | `description` | `string` | Up to 500 characters. |
-| `avatar_url` | `string` | Public `https` URL. |
-| `avatar_emoji` | `string` | Up to 16 characters. |
+| `language` | `string` | Locale, for example `es-CL`. |
+| `timezone` | `string` | IANA name. |
+| `goal` | `object` | `{ type, instructions? }`. |
+| `prompts` | `array` | **Replaces every section.** |
+| `channels` | `string[]` | Channel types from the catalogue. |
+| `reengagement` | `object` | Cadence for coming back to a cold conversation. |
+| `tools` | `string[]` | `ObjectId`s of webhook tools. |
 | `model` | `string` | Model id. Validated only when it differs from the current one. |
 | `knowledge_node_ids` | `string[]` | Replaces the whole list. Send `[]` to unassign everything. |
 | `is_active` | `boolean` | `false` stops the agent answering without deleting anything. |
@@ -95,7 +100,7 @@ The full agent, same shape as [`GET /v1/agents/{id}`](/dev/endpoints/agents-get)
 
 ### 400 Bad Request
 
-A field over its length limit, a non-`https` `avatar_url`, a malformed `ObjectId`, an unknown property, or `INVALID_MODEL` when the new model is not supported.
+A field over its length limit, a malformed `ObjectId`, an unknown property, or `INVALID_MODEL` when the new model is not supported.
 
 ### 401 Unauthorized
 
@@ -117,6 +122,8 @@ The agent service is unreachable.
 
 - **`knowledge_node_ids` replaces, it does not append.** Sending one id leaves the agent with exactly that one. Read the current list from [`GET /v1/agents/{id}`](/dev/endpoints/agents-get) and send the union if you mean to add.
 - **The model is only validated when it changes.** An agent already configured with a model that has since been retired keeps working through updates that do not touch `model`, and starts failing validation the moment you send it explicitly.
-- **`is_active: false` is the reversible way to take an agent out of service.** It keeps every block, version and knowledge assignment; [deleting](/dev/endpoints/agents-delete) does not.
+- **`is_active: false` is the reversible way to take an agent out of service.** It keeps every section, version and knowledge assignment; [deleting](/dev/endpoints/agents-delete) does not.
+- **Changing `goal.type` changes which tools the agent can use.** It is not a rename: an agent moved from informing to booking needs the services and availability behind it to exist.
+- **Removing a channel stops it answering there**, and a customer who writes gets nothing back.
 - **Omitting a field and sending `null` are not the same.** Omit it to leave the value alone. `null` is not accepted for these fields.
-- **A change takes effect within about fifteen minutes at worst.** The rendered prompt and bound functions are cached per agent; the cache is dropped on every write, but a request already in flight can still answer with the previous configuration.
+- **A change takes effect within about fifteen minutes at worst.** The rendered prompt and bound tools are cached per agent; the cache is dropped on every write, but a request already in flight can still answer with the previous configuration.

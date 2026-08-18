@@ -1,18 +1,18 @@
 ---
-title: "GET /v1/functions/{id}"
+title: "GET /v1/tools/{id}"
 sidebarTitle: "GET functions/:id"
-description: "Get one webhook function with its request shape and the blocks that reference it."
-openapi: "GET /v1/functions/{id}"
+description: "Get one webhook tool with its request shape and the blocks that reference it."
+openapi: "GET /v1/tools/{id}"
 ---
 
-Returns one webhook function. Same shape as an entry in [the list](/dev/endpoints/functions-list), with header and query-string values masked.
+Returns one webhook tool. Same shape as an entry in [the list](/dev/endpoints/tools-list), with header and query-string values masked.
 
-The field worth coming here for is `used_by_blocks`: it tells you which blocks reference the function, which is what you need before [deleting it](/dev/endpoints/functions-delete).
+The field worth coming here for is `used_by_blocks`: it tells you which blocks reference the function, which is what you need before [deleting it](/dev/endpoints/tools-delete).
 
 ## Endpoint
 
 ```
-GET https://api.keebai.com/v1/functions/{id}
+GET https://api.keebai.com/v1/tools/{id}
 ```
 
 ## Required scope
@@ -36,13 +36,13 @@ GET https://api.keebai.com/v1/functions/{id}
 <CodeGroup>
 
 ```bash curl
-curl https://api.keebai.com/v1/functions/6650cccc3333dddd4444eeee \
+curl https://api.keebai.com/v1/tools/6650cccc3333dddd4444eeee \
   -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
 ```js JavaScript
 const resp = await fetch(
-  "https://api.keebai.com/v1/functions/6650cccc3333dddd4444eeee",
+  "https://api.keebai.com/v1/tools/6650cccc3333dddd4444eeee",
   { headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` } },
 );
 const { function: fn } = await resp.json();
@@ -56,7 +56,7 @@ if (fn.used_by_blocks.length > 0) {
 import os, requests
 
 resp = requests.get(
-    "https://api.keebai.com/v1/functions/6650cccc3333dddd4444eeee",
+    "https://api.keebai.com/v1/tools/6650cccc3333dddd4444eeee",
     headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
     timeout=10,
 )
@@ -122,7 +122,7 @@ The agent service is unreachable.
 
 ## Operational notes
 
-- **A non-webhook function reads as `404`, not `403`.** An id you cannot manage is deliberately indistinguishable from one that does not exist.
+- **A non-webhook tool reads as `404`, not `403`.** An id you cannot manage is deliberately indistinguishable from one that does not exist.
 - **The masked values are not a permissions thing.** Every caller sees `***`, including one with `agents:write`. The stored value is never returned by any endpoint.
 - **`is_active: false` means the model will not be offered the function**, but the configuration is intact. It is the reversible way to switch one off.
 - **`type` is always `webhook`** on this surface, and is included so the field is not silently absent from a contract that upstream considers polymorphic.

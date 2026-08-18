@@ -1,35 +1,41 @@
 ---
 title: "Agents overview"
 sidebarTitle: "Overview"
-description: "Create agents, write the blocks that make up their prompt, and give them webhook functions to call — the same configuration the Keebai portal edits."
+description: "Create agents, write the sections of their prompt, and give them webhook tools to call — the same configuration the Keebai portal edits."
 ---
 
-An agent is what answers your customers. Its behaviour is not one prompt string: it is an ordered list of **blocks**, each one a named piece of the system prompt, plus the **functions** it is allowed to call while it answers.
+An agent is what answers your customers. Its behaviour is not one prompt string: it is a **goal**, a set of **prompt sections** written by the business, the **channels** it answers on, and the **tools** it is allowed to call while it answers.
 
-**This API edits that configuration.** Everything the portal's agent editor does to prompts, block ordering and webhook functions, you can do here — which is what makes it possible to version your agents in git, provision them per client, or let an agent tune them.
+**This API edits that configuration.** Everything the portal's agent editor does, you can do here — which is what makes it possible to version your agents in git, provision them per client, or let an agent tune them.
 
-## The data model
+## The four parts
 
 <CardGroup cols={2}>
-  <Card title="Agent" icon="robot">
-    Name, model, knowledge nodes, and an ordered list of references to blocks.
+  <Card title="Goal" icon="bullseye">
+    What the agent has to achieve. It decides which toolkits switch on, so it is the one part you cannot change casually.
   </Card>
-  <Card title="Block" icon="cube">
-    One named piece of the prompt, with a type that decides where it lands.
+  <Card title="Prompt sections" icon="file-lines">
+    What the business contributes: who it is, what it does not do, when it hands over, its example conversations.
   </Card>
-  <Card title="Version" icon="clock-rotate-left">
-    An immutable snapshot of a block's content. Saving never overwrites.
+  <Card title="Channels" icon="comments">
+    Where it answers. The mechanics of each medium come from the platform, not from your text.
   </Card>
-  <Card title="Function" icon="bolt">
-    An HTTPS webhook the agent can call mid-conversation.
+  <Card title="Tools" icon="bolt">
+    HTTPS webhooks the agent can call mid-conversation. They belong to the company; an agent uses one by holding its id.
   </Card>
 </CardGroup>
 
-A block is **not owned by an agent**. It lives in the project's catalogue and any number of agents can reference it, each pinning a different version if they want to. Attaching and detaching is wiring, not creation — [detaching a block](/dev/endpoints/agents-block-detach) leaves it in the catalogue, and [deleting an agent](/dev/endpoints/agents-delete) leaves all of its blocks behind.
+## The catalogue is the source of truth
 
-### The three-step drill-down
+The valid values of `section`, `goal.type` and `channels` come from [`GET /v1/agents/prompt-types`](/dev/endpoints/prompt-types-list), not from a list published in this documentation.
 
-The read path is deliberately three calls, because the second one is the cheap one you will make most:
+That is deliberate. A section added to the platform appears in the catalogue immediately, and a list you copied into your code goes stale the day it happens. **Read the catalogue at build time or at run time; do not hardcode it.**
+
+Each section row also carries a `tip` — the platform's own guidance on what belongs in that section. If you generate section text with a model, that `tip` is the instruction to give it.
+
+## The read path
+
+Two calls, and the second one already includes the text:
 
 ```bash
 TOKEN="kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
@@ -37,264 +43,56 @@ TOKEN="kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 # 1. Which agents exist
 curl -s https://api.keebai.com/v1/agents -H "Authorization: Bearer $TOKEN"
 
-# 2. Which blocks make up this one, in prompt order — metadata only, no content
-curl -s https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/blocks \
-  -H "Authorization: Bearer $TOKEN"
-
-# 3. The content of one block
-curl -s https://api.keebai.com/v1/blocks/6650bbbb2222cccc3333dddd/content \
+# 2. This agent whole: goal, sections with their text, channels, tools
+curl -s https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0 \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-Step 2 never returns content, and that is structural rather than a filter we apply: a block document genuinely holds no content. The text lives in its versions, which is why reading it is a separate call and why saving it creates history for free.
+## Writing sections
 
-## Block types
-
-There is one creation endpoint per type, because the type is what decides where the block lands in the prompt and what it is expected to say.
-
-| Type | Family | What it holds |
-|---|---|---|
-| [`personification`](/dev/endpoints/blocks-create-personification) | identity | Who the agent is: role, tone, how it addresses people. |
-| [`objective`](/dev/endpoints/blocks-create-objective) | identity | What it must achieve, and how you know it did. |
-| [`response_format`](/dev/endpoints/blocks-create-response-format) | identity | Message length, emoji usage, formatting rules. |
-| [`steps`](/dev/endpoints/blocks-create-steps) | instructions | The procedure it follows, in order. |
-| [`cases_possible`](/dev/endpoints/blocks-create-cases-possible) | instructions | Situations that can come up and how to answer each. |
-| [`do_not`](/dev/endpoints/blocks-create-do-not) | instructions | What it must never do. |
-| [`response_policy`](/dev/endpoints/blocks-create-response-policy) | instructions | When to stay silent, when to react instead of reply. |
-
-`family` is **derived from the type** and is read-only. It decides which section of the prompt the block is composed into, so it is not something a caller gets to choose.
-
-<Note>
-  **One identity block of each type per agent.** Attaching a second `personification`, `objective` or `response_format` to the same agent fails with `ASSISTANT_DUPLICATE_IDENTITY_BLOCK`. Instruction blocks have no such limit — an agent can hold several `steps` blocks.
-</Note>
-
-### Catalogue blocks are read-only here
-
-Five more types exist and you will see them in [`GET /v1/blocks`](/dev/endpoints/blocks-list) and in an agent's block list: `product_info`, `store_info`, `reservation_info`, `tables_info` and `tags`. You can read their content, rename them and archive them, but [saving their content](/dev/endpoints/blocks-content-save) returns `409 BLOCK_TYPE_NOT_WRITABLE`.
-
-<Warning>
-  **This is not an arbitrary restriction.** Saving a `product_info` block has to rebuild up to eleven ecommerce functions on the agent, keyed to the store and product ids inside the payload; `store_info` rebuilds the branch lookup function. That rebuild lives in the portal. If the API accepted the write without it, the block would save cleanly and the agent would silently lose its ecommerce toolset — which is worse than a refusal. Configure those five in the portal.
-
-  Every block field also tells you directly: `content_writable` is `true` for the seven types above and `false` for these five.
-</Warning>
-
-## Content is text
-
-Blocks written through this API are **free blocks**: their content is plain text, not a structured object.
-
-Three markdown conventions are recognised, because the portal editor renders them as real list and heading elements rather than literal characters:
-
-| You write | It becomes |
-|---|---|
-| `- item` or `* item` | A bullet |
-| `1. item` | A numbered list item |
-| `# Title`, `## Title` | A heading |
-
-Everything else is a paragraph. [Reading the content back](/dev/endpoints/blocks-content-get) returns the same text.
-
-<Note>
-  **Rich formatting authored in the portal flattens.** Bold, italics, colours and inline function chips do not survive a round trip through this API: reading gives you the text, and writing replaces the document with a plain-text rendering. If an agent was carefully styled in the portal, prefer editing it there.
-</Note>
-
-## Saving content never overwrites
-
-[`PUT /v1/blocks/{id}/content`](/dev/endpoints/blocks-content-save) appends an immutable version and points the block at it. The previous one stays in [the history](/dev/endpoints/blocks-versions-list) and can be [restored](/dev/endpoints/blocks-version-restore), which also appends rather than overwrites. Nothing in this API destroys a version.
-
-The same is true of deletes at the block level: [`DELETE /v1/blocks/{id}`](/dev/endpoints/blocks-archive) **archives**. Agents that still reference an archived block keep using it — archiving hides it from the catalogue, it does not switch it off. To take a block out of an agent, [detach it](/dev/endpoints/agents-block-detach).
-
-## Functions
-
-A function is an HTTPS webhook the agent can call while it answers. You describe what it does, the model decides when to call it, and Keebai makes the request.
-
-Placeholders written `{{name}}` in the path, the query string or the body are filled at call time from the arguments the model chose, so `https://erp.example.com/stock/{{sku}}` with a `sku` parameter is the normal shape.
-
-<Warning>
-  **Functions are company-wide, not project-scoped.** Unlike agents and blocks, a function is visible to every project in the company. A name collision is a company-level collision.
-</Warning>
-
-Two things about them are worth reading before your first write: [how secret values are masked](/dev/agents/webhook-security#secrets-are-write-only) and [which URLs are rejected](/dev/agents/webhook-security#which-urls-are-rejected).
-
-## Scoping
-
-| | Scoped by |
-|---|---|
-| Agents, blocks, versions | Company **and** project of the token |
-| Functions | Company only |
-
-Two tokens on two projects of the same company see different agents and different blocks, and neither can read the other's by id. They see the same functions.
-
-`company` and `project` are both derived from the token and must never appear in a request body — sending either returns `400`.
-
-## Renamed from "assistant"
-
-What this API used to call an *assistant* is now an **agent**. Nothing you already
-built stops working:
-
-| Was | Is now | Old form |
-|---|---|---|
-| `/v1/assistants` | `/v1/agents` | Still routed, same handlers |
-| `assistants:read` / `assistants:write` | `agents:read` / `agents:write` | Tokens issued with the old scope keep passing |
-| `{ "assistant": { … } }` | `{ "agent": { … } }` | Both keys ship in the same response |
-| `keebai_assistant_*` MCP tools | `keebai_agent_*` | Renamed — tools are discovered, so clients pick it up |
-
-Error codes (`ASSISTANT_DUPLICATE_IDENTITY_BLOCK`, `ASSISTANT_BLOCK_NOT_FOUND`) and the
-`assistant_id` body field of [knowledge assign](/dev/endpoints/knowledge-assign) keep their
-names: your code matches on those strings, so renaming them would break callers silently.
-
-Move to the new names when you can — the old route, scope and response key are kept for
-compatibility, not maintained forever.
-
-## Identifiers
-
-Agent, block, version, and function ids are all MongoDB ObjectIds — 24 lowercase hex characters.
-
-A block's id is stable across content edits: saving new content appends a **version** and repoints the block, so the block id you stored keeps working and always resolves to the current text. Version ids, by contrast, are per-save — capture one only if you intend to restore it later.
-
-## Errors
-
-```json
-{
-  "error": {
-    "code": "INSUFFICIENT_SCOPE",
-    "message": "Forbidden",
-    "details": {
-      "required": ["agents:write"],
-      "missing": ["agents:write"]
-    }
-  }
-}
-```
-
-| Status | When |
-|---|---|
-| `400` | Invalid body, a block type that refuses free text, a rejected function URL, or a property the endpoint does not accept. |
-| `401` | Missing, invalid, revoked, or expired token. |
-| `403` | The token lacks `agents:read` or `agents:write`. |
-| `404` | The agent, block, version, or function does not exist, belongs to another company, or belongs to **another project of your company**. |
-| `409` | A name collision — most often a function, which collides company-wide. |
-| `429` | You hit a [rate limit](/dev/rate-limits). |
-
-Branch on `error.code`, not on the message text.
-
-<Note>
-  **A `404` on a block you know exists usually means the wrong project.** Agents and blocks are project-scoped, so a token minted for project A cannot read project B's block even by exact id. Check which project your token belongs to with [`GET /v1/me`](/dev/endpoints/me) before assuming the record is gone.
-</Note>
-
-## Rate limits
-
-Agent configuration draws from the shared [per-project quota](/dev/rate-limits): 1,000 requests a day across the whole public API.
-
-This surface is normally low-volume — you configure an agent once and edit it occasionally — with one exception: a prompt-management tool that saves on every keystroke will burn the quota fast, because every save appends a version. Debounce writes, and batch block edits rather than issuing one request per field.
-
-<Note>
-  **Conversations do not count.** The quota covers *configuring* agents through this API. The messages an agent actually exchanges with customers, and the functions it calls while doing so, are not requests you make and are not billed against it.
-</Note>
-
-## Endpoints
-
-### Agents
-
-| Method | Path | Scope | Description |
-|---|---|---|---|
-| `GET` | `/v1/agents` | `agents:read` | [List active agents](/dev/endpoints/agents-list). |
-| `GET` | `/v1/agents/:id` | `agents:read` | [Get one](/dev/endpoints/agents-get), with its block references. |
-| `POST` | `/v1/agents` | `agents:write` | [Create one](/dev/endpoints/agents-create). |
-| `PATCH` | `/v1/agents/:id` | `agents:write` | [Update name, model, avatar, knowledge](/dev/endpoints/agents-update). |
-| `DELETE` | `/v1/agents/:id` | `agents:write` | [Delete permanently](/dev/endpoints/agents-delete). |
-
-### Wiring blocks to an agent
-
-| Method | Path | Scope | Description |
-|---|---|---|---|
-| `GET` | `/v1/agents/:id/blocks` | `agents:read` | [Its blocks in prompt order](/dev/endpoints/agents-blocks-list), without content. |
-| `PUT` | `/v1/agents/:id/blocks` | `agents:write` | [Replace the whole list](/dev/endpoints/agents-blocks-set) — the only way to reorder. |
-| `POST` | `/v1/agents/:id/blocks` | `agents:write` | [Attach one block](/dev/endpoints/agents-block-attach). |
-| `DELETE` | `/v1/agents/:id/blocks/:blockId` | `agents:write` | [Detach one block](/dev/endpoints/agents-block-detach). |
-
-### Blocks
-
-| Method | Path | Scope | Description |
-|---|---|---|---|
-| `GET` | `/v1/blocks` | `agents:read` | [The project's whole catalogue](/dev/endpoints/blocks-list). |
-| `GET` | `/v1/blocks/:id` | `agents:read` | [Metadata of one block](/dev/endpoints/blocks-get). |
-| `POST` | `/v1/blocks/<type>` | `agents:write` | One endpoint per type — see the table above. |
-| `PATCH` | `/v1/blocks/:id` | `agents:write` | [Rename or archive](/dev/endpoints/blocks-update). |
-| `DELETE` | `/v1/blocks/:id` | `agents:write` | [Archive](/dev/endpoints/blocks-archive). |
-| `GET` | `/v1/blocks/:id/content` | `agents:read` | [Read the current content](/dev/endpoints/blocks-content-get). |
-| `PUT` | `/v1/blocks/:id/content` | `agents:write` | [Save new content](/dev/endpoints/blocks-content-save). |
-| `GET` | `/v1/blocks/:id/versions` | `agents:read` | [Version history](/dev/endpoints/blocks-versions-list). |
-| `GET` | `/v1/blocks/:id/versions/:versionId` | `agents:read` | [One historical version](/dev/endpoints/blocks-version-get). |
-| `POST` | `/v1/blocks/:id/versions/:versionId/restore` | `agents:write` | [Restore it](/dev/endpoints/blocks-version-restore). |
-
-### Functions
-
-| Method | Path | Scope | Description |
-|---|---|---|---|
-| `GET` | `/v1/functions` | `agents:read` | [List webhook functions](/dev/endpoints/functions-list). |
-| `GET` | `/v1/functions/:id` | `agents:read` | [Get one](/dev/endpoints/functions-get), with the blocks using it. |
-| `POST` | `/v1/functions` | `agents:write` | [Create one](/dev/endpoints/functions-create). |
-| `PUT` | `/v1/functions/:id` | `agents:write` | [Update one](/dev/endpoints/functions-update). |
-| `DELETE` | `/v1/functions/:id` | `agents:write` | [Delete one](/dev/endpoints/functions-delete). |
-
-## A full round trip
+One section at a time with [`PUT /v1/agents/{id}/prompts/{section}`](/dev/endpoints/agents-prompt-set), which leaves the rest of the agent alone. Sending `prompts` to [the update endpoint](/dev/endpoints/agents-update) instead replaces **all** of them — useful when you own the whole prompt, dangerous when you do not.
 
 ```bash
-TOKEN="kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-API="https://api.keebai.com/v1"
-AUTH="Authorization: Bearer $TOKEN"
-JSON="Content-Type: application/json"
-
-# 1. Create the agent. It is born with a personification and a
-#    response-policy block already attached, both empty.
-AGENT=$(curl -s -X POST $API/agents -H "$AUTH" -H "$JSON" \
-  -d '{"name":"Recepción","model":"gemini-2.5-flash"}' | jq -r '.agent._id')
-
-# 2. Fill in the personality it was born with.
-BLOCK=$(curl -s $API/agents/$AGENT/blocks -H "$AUTH" \
-  | jq -r '.data[] | select(.type=="personification") ._id')
-
-curl -s -X PUT $API/blocks/$BLOCK/content -H "$AUTH" -H "$JSON" \
-  -d '{"content":"Eres la recepción de una barbería.\n- Tuteas al cliente.\n- No prometes descuentos."}'
-
-# 3. Add a procedure as a new block and wire it in.
-STEPS=$(curl -s -X POST $API/blocks/steps -H "$AUTH" -H "$JSON" \
-  -d '{"name":"Reserva","content":"1. Saludar\n2. Preguntar el servicio\n3. Ofrecer horarios"}' \
-  | jq -r '.block._id')
-
-curl -s -X POST $API/agents/$AGENT/blocks -H "$AUTH" -H "$JSON" \
-  -d "{\"block_id\":\"$STEPS\",\"order\":2}"
-
-# 4. Give it a function to call.
-curl -s -X POST $API/functions -H "$AUTH" -H "$JSON" -d '{
-  "name": "consultar_disponibilidad",
-  "display_name": "Consultar disponibilidad",
-  "description": "Devuelve los horarios libres de un servicio para una fecha.",
-  "context": {
-    "url": "https://erp.example.com/slots",
-    "method": "GET",
-    "headers": { "Authorization": "Bearer erp_live_xxx" },
-    "params": { "service": "{{service}}", "date": "{{date}}" }
-  },
-  "tool_params": [
-    { "name": "service", "description": "Nombre del servicio", "required": true },
-    { "name": "date", "description": "Fecha en YYYY-MM-DD", "required": true }
-  ]
-}'
+curl -X PUT https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/prompts/agent_limits \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"markdown": "Los precios los das del catálogo. Si no está, ofreces confirmarlo con el equipo."}'
 ```
 
-## Next steps
+Two things worth knowing before you automate it:
 
-<CardGroup cols={2}>
-  <Card title="Create an agent" icon="plus" href="/dev/endpoints/agents-create">
-    The first call, and what it gives you for free.
-  </Card>
-  <Card title="Save block content" icon="pen" href="/dev/endpoints/blocks-content-save">
-    Writing prompts as text, and which types refuse.
-  </Card>
-  <Card title="Webhook security" icon="shield-halved" href="/dev/agents/webhook-security">
-    Which URLs are rejected, and how secrets are masked.
-  </Card>
-  <Card title="Scopes" icon="key" href="/dev/scopes">
-    `agents:read` and `agents:write`, and what each unlocks.
-  </Card>
-</CardGroup>
+- **Send the whole section.** The text is replaced, not appended to.
+- **Serialise your writes per agent.** A section is written by reading the agent, replacing that entry and saving it back, so two simultaneous writes to different sections of the same agent lose one.
+
+## Sections have history
+
+Every save that changes the text leaves a version behind. Saving identical text does not, so the history records changes rather than calls.
+
+- [List the versions of a section](/dev/endpoints/agents-prompt-versions-list) — newest first; the first one is what the agent is reading.
+- [Read one version](/dev/endpoints/agents-prompt-version-get) to diff it against the current text.
+- [Restore one](/dev/endpoints/agents-prompt-version-restore) — which **writes a new version** copying the old one and records `restored_from`, so a rollback is itself reversible.
+
+## Tools
+
+A tool is an HTTPS webhook with a name, a description and typed parameters. The description is what the model reads to decide when to call it, so it is configuration that matters, not a label.
+
+Tools live at the **company** level: [list them](/dev/endpoints/tools-list) once, and give an agent the ids it should be allowed to use. The URL rules and the masking of secret values are in [webhook security](/dev/agents/webhook-security).
+
+## Migrating from the block API
+
+The previous version of this surface modelled a prompt as an ordered list of **blocks** living in a project catalogue, each with its own versions. That model is gone.
+
+| Before | Now |
+|---|---|
+| `GET/PUT/POST /v1/agents/{id}/blocks`, `DELETE /v1/agents/{id}/blocks/{blockId}` | [`GET /v1/agents/{id}/prompts`](/dev/endpoints/agents-prompts-list), [`PUT`](/dev/endpoints/agents-prompt-set) / [`DELETE`](/dev/endpoints/agents-prompt-delete) `/v1/agents/{id}/prompts/{section}` |
+| `/v1/blocks/*` — catalogue, content, versions | No equivalent. The text lives inside the agent, and [versions hang off the section](/dev/endpoints/agents-prompt-versions-list). |
+| `/v1/functions/*` | [`/v1/tools/*`](/dev/endpoints/tools-list) |
+| `avatar_url`, `avatar_emoji` on the agent | No equivalent. They were accepted and discarded. |
+
+Three differences that change how you integrate, not just what you call:
+
+- **A section is not shared.** Blocks lived in a catalogue and several agents could reference the same one; a section belongs to its agent. Reuse across agents is now your templating, not a shared object.
+- **There is no attach and detach.** Writing a section creates it; deleting it removes it.
+- **Content and metadata are no longer separate calls.** Reading the agent gives you the text.
+
+The `/v1/assistants` alias of `/v1/agents` still works, and `agents-list`, `agents-get`, `agents-create`, `agents-update` and `agents-delete` keep their URLs even though their shape changed.

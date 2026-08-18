@@ -20,7 +20,7 @@ Three different things in Keebai are called a webhook. Picking the wrong one cos
 |---|---|---|
 | Be told when something changes in Keebai | **This page** — `/v1/webhooks` subscriptions | Keebai → you |
 | Tell Keebai something happened in your system | [CRM event ingest](/dev/crm/events) — `POST /v1/webhook/events` | You → Keebai |
-| Let an agent call your own API mid-conversation | [Agent functions](/dev/endpoints/functions-create) | Keebai → you, during a conversation |
+| Let an agent call your own API mid-conversation | [Agent tools](/dev/endpoints/tools-create) | Keebai → you, during a conversation |
 
 Note the path collision: `/v1/webhooks` (plural) is the subscription CRUD on this page, and `/v1/webhook/events` (singular) is the inbound ingest. They are unrelated surfaces with different scopes.
 

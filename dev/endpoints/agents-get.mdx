@@ -1,13 +1,13 @@
 ---
 title: "GET /v1/agents/{id}"
 sidebarTitle: "GET agents/:id"
-description: "Get one agent with its model, its knowledge nodes, and the ordered block references that make up its prompt."
+description: "Get one agent whole: goal, prompt sections with their text, channels, tools and knowledge nodes."
 openapi: "GET /v1/agents/{id}"
 ---
 
-Returns one agent, including the wiring that [the list endpoint](/dev/endpoints/agents-list) leaves out: the ordered `blocks` array and the knowledge nodes it can search.
+Returns one agent with everything [the list endpoint](/dev/endpoints/agents-list) leaves out: its goal, the sections of its prompt **with their text**, the channels it answers on, the tools it may call and the knowledge nodes it can search.
 
-The `blocks` array carries **references only** — a block id, an optional pinned version, and a position. To get each block's type and name, use [`GET /v1/agents/{id}/blocks`](/dev/endpoints/agents-blocks-list), which resolves them in one extra call rather than one per block.
+One call is enough. In the block model this replaced, the text lived somewhere else and reading a prompt took three calls; a section belongs to its agent, so it comes back here.
 
 ## Endpoint
 
@@ -72,26 +72,30 @@ agent = resp.json()["agent"]
     "_id": "6650a1b2c3d4e5f6a7b8c9d0",
     "name": "Recepción",
     "description": "Atiende reservas y consultas de horario",
-    "avatar_url": "https://cdn.example.com/avatars/recepcion.png",
-    "avatar_emoji": "💈",
-    "model": "gemini-2.5-flash",
-    "voice_response_enabled": false,
-    "is_active": true,
-    "blocks": [
+    "model": "gpt-5",
+    "language": "es-CL",
+    "timezone": "America/Santiago",
+    "goal": { "type": "appointment_management", "instructions": null },
+    "prompts": [
       {
-        "block_id": "6650bbbb2222cccc3333dddd",
-        "pinned_version_id": null,
-        "order": 0
+        "section": "business_context",
+        "label": null,
+        "markdown": "# Quiénes somos\n\nBarbería en Providencia."
       },
       {
-        "block_id": "6650bbbb2222cccc3333eeee",
-        "pinned_version_id": "6650ffff4444aaaa5555bbbb",
-        "order": 1
+        "section": "agent_limits",
+        "label": null,
+        "markdown": "Los precios los das del catálogo."
       }
     ],
-    "knowledge_node_ids": ["6650dddd5555eeee6666ffff"],
+    "channels": ["whatsapp"],
+    "reengagement": { "enabled": true, "max_attempts": 2 },
+    "tools": ["6650cccc3333dddd4444eeee"],
+    "knowledge_node_ids": ["6650dddd4444eeee5555ffff"],
+    "voice_response_enabled": false,
+    "is_active": true,
     "created_at": "2026-07-20T14:02:11.870Z",
-    "updated_at": "2026-07-26T09:44:03.512Z"
+    "updated_at": "2026-08-14T18:21:04.112Z"
   }
 }
 ```
@@ -114,8 +118,10 @@ The agent service is unreachable.
 
 ## Operational notes
 
-- **A `pinned_version_id` of `null` means "follow the block".** The agent renders whatever version the block currently points at, so editing that block changes this agent. A non-null value freezes it to one snapshot, and later saves to the block do not reach this agent until you [repin it](/dev/endpoints/agents-blocks-set).
-- **`order` is the position in the composed prompt**, not an index into the array. Values need not be contiguous, and the array is returned in whatever order it is stored. [`GET /v1/agents/{id}/blocks`](/dev/endpoints/agents-blocks-list) sorts by `order` for you.
+- **`prompts` carries the text.** What each section is for comes from [the catalogue](/dev/endpoints/prompt-types-list); the order is the order they take in the assembled prompt.
+- **A section that was never written is absent**, not empty. There is no placeholder row per section type.
+- **`goal.type` decides which tools the agent can actually use**, beyond the ids in `tools`. Changing it changes the agent's capabilities, not just a label.
+- **`tools` and `knowledge_node_ids` are ids into company-level collections.** Deleting the agent leaves them alone.
 - **This endpoint returns inactive agents too**, unlike the list. `is_active: false` means the agent does not answer, but its configuration is intact.
 - **404 covers the cross-project case.** An agent that belongs to another project of the same company reads as not found, not as forbidden — the project of the token is part of its identity.
 - **`company`, `project`, `metadata` and `created_by` are never returned.** The first two are implied by the token, the third has no published schema, and the fourth is an internal user id.

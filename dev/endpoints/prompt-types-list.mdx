@@ -1,0 +1,115 @@
+---
+title: "GET /v1/agents/prompt-types"
+sidebarTitle: "GET agents/prompt-types"
+description: "The catalogue of prompt sections, goals and channels an agent can be built from."
+openapi: "GET /v1/agents/prompt-types"
+---
+
+The source of truth for every value you can put in `section`, `goal.type` and `channels`. **Read it instead of hardcoding a list**: a section added to the platform shows up here without this API publishing a version, and a list you copied into your code goes stale the day that happens.
+
+Each section row also carries a `tip`, which is the platform's own guidance on what belongs in that section. If you generate section text with an LLM, that `tip` is the instruction to give it.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/agents/prompt-types
+```
+
+## Required scope
+
+`agents:read`
+
+## Query parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `kind` | `string` | Narrow to one family: `section`, `goal` or `channel`. Omit it to get all three. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl "https://api.keebai.com/v1/agents/prompt-types?kind=section" \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+```js JavaScript
+const resp = await fetch(
+  "https://api.keebai.com/v1/agents/prompt-types?kind=section",
+  { headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` } },
+);
+const { data } = await resp.json();
+
+const sections = data.map((row) => row.type);
+```
+
+```python Python
+import os, requests
+
+resp = requests.get(
+    "https://api.keebai.com/v1/agents/prompt-types",
+    params={"kind": "section"},
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    timeout=10,
+)
+resp.raise_for_status()
+sections = resp.json()["data"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "data": [
+    {
+      "kind": "section",
+      "type": "business_context",
+      "label": "Contexto del negocio",
+      "description": "Qué hace el negocio, a quién atiende, y quién es el agente y con qué voz habla.",
+      "tip": "Parte por quién es el agente y cómo habla, y sigue con el negocio: qué vende, dónde está y a quién atiende.",
+      "placeholder": "",
+      "toolkits": [],
+      "channels": [],
+      "goals": [],
+      "order": 1
+    },
+    {
+      "kind": "section",
+      "type": "agent_limits",
+      "label": "Límites del agente",
+      "description": "Lo que el agente no hace, cada límite con la alternativa que sí ofrece.",
+      "tip": "Cada límite lleva su salida positiva: en vez de \"no des precios\", escribe \"los precios los das solo desde el catálogo; si no está, ofreces confirmarlo con el equipo\".",
+      "placeholder": "",
+      "toolkits": [],
+      "channels": [],
+      "goals": [],
+      "order": 2
+    }
+  ],
+  "total": 2
+}
+```
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `agents:read` scope.
+
+### 502 Bad Gateway
+
+The agent service is unreachable.
+
+## Operational notes
+
+- **The catalogue is per company.** A business can have its own wording for a section, and you get that wording, not the platform default.
+- **`toolkits` only means something on goals.** It names which tool families the goal switches on — that is why the goal is not just a label.
+- **`order` is the order the sections take in the prompt**, and it is also a sensible order to present them in a UI.
+- **`prompt` is not exposed.** Each row has one internally: it is the text that tells the *agent* what that section is. It is part of the system prompt, not integration surface.

@@ -7,7 +7,7 @@ openapi: "GET /v1/agents"
 
 Returns the active agents in your project. This is the index: start here to find the `id` every other endpoint in this tab needs, and the one [`POST /v1/knowledge/assignments`](/dev/endpoints/knowledge-assign) takes as `assistant_id`.
 
-The listing carries basic metadata only — no blocks, no functions. To see how an agent is actually configured, follow it with [`GET /v1/agents/:id/blocks`](/dev/endpoints/agents-blocks-list).
+The listing carries basic metadata only. To see how an agent is actually configured — its goal, its sections and their text — follow it with [`GET /v1/agents/{id}`](/dev/endpoints/agents-get).
 
 ## Endpoint
 
@@ -76,7 +76,6 @@ items = resp.json()["items"]
       "id": "65f3a1b2c3d4e5f6a7b8c9aa",
       "name": "Ventas",
       "description": "Califica leads y agenda demos.",
-      "avatar_url": "https://cdn.keebai.com/agents/ventas.png",
       "model": "gpt-4o-mini",
       "voice_response_enabled": false,
       "created_at": "2026-03-12T10:15:00.000Z"
@@ -93,7 +92,6 @@ items = resp.json()["items"]
 | `items[].id` | `string` | `ObjectId` of the agent. This is what you use as `assistant_id` in other endpoints. |
 | `items[].name` | `string` | Name. |
 | `items[].description` | `string` | Short description shown in the portal. |
-| `items[].avatar_url` | `string` | Public URL of the avatar, if uploaded. |
 | `items[].model` | `string` | Configured model (e.g. `gpt-4o-mini`). |
 | `items[].voice_response_enabled` | `boolean` | Whether voice responses are enabled. |
 | `page` / `limit` / `total` | `number` | Standard pagination. |
@@ -114,5 +112,5 @@ The agent service is unreachable.
 
 - **This endpoint uses a different envelope from the rest of the API.** It returns `items` with a 1-based `page` and an `id` field, where everything else paginated returns `data` with `offset` and `_id`. It predates that convention and is deliberately left alone so existing integrations keep working — the other endpoints in this tab use the current shape.
 - **Only active agents appear.** There is no parameter to include inactive ones. Fetch a known id with [`GET /v1/agents/:id`](/dev/endpoints/agents-get), which returns it either way and includes `is_active`.
-- **Scoped to the token's project**, not the whole company. A token issued against another project sees another list. Blocks follow the same rule; [functions do not](/dev/agents/overview#scoping).
+- **Scoped to the token's project**, not the whole company. A token issued against another project sees another list. [Tools do not](/dev/endpoints/tools-list): they belong to the company.
 - **`voice_response_enabled` is a flag, not the configuration.** The underlying provider settings, including voice ids, are not exposed.
