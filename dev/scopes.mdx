@@ -91,7 +91,7 @@ The catalog lives in the `api_scopes` MongoDB collection. The portal pulls it vi
 
 ## The MCP server uses the same scopes
 
-The [MCP server](/dev/mcp/overview) does not have a scope system of its own. Each of its 101 tools requires exactly the scope its REST counterpart does — `keebai_crm_ticket_create` needs `crm:tickets:write`, `keebai_contacts_list` needs `contacts:read`, and so on. The [tool catalogue](/dev/mcp/tools) lists the mapping.
+The [MCP server](/dev/mcp/overview) does not have a scope system of its own. Each of its 104 tools requires exactly the scope its REST counterpart does — `keebai_crm_ticket_create` needs `crm:tickets:write`, `keebai_contacts_list` needs `contacts:read`, and so on. The [tool catalogue](/dev/mcp/tools) lists the mapping.
 
 One difference matters when you hand a token to an agent: **a missing scope is not a `403`**. Every tool stays visible in `tools/list` regardless of your scopes, and the call comes back as a tool error carrying `INSUFFICIENT_SCOPE`. An agent will happily try something it cannot do and discover the limit afterwards, so pick the scope set deliberately rather than relying on the agent not to reach for a tool.
 
