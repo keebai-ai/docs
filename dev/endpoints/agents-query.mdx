@@ -1,0 +1,133 @@
+---
+title: "POST /v1/agents/{id}/query"
+sidebarTitle: "POST agents/:id/query"
+description: "Write to the agent as if you were a customer and see what it answers."
+openapi: "POST /v1/agents/{id}/query"
+---
+
+Runs one turn against the agent and returns its reply. Use it to verify a change with the case that motivated it, before calling it done.
+
+**It always runs in test mode, and that is not configurable.** The tools that write — booking, charging, opening a ticket — are simulated and touch nothing real, and the conversation is not kept in the business history. A public endpoint that ran them for real would give any PAT the ability to create appointments and charges on behalf of the business, without the token's scopes having any say: what a tool does is governed by the agent, not by the token.
+
+Real customer conversations go through the channels, not through this.
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/agents/{id}/query
+```
+
+## Required scope
+
+`agents:read`
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | `ObjectId` of the agent. |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `message` | `string` | Yes | What a customer would write. Up to 2000 characters. |
+| `session_id` | `string` | No | To continue a test conversation. Only accepts an id returned by this endpoint; omit it to start a new one. |
+| `channel_type` | `string` | No | Channel to simulate, default `whatsapp`. It changes the length and format of the reply: an email is not written like a WhatsApp. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/query \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "hola, tienen hora para mañana?"}'
+```
+
+```js JavaScript
+const resp = await fetch(
+  "https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/query",
+  {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ message: "hola, tienen hora para mañana?" }),
+  },
+);
+const { reply, session_id } = await resp.json();
+
+// Continue the same test conversation:
+await fetch("https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/query", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ message: "a las 4 me sirve", session_id }),
+});
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/query",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={"message": "hola, tienen hora para mañana?"},
+    timeout=60,
+)
+resp.raise_for_status()
+turn = resp.json()
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "session_id": "public-api-test:6650a1b2c3d4e5f6a7b8c9d0:0f3c...",
+  "status": "completed",
+  "reply": [
+    "hola! si, mañana tengo a las 11:00 y a las 16:30",
+    "cual te acomoda?"
+  ],
+  "tools_called": ["scheduling_get_availability"],
+  "tools_simulated": [],
+  "duration_ms": 2840
+}
+```
+
+### 400 Bad Request
+
+`MESSAGE_REQUIRED` when the message is empty, `MESSAGE_TOO_LONG` over 2000 characters, or `SESSION_NOT_A_TEST_CONVERSATION` when the `session_id` did not come from this endpoint.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `agents:read` scope.
+
+### 404 Not Found
+
+`AGENT_NOT_FOUND`: no agent with that id in the token's company and project.
+
+### 502 Bad Gateway
+
+The agent service is unreachable.
+
+## Operational notes
+
+- **`reply` is a list because that is how the agent talks.** On WhatsApp it answers in several short messages; joining them into one paragraph is not what the customer sees.
+- **`tools_simulated` is the one to read.** Every write tool the agent called appears there — if it is empty, the turn did not try to change anything. A tool in `tools_called` and not in `tools_simulated` ran for real, and only read tools do.
+- **A `session_id` from somewhere else is rejected.** Accepting one would attach the turn to a real customer thread and write into its memory.
+- **This costs model tokens** like any other turn, and takes as long as a real one — a few seconds, sometimes more when the agent calls tools.
+- **It reads the agent as it is saved.** A section you have not saved yet is not part of the test.

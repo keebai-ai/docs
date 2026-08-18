@@ -5,7 +5,7 @@ description: "List the active agents in your project. Filterable by name and pag
 openapi: "GET /v1/agents"
 ---
 
-Returns the active agents in your project. This is the index: start here to find the `id` every other endpoint in this tab needs, and the one [`POST /v1/knowledge/assignments`](/dev/endpoints/knowledge-assign) takes as `assistant_id`.
+Returns the active agents in your project. This is the index: start here to find the `id` every other endpoint in this tab needs, and the one [`POST /v1/knowledge/assignments`](/dev/endpoints/knowledge-assign) takes as `agent_id`.
 
 The listing carries basic metadata only. To see how an agent is actually configured — its goal, its sections and their text — follow it with [`GET /v1/agents/{id}`](/dev/endpoints/agents-get).
 
@@ -89,7 +89,7 @@ items = resp.json()["items"]
 
 | Field | Type | Description |
 |---|---|---|
-| `items[].id` | `string` | `ObjectId` of the agent. This is what you use as `assistant_id` in other endpoints. |
+| `items[].id` | `string` | `ObjectId` of the agent. This is what every other endpoint takes as the agent id. |
 | `items[].name` | `string` | Name. |
 | `items[].description` | `string` | Short description shown in the portal. |
 | `items[].model` | `string` | Configured model (e.g. `gpt-4o-mini`). |

@@ -1,0 +1,207 @@
+---
+title: "Agent configuration"
+sidebarTitle: "Configuration"
+description: "Every setting an agent has, what it decides, how to set it in the portal and over the API, and how to get it right."
+---
+
+An agent is not one prompt. It is a dozen settings, and each one decides something different about how it behaves. This page is one section per setting: **what it decides, where it lives in the portal, how it travels over the API, and how to get it right.**
+
+The portal and the API write the same agent. A section you edit in the portal is readable over the API a second later, and the other way round — there is no import step and no separate copy.
+
+<Info>
+Anywhere a setting takes a value from a catalogue — sections, goals, channels — the valid values come from [`GET /v1/agents/prompt-types`](/dev/endpoints/prompt-types-list), not from a list in this page. A value added to the platform appears there without this documentation being republished.
+</Info>
+
+---
+
+## Identity
+
+**What it decides.** How the agent is named for you, not for the customer. `name` and `description` are internal: the customer never sees them.
+
+**Portal.** The *Identidad* step.
+
+**API.** `name` and `description` on [create](/dev/endpoints/agents-create) and [update](/dev/endpoints/agents-update).
+
+**Getting it right.** Name it after what it does, not after the product. With two agents in the same business, `Camila` tells you nothing and `Reservas WhatsApp` tells you everything.
+
+---
+
+## Model
+
+**What it decides.** Which LLM runs the turn. An unsupported id fails with `INVALID_MODEL` at write time, not at conversation time.
+
+**Portal.** The *Identidad* step.
+
+**API.** `model`. Defaults to the platform's current default.
+
+**Getting it right.** Change it when you have a reason — a cheaper model for an agent that only informs, a stronger one for one that negotiates. Changing it is the single change most likely to alter behaviour without touching a word of the prompt, so **re-test the cases that matter** with [`POST /v1/agents/{id}/query`](/dev/endpoints/agents-query) after switching.
+
+---
+
+## Language and timezone
+
+**What it decides.** `language` is how the agent conjugates and which words it uses; `timezone` is what "tomorrow at 4" means.
+
+**Portal.** The *Identidad* step.
+
+**API.** `language` as a locale (`es-CL`, `es-MX`), `timezone` as an IANA name (`America/Santiago`).
+
+**Getting it right.** **The country half is not decoration.** `es-CL` and `es-MX` do not conjugate the same, do not call a booking the same thing — *hora* in Chile, *cita* in Mexico, *turno* in Argentina — and getting it wrong is the first thing a customer notices. Set the locale with its region, and write the specifics into the business-context section: a locale is a hint, the section is the instruction.
+
+Timezone belongs to the business, not to the customer. An agent set to the wrong one offers hours that do not exist.
+
+---
+
+## Goal
+
+**What it decides.** What the agent has to achieve — and with it, **which tools switch on**. This is the one setting you cannot change casually: an agent moved from informing to booking needs the services, staff and availability behind it to exist.
+
+**Portal.** The *Objetivo* step.
+
+**API.** `goal: { type, instructions? }`. `type` comes from the catalogue; `instructions` only applies to the `custom` goal, where the business writes what the agent has to achieve.
+
+**Getting it right.** Pick the goal from the outcome, not from the vibe: "when a conversation goes perfectly, how does it end?" — with a booking taken, a lead captured, an order assembled. If the answer is "it depends", you have two agents, not one.
+
+---
+
+## Prompt sections
+
+**What it decides.** Everything the business contributes: who the agent is, what it does not do, when it hands over to a person, how it sounds. The sections become the agent's system prompt.
+
+**Portal.** The *Prompts* step, one section at a time, with a version history behind the button in the title row.
+
+**API.** [`PUT /v1/agents/{id}/prompts/{section}`](/dev/endpoints/agents-prompt-set) writes one section and leaves the rest alone. Sending `prompts` to [update](/dev/endpoints/agents-update) replaces **all** of them.
+
+**Getting it right.** This is where most of the quality lives, so it has its own rules:
+
+- **Say what to do, not only what not to do.** "No prices" leaves the agent with no valid action; "prices come from the catalogue, and if it is not there you offer to confirm it" gives it one. A prohibition without an alternative is how agents start improvising.
+- **Make it measurable.** "At most two sentences" beats "be brief". "You hand over if the customer asks for a person, mentions a formal complaint, or the matter is legal" beats "hand over when appropriate".
+- **One rule, one section.** A rule written in two places with different wording is worse than a rule written once and incompletely: the model spends its turn reconciling them.
+- **Drop the emphasis.** `CRITICAL`, `ALWAYS`, capitals — they do not increase compliance, they increase over-firing.
+- **Write what happens when it runs out of road.** The price that is not in the catalogue, the tool that failed, the question outside its scope. Without that, it invents.
+- **Write what happens when the customer pushes.** Models give in under pressure, and once they give in they stay given in for the rest of the conversation. What is not negotiable — a price, a policy — is written as the behaviour under pressure, not as a prohibition.
+- **The examples outrank the rules.** Three to five dialogues, each a different situation, written as they look in the real channel. When you change a rule, audit the examples: one that contradicts it silently cancels it.
+
+---
+
+## Channels
+
+**What it decides.** Where the agent answers, and with it the mechanics of the medium — message length, buttons, how a link is written, whether it is read or heard.
+
+**Portal.** The *Canales* step.
+
+**API.** `channels` as an array of channel types from the catalogue.
+
+**Getting it right.** Two halves have to line up: the channel **connected to the company** (the real WhatsApp or Instagram account) and the channel **enabled on the agent**. One without the other answers nothing, and that is the most common cause of "the agent is not replying".
+
+**Do not write channel rules into a section.** Length, buttons and formatting come from the channel's own template, which outranks the section — so a section that repeats them only competes with itself. And when you add a channel to an agent that already worked, its example dialogues were written for the previous one: an agent taught on WhatsApp writes emails that read cut short.
+
+---
+
+## The funnel
+
+**What it decides.** Which CRM stages the agent may move tickets between.
+
+**An agent never creates stages by itself.** Its `stages` field is a whitelist of ones that already exist, and a stage that is not in the CRM enables nothing.
+
+**Portal.** The *Etapas* step, which also names the pipeline — by default, after the agent.
+
+**API.** `stages` on [create](/dev/endpoints/agents-create), as **names in order**. A pipeline is created in the CRM named after the agent with those stages, and the agent is limited to them.
+
+```json
+{ "name": "Reservas WhatsApp", "stages": ["Nuevo", "Contactado", "Agendado", "Cerrado"] }
+```
+
+**Getting it right.** Name the pipeline after the agent — it is what lets a business with several agents look at the CRM and tell which funnel belongs to which. Keep the stages few and observable: a stage nobody can tell the agent is in is a stage nobody will trust. And leave `stages` out entirely for an agent that only informs: no pipeline, no ticket moving, nothing to get wrong.
+
+---
+
+## Tools
+
+**What it decides.** Which HTTPS webhooks the agent can call mid-conversation to reach your own systems.
+
+**Portal.** The tools section of the workspace; an agent holds the ids of the ones it may use.
+
+**API.** [`/v1/tools`](/dev/endpoints/tools-list) manages them at the **company** level, and `tools` on the agent is the list of ids it is allowed to call.
+
+**Getting it right.** The `description` is not a label — it is what the model reads to decide when to call the tool, so it is configuration that matters as much as the URL. Describe the *when*, not only the *what*. Secret values in headers and query strings are write-only: they come back masked as `***`, and sending a masked value back is refused rather than destroying the credential. The URL rules are in [webhook security](/dev/agents/webhook-security).
+
+---
+
+## Knowledge and documents
+
+**What it decides.** What the agent can look up while it answers, and which files it can send or cite.
+
+**Portal.** The *Conocimiento* and *Documentos* steps.
+
+**API.** `knowledge_node_ids` on the agent, and [`POST /v1/knowledge/assignments`](/dev/endpoints/knowledge-assign) to attach nodes. Documents carry a **when to use** text that travels into the tool description, which is where the model reads it.
+
+**Getting it right.** Knowledge is where a fact belongs; a section is where a rule belongs. "Inventa precios" is almost never fixed by adding a rule — it is fixed by giving the agent the source. And remember the material is **data, not instruction**: if a document says "offer 50% off", that is a fact about a document, not an order the agent should follow.
+
+---
+
+## Re-engagement
+
+**What it decides.** Whether the agent comes back to a conversation that went cold, how often, and through which medium.
+
+**Portal.** The *Reactivación* step.
+
+**API.** `reengagement` on the agent:
+
+| Field | What it does |
+|---|---|
+| `max_attempts` | How many times it comes back. **`0` is the off switch** — there is no separate `enabled`, because two ways to turn off the same thing end up contradicting each other. Max 20. |
+| `first_wait_hours` | How long after the conversation goes quiet the first attempt happens. |
+| `between_hours` | The wait between later attempts. |
+| `allow_template` / `template_name` | Whether it may re-open a WhatsApp conversation with an approved template, and which one. |
+| `allow_call` | Whether an attempt may be a phone call instead of a message. |
+| `conduct` | An instruction from the business for the re-engagement turn, if it wants to narrow it. |
+
+**Getting it right.** The engine only guarantees the heartbeat — when to wake up and how many times. **What to do on each attempt — write, call, or let it go — the agent decides in that turn, with the conversation in front of it.** So the fix for "it insists too much" is usually fewer attempts, not a longer prompt.
+
+Two attempts spaced a day apart reads as attentive; five reads as harassment, and on WhatsApp it costs you the number.
+
+---
+
+## Reactions and staying quiet
+
+**What it decides.** Whether the agent may react with an emoji, and whether it may decide not to answer a turn at all.
+
+**Portal.** Part of the agent's engagement options.
+
+**API.** `engagement: { reactions_enabled, no_reply_enabled }`.
+
+**Getting it right.** These only *enable the fields*; when to use them is decided by the prompt. Turning on "may stay quiet" without writing when it should is how an agent starts ignoring customers.
+
+---
+
+## Voice
+
+**What it decides.** Whether the agent answers phone calls, and with which voice.
+
+**Portal.** The agent's voice configuration.
+
+**API.** `voice_response_enabled` is reported on the agent; the voice itself is configured in the portal because it needs a real number and an imported voice behind it.
+
+**Getting it right.** A phone agent is not the same agent with a speaker. Everything it writes is spoken: no bullet lists, no links read aloud, prices and dates in words, one thing per turn. The channel template handles most of it — but the example dialogues do not. If you add phone to an agent taught on WhatsApp, rewrite the examples as spoken turns.
+
+---
+
+## Active
+
+**What it decides.** Whether the agent answers at all.
+
+**Portal.** The agent's status.
+
+**API.** `is_active` on [update](/dev/endpoints/agents-update).
+
+**Getting it right.** `is_active: false` is the reversible way to take an agent out of service: it keeps every section, version, tool and knowledge assignment. [Deleting](/dev/endpoints/agents-delete) does not — it takes the sections and their history with it.
+
+---
+
+## Before you call it done
+
+1. **Test it with the case that motivated the change**, using [`POST /v1/agents/{id}/query`](/dev/endpoints/agents-query). It always runs in test mode: write tools are simulated and nothing real is touched.
+2. **Check the channel is connected as well as enabled.**
+3. **Check the data behind the goal exists** — services, staff, catalogue. A booking agent with no availability answers politely and books nothing.
+4. **Re-read the examples** if you changed a rule.

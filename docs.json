@@ -569,7 +569,8 @@
           {
             "group": "Get started",
             "pages": [
-              "dev/agents/overview"
+              "dev/agents/overview",
+              "dev/agents/configuration"
             ]
           },
           {
@@ -579,7 +580,8 @@
               "dev/endpoints/agents-get",
               "dev/endpoints/agents-create",
               "dev/endpoints/agents-update",
-              "dev/endpoints/agents-delete"
+              "dev/endpoints/agents-delete",
+              "dev/endpoints/agents-query"
             ]
           },
           {

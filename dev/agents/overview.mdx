@@ -72,6 +72,28 @@ Every save that changes the text leaves a version behind. Saving identical text 
 - [Read one version](/dev/endpoints/agents-prompt-version-get) to diff it against the current text.
 - [Restore one](/dev/endpoints/agents-prompt-version-restore) — which **writes a new version** copying the old one and records `restored_from`, so a rollback is itself reversible.
 
+## The funnel
+
+An agent moves tickets between the stages of a CRM pipeline — but **it never creates stages by itself**: its `stages` field is a whitelist of ones that already exist, and a stage that is not in the CRM enables nothing.
+
+That is why [creating an agent](/dev/endpoints/agents-create) accepts `stages` as **names, in order**:
+
+```json
+{ "name": "Camila", "stages": ["Nuevo", "Contactado", "Agendado", "Cerrado"] }
+```
+
+A pipeline is created in the CRM **named after the agent** with those stages, and the agent is allowed to move tickets only between them. Naming it after the agent is what lets a business with several agents look at the CRM and tell which funnel belongs to which.
+
+Leave `stages` out and no pipeline is created and the agent does not move tickets — which is the right answer for one that only informs.
+
+## Testing an agent
+
+[`POST /v1/agents/{id}/query`](/dev/endpoints/agents-query) writes to the agent as if you were a customer and returns what it answers.
+
+It **always runs in test mode**, and that is not configurable. The tools that write — booking, charging, opening a ticket — are simulated, and the response tells you which ones were called and which were simulated. A public endpoint that ran them for real would give any PAT the ability to create appointments and charges on behalf of the business, without the token's scopes having any say: what a tool does is governed by the agent, not by the token.
+
+Real customer conversations go through the channels, not through this.
+
 ## Tools
 
 A tool is an HTTPS webhook with a name, a description and typed parameters. The description is what the model reads to decide when to call it, so it is configuration that matters, not a label.
@@ -95,4 +117,4 @@ Three differences that change how you integrate, not just what you call:
 - **There is no attach and detach.** Writing a section creates it; deleting it removes it.
 - **Content and metadata are no longer separate calls.** Reading the agent gives you the text.
 
-The `/v1/assistants` alias of `/v1/agents` still works, and `agents-list`, `agents-get`, `agents-create`, `agents-update` and `agents-delete` keep their URLs even though their shape changed.
+There is no `assistants` surface any more. The `/v1/assistants` alias is gone, responses carry `agent` and nothing else, and the not-found code is `AGENT_NOT_FOUND`. `agents-list`, `agents-get`, `agents-create`, `agents-update` and `agents-delete` keep their URLs even though their shape changed.
