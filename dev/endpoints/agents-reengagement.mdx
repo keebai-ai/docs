@@ -1,0 +1,68 @@
+---
+title: "PUT /v1/agents/{id}/reengagement"
+sidebarTitle: "PUT agents/:id/reengagement"
+description: "How often the agent comes back to a conversation that went cold."
+openapi: "PUT /v1/agents/{id}/reengagement"
+---
+
+Configures whether the agent returns to a conversation that went quiet, how often, and through which medium.
+
+**The engine only guarantees the heartbeat** — when to wake up and how many times. *What* to do on each attempt — write, call, or let it go — is decided by the agent in that turn, with the conversation in front of it. So the fix for "it insists too much" is fewer attempts, not a longer prompt.
+
+## Endpoint
+
+```
+PUT https://api.keebai.com/v1/agents/{id}/reengagement
+```
+
+## Required scope
+
+`agents:write`
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `max_attempts` | `number` | Yes | How many times it comes back, 0–20. **`0` is the off switch** — there is no separate `enabled`, because two ways to turn off the same thing end up contradicting each other. |
+| `first_wait_hours` | `number` | No | Hours from the conversation going quiet to the first attempt. |
+| `between_hours` | `number` | No | Hours between later attempts. |
+| `allow_template` | `boolean` | No | Whether it may reopen a WhatsApp conversation with an approved template. |
+| `template_name` | `string` | No | Which approved template to use. |
+| `template_language` | `string` | No | Its language, for example `es`. |
+| `allow_call` | `boolean` | No | Whether an attempt may be a phone call instead of a message. |
+| `conduct` | `string` | No | An instruction from the business to frame the re-engagement turn. |
+
+## Example request
+
+```bash curl
+curl -X PUT https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/reengagement \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "max_attempts": 2,
+    "first_wait_hours": 3,
+    "between_hours": 24,
+    "allow_template": true,
+    "template_name": "seguimiento_reserva"
+  }'
+```
+
+## Response
+
+### 200 OK
+
+The whole agent, with its re-engagement in place.
+
+### 400 Bad Request
+
+`max_attempts` outside 0–20, or a waiting time outside its range.
+
+### 404 Not Found
+
+No agent with that id in the token's company and project.
+
+## Operational notes
+
+- **`max_attempts: 0` turns it off** and keeps the rest of the configuration, so you can switch it back on without retyping the cadence.
+- **Two attempts spaced a day apart read as attentive; five read as harassment**, and on WhatsApp it costs you the number.
+- **Reopening a WhatsApp conversation outside its window needs an approved template.** Without `allow_template` and a real `template_name`, an attempt on a cold WhatsApp thread has no way to land.

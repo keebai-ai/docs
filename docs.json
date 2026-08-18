@@ -556,7 +556,9 @@
               "dev/endpoints/agents-create",
               "dev/endpoints/agents-update",
               "dev/endpoints/agents-delete",
-              "dev/endpoints/agents-query"
+              "dev/endpoints/agents-query",
+              "dev/endpoints/agents-attach",
+              "dev/endpoints/agents-reengagement"
             ]
           },
           {

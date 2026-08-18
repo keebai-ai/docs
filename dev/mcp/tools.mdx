@@ -180,7 +180,7 @@ Points, stamps, and wallet cards. See the [loyalty overview](/dev/loyalty/overvi
 
 ## Agents
 
-Read and write the configuration of the agents themselves: their goal, the [sections of their prompt](/dev/agents/configuration), the funnel, and the webhook tools they can call. Seventeen tools, all on `agents:read` or `agents:write`.
+Read and write the configuration of the agents themselves: their goal, the [sections of their prompt](/dev/agents/configuration), the funnel, and the webhook tools they can call. Twenty-four tools, all on `agents:read` or `agents:write`.
 
 | Tool | Scope | What it does |
 |---|---|---|
@@ -202,6 +202,13 @@ Read and write the configuration of the agents themselves: their goal, the [sect
 | ⚠️ `keebai_agent_tool_create` | `agents:write` | Create a webhook the agent can call. The URL must be a public https host. |
 | ⚠️ `keebai_agent_tool_update` | `agents:write` | Partial update. Omitting headers keeps the stored ones; never echo back a `***`. |
 | 🔴 `keebai_agent_tool_delete` | `agents:write` | Delete permanently. Fails while an agent still holds it. |
+| `keebai_agent_tool_attach` | `agents:write` | Give one tool to an agent without resending the list. Idempotent. |
+| `keebai_agent_tool_detach` | `agents:write` | Take one tool off an agent. It still exists in the company. |
+| `keebai_agent_knowledge_attach` | `agents:write` | Give one knowledge node to an agent. Idempotent. |
+| `keebai_agent_knowledge_detach` | `agents:write` | Take one knowledge node off an agent. |
+| `keebai_agent_channel_attach` | `agents:write` | Enable one channel. Only half of it: the account must be connected too. |
+| `keebai_agent_channel_detach` | `agents:write` | Disable one channel. It stops answering there. |
+| `keebai_agent_reengagement_set` | `agents:write` | How often it comes back to a cold conversation. `max_attempts: 0` turns it off. |
 
 <Warning>
   **Writing here changes what your bots say to customers.** An agent with `agents:write` can rewrite any prompt section and create webhook tools that make Keebai's infrastructure call an external host — the URL is validated against loopback, private ranges and internal names, but a public host of the agent's choosing is allowed. Treat it as a higher-privilege scope than the read side, and read [webhook security](/dev/agents/webhook-security) before handing it out.

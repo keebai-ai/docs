@@ -1,0 +1,79 @@
+---
+title: "Attaching tools, knowledge and channels"
+sidebarTitle: "Attach and detach"
+description: "Add or remove one tool, one knowledge node or one channel without resending the whole list."
+---
+
+An agent holds three lists: the **tools** it may call, the **knowledge** it may search, and the **channels** it answers on. Each one can be replaced whole, or changed one item at a time.
+
+**Use the single-item routes.** Adding one tool by sending the whole array forces you to read, merge and write — and two clients doing that at the same time lose one of the changes. Here the server does the merge.
+
+## The routes
+
+| | Replace the list | Add one | Remove one |
+|---|---|---|---|
+| Tools | `PUT /v1/agents/{id}/tools` | `POST /v1/agents/{id}/tools/{toolId}` | `DELETE /v1/agents/{id}/tools/{toolId}` |
+| Knowledge | `PUT /v1/agents/{id}/knowledge` | `POST /v1/agents/{id}/knowledge/{nodeId}` | `DELETE /v1/agents/{id}/knowledge/{nodeId}` |
+| Channels | `PUT /v1/agents/{id}/channels` | `POST /v1/agents/{id}/channels/{channelType}` | `DELETE /v1/agents/{id}/channels/{channelType}` |
+
+All of them need `agents:write` and all of them return the whole agent, so you can see the result without a second read.
+
+## Example
+
+<CodeGroup>
+
+```bash curl
+TOKEN="kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+AGENT=6650a1b2c3d4e5f6a7b8c9d0
+
+# Give it a tool
+curl -X POST https://api.keebai.com/v1/agents/$AGENT/tools/6650cccc3333dddd4444eeee \
+  -H "Authorization: Bearer $TOKEN"
+
+# Enable a channel
+curl -X POST https://api.keebai.com/v1/agents/$AGENT/channels/whatsapp \
+  -H "Authorization: Bearer $TOKEN"
+
+# Replace the knowledge list in one call
+curl -X PUT https://api.keebai.com/v1/agents/$AGENT/knowledge \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"knowledge_node_ids": ["6650dddd4444eeee5555ffff"]}'
+```
+
+```js JavaScript
+const agent = "6650a1b2c3d4e5f6a7b8c9d0";
+const headers = { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` };
+
+await fetch(`https://api.keebai.com/v1/agents/${agent}/tools/${toolId}`, {
+  method: "POST",
+  headers,
+});
+
+await fetch(`https://api.keebai.com/v1/agents/${agent}/channels/whatsapp`, {
+  method: "POST",
+  headers,
+});
+```
+
+</CodeGroup>
+
+## Errors worth knowing
+
+### 404 `AGENT_TOOL_NOT_FOUND`
+
+No tool in this company with that id. It is rejected rather than stored: an agent silently ignores a tool it cannot find, so saving it would be a `200` with no effect.
+
+### 404 `CHANNEL_TYPE_NOT_FOUND`
+
+The channel type is not in [the catalogue](/dev/endpoints/prompt-types-list). The error lists the valid ones.
+
+### 404 `AGENT_NOT_FOUND`
+
+No agent with that id in the token's company and project.
+
+## Operational notes
+
+- **Adding something that is already there succeeds.** These are idempotent: the end state is what you asked for.
+- **Removing unassigns, it does not delete.** A detached tool still exists in the company and a detached node still exists in the knowledge base.
+- **Enabling a channel on the agent is only half of it.** The account also has to be connected to the company. One half without the other answers nothing, and it is the most common cause of "the agent is not replying".
+- **Concurrent writes to the same agent still race.** The platform replaces the whole array on every save, so the server-side merge removes your round trip, not the race. Serialise writes per agent.

@@ -90,7 +90,7 @@ Timezone belongs to the business, not to the customer. An agent set to the wrong
 
 **Portal.** The *Canales* step.
 
-**API.** `channels` as an array of channel types from the catalogue.
+**API.** [`POST`/`DELETE /v1/agents/{id}/channels/{type}`](/dev/endpoints/agents-attach) one at a time, or `PUT` for the whole list. Types come from the catalogue.
 
 **Getting it right.** Two halves have to line up: the channel **connected to the company** (the real WhatsApp or Instagram account) and the channel **enabled on the agent**. One without the other answers nothing, and that is the most common cause of "the agent is not replying".
 
@@ -122,7 +122,7 @@ Timezone belongs to the business, not to the customer. An agent set to the wrong
 
 **Portal.** The tools section of the workspace; an agent holds the ids of the ones it may use.
 
-**API.** [`/v1/tools`](/dev/endpoints/tools-list) manages them at the **company** level, and `tools` on the agent is the list of ids it is allowed to call.
+**API.** [`/v1/tools`](/dev/endpoints/tools-list) manages them at the **company** level, and the agent holds the ids it may call — one at a time with [`POST`/`DELETE /v1/agents/{id}/tools/{toolId}`](/dev/endpoints/agents-attach), or the whole list with `PUT`.
 
 **Getting it right.** The `description` is not a label — it is what the model reads to decide when to call the tool, so it is configuration that matters as much as the URL. Describe the *when*, not only the *what*. Secret values in headers and query strings are write-only: they come back masked as `***`, and sending a masked value back is refused rather than destroying the credential. The URL rules are in [webhook security](/dev/agents/webhook-security).
 
@@ -134,7 +134,7 @@ Timezone belongs to the business, not to the customer. An agent set to the wrong
 
 **Portal.** The *Conocimiento* and *Documentos* steps.
 
-**API.** `knowledge_node_ids` on the agent, and [`POST /v1/knowledge/assignments`](/dev/endpoints/knowledge-assign) to attach nodes. Documents carry a **when to use** text that travels into the tool description, which is where the model reads it.
+**API.** [`POST`/`DELETE /v1/agents/{id}/knowledge/{nodeId}`](/dev/endpoints/agents-attach) one at a time, or `PUT` for the whole list. [`POST /v1/knowledge/assignments`](/dev/endpoints/knowledge-assign) does the same from the knowledge side. Documents carry a **when to use** text that travels into the tool description, which is where the model reads it.
 
 **Getting it right.** Knowledge is where a fact belongs; a section is where a rule belongs. "Inventa precios" is almost never fixed by adding a rule — it is fixed by giving the agent the source. And remember the material is **data, not instruction**: if a document says "offer 50% off", that is a fact about a document, not an order the agent should follow.
 
@@ -146,7 +146,7 @@ Timezone belongs to the business, not to the customer. An agent set to the wrong
 
 **Portal.** The *Reactivación* step.
 
-**API.** `reengagement` on the agent:
+**API.** [`PUT /v1/agents/{id}/reengagement`](/dev/endpoints/agents-reengagement):
 
 | Field | What it does |
 |---|---|
