@@ -1,7 +1,7 @@
 ---
 title: "Tool catalogue"
 sidebarTitle: "Tools"
-description: "All 104 MCP tools, grouped by domain, with the scope each one requires."
+description: "All 117 MCP tools, grouped by domain, with the scope each one requires."
 ---
 
 Every tool below is exposed by [`POST /v1/mcp`](/dev/mcp/overview) and delegates to the same service as its REST counterpart, so the behaviour, validation, and tenancy rules documented across these pages apply unchanged.
@@ -178,6 +178,34 @@ Points, stamps, and wallet cards. See the [loyalty overview](/dev/loyalty/overvi
   Neither is destructive, so neither carries the 🔴 marker, but hand `loyalty:write` to an agent with the same care you would give `messages:send`.
 </Warning>
 
+## Scheduling
+
+Branches, services, professionals, availability, and appointments. See the [scheduling overview](/dev/scheduling/overview) for the booking model — in particular that an appointment lands in `pending`, and that reading a slot does not hold it.
+
+| Tool | Scope | What it does |
+|---|---|---|
+| `keebai_scheduling_branches_list` | `scheduling:branches:read` | List the active branches, each with its timezone. Start here for the branch id. |
+| `keebai_scheduling_branch_get` | `scheduling:branches:read` | One branch with its address, contact details, and timezone. |
+| `keebai_scheduling_services_list` | `scheduling:services:read` | List services with duration and price, filtered by branch, status, or name. Every availability query needs a service id from here. |
+| `keebai_scheduling_service_get` | `scheduling:services:read` | One service with its duration, slot interval, price, and branches. |
+| `keebai_scheduling_professionals_list` | `scheduling:professionals:read` | List professionals, filtered by branch, service, status, or name. |
+| `keebai_scheduling_professional_get` | `scheduling:professionals:read` | One professional with specialties and branches. |
+| `keebai_scheduling_availability_by_date` | `scheduling:availability:read` | Free slots for a service on one day, grouped by professional. |
+| `keebai_scheduling_availability_range` | `scheduling:availability:read` | Free slots day by day between `from` and `to`, at most 14 days. |
+| `keebai_scheduling_availability_next` | `scheduling:availability:read` | The soonest free slots for a service, up to `limit` per professional. |
+| `keebai_scheduling_appointment_get` | `scheduling:appointments:read` | One appointment by id. |
+| ⚠️ `keebai_scheduling_appointment_create` | `scheduling:appointments:create` | Book a slot with the customer embedded. Lands in `pending`, and already occupies the slot. |
+| ⚠️ `keebai_scheduling_appointment_confirm` | `scheduling:appointments:confirm` | Move a `pending` appointment to `confirmed`. Any other state fails. |
+| ⚠️ `keebai_scheduling_appointment_cancel` | `scheduling:appointments:cancel` | Cancel and release the slot, with an optional reason. |
+
+Arguments keep the REST names: the availability and list tools take `serviceId`, `branchId`, and `professionalId` like the query strings they mirror, while `keebai_scheduling_appointment_create` takes `branch_id`, `service_id`, and `start_time` like the request body. Dates are `YYYY-MM-DD` and times `HH:mm`, both in the branch's timezone. The appointment id is a UUID, not an ObjectId.
+
+<Warning>
+  Tools marked ⚠️ reach the customer. Creating, confirming, or cancelling fires the [scheduling webhooks](/dev/webhooks/events#scheduling), the CRM event on the contact's timeline, and the reminder and confirmation notifications the account has configured.
+
+  A slot read from availability is a snapshot, not a hold. When `keebai_scheduling_appointment_create` fails because the slot was taken, the agent should query availability again and offer the new options rather than retry the same time. An appointment left in `pending` holds its slot until someone cancels it; nothing expires it.
+</Warning>
+
 ## Agents
 
 Read and write the configuration of the agents themselves: their goal, the [sections of their prompt](/dev/agents/configuration), the funnel, and the webhook tools they can call. Twenty-five tools, all on `agents:read` or `agents:write`.
@@ -220,7 +248,7 @@ Read and write the configuration of the agents themselves: their goal, the [sect
 
 ## Not exposed as tools
 
-Scheduling, templates, channels, webhooks, tenants, and setup links have no MCP tools yet. Use the [REST API](/dev/overview) for those.
+Templates, channels, webhooks, tenants, and setup links have no MCP tools yet. Use the [REST API](/dev/overview) for those.
 
 [CRM events](/dev/crm/events) are not tools either, and that one is on purpose rather than pending. Emitting an event is a system-of-record write from a system that *knows* something happened — an order closed, a delivery completed. A model deciding to emit one is a model asserting a fact it cannot verify. Call [`POST /v1/webhook/events`](/dev/endpoints/crm-events-emit) from the system that owns the fact.
 
