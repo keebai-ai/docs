@@ -1,0 +1,142 @@
+---
+title: "GET /v1/ecommerce/stock-movements"
+sidebarTitle: "GET ecommerce/stock-movements"
+description: "List stock movements — sales, cancellations, adjustments, purchases, imports, syncs, and transfers — filtered by date, type, and branch."
+openapi: "GET /v1/ecommerce/stock-movements"
+---
+
+Returns the paginated history of stock movements. Every change to stock leaves one: a sale, a cancelled sale, a manual adjustment, a transfer between branches, an import, or a sync from a connected store.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/ecommerce/stock-movements
+```
+
+## Required scope
+
+`ecommerce:stock:read`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+
+## Query parameters
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `from` | `string` | No | Start date, `YYYY-MM-DD`. Send it together with `to`. |
+| `to` | `string` | No | End date, `YYYY-MM-DD`. Send it together with `from`. |
+| `types` | `string` | No | Comma-separated list of movement types. See below. |
+| `branch_id` | `string` | No | Only movements of this branch. |
+| `search` | `string` | No | Free-text search. |
+| `limit` | `integer` | No | Page size, `1`–`200`. Defaults to 50. |
+| `offset` | `integer` | No | Records to skip. Defaults to 0. |
+
+### Movement types
+
+| `type` | What moved the stock |
+|---|---|
+| `sale` | A sale. |
+| `sale_cancel` | A cancelled sale giving the stock back. |
+| `adjustment` | A manual adjustment, such as [`POST .../stock/adjust`](/dev/endpoints/ecommerce-stock-adjust). |
+| `set` | Stock set to a fixed value. |
+| `purchase` | A purchase. |
+| `import` | An import. |
+| `sync` | A sync from a connected store. |
+| `transfer` | A transfer between the warehouse and branches, such as [`POST .../stock/transfer`](/dev/endpoints/ecommerce-stock-transfer). |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -G https://api.keebai.com/v1/ecommerce/stock-movements \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  --data-urlencode "from=2026-11-01" \
+  --data-urlencode "to=2026-11-04" \
+  --data-urlencode "types=adjustment,transfer" \
+  --data-urlencode "limit=50"
+```
+
+```js JavaScript
+const params = new URLSearchParams({
+  from: "2026-11-01",
+  to: "2026-11-04",
+  types: "adjustment,transfer",
+  limit: "50",
+});
+
+const response = await fetch(
+  `https://api.keebai.com/v1/ecommerce/stock-movements?${params}`,
+  { headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` } },
+);
+const { items, total } = await response.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.get(
+    "https://api.keebai.com/v1/ecommerce/stock-movements",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    params={"from": "2026-11-01", "to": "2026-11-04", "types": "adjustment,transfer", "limit": 50},
+    timeout=10,
+)
+resp.raise_for_status()
+movements = resp.json()["items"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "items": [
+    {
+      "variant_id": "65d3e4f5a6b7c8d9e0f1a2c1",
+      "variant_name": "42 / Negro",
+      "type": "transfer",
+      "quantity": 3,
+      "stock_after": 12,
+      "from_branch_id": "br_01",
+      "to_branch_id": "br_02",
+      "note": "Reposición fin de semana",
+      "created_at": "2026-11-03T18:22:10.402Z"
+    }
+  ],
+  "total": 1,
+  "limit": 50,
+  "offset": 0
+}
+```
+
+Each item is one movement. `type` is one of the values above, `quantity` is how much moved, and `stock_after` is the master stock left after it.
+
+### 400 Bad Request
+
+A date not in `YYYY-MM-DD`, an unknown value in `types`, `limit` outside `1`–`200`, or a negative `offset`.
+
+`DATE_RANGE_INCOMPLETE` — only one of `from` and `to` was sent. They go together.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `ecommerce:stock:read` scope.
+
+### 502 Bad Gateway
+
+`ECOMMERCE_UPSTREAM_ERROR` — the ecommerce service could not answer.
+
+## Operational notes
+
+- **This is the audit trail of stock.** To explain why a number changed, read the movements of that product instead of comparing two snapshots.
+- **A transfer does not change the total.** It moves stock between the warehouse and branches; the master stock of the product stays the same.

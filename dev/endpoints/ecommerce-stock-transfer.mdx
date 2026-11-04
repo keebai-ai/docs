@@ -1,0 +1,161 @@
+---
+title: "POST /v1/ecommerce/products/:id/stock/transfer"
+sidebarTitle: "POST ecommerce/.../stock/transfer"
+description: "Move stock of a product or variant between the warehouse and branches. The total does not change."
+openapi: "POST /v1/ecommerce/products/{id}/stock/transfer"
+---
+
+Moves units from one place to another. Without `from_branch_id` they leave the warehouse; without `to_branch_id` they go back to the warehouse. Between two branches, pass both.
+
+The master total stays the same: only where the units sit changes. The move leaves a `transfer` entry in [the stock movements](/dev/endpoints/ecommerce-stock-movements).
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/ecommerce/products/{id}/stock/transfer
+```
+
+## Required scope
+
+`ecommerce:stock:write`
+
+<Note>
+  **The scope comes from your role.** Minting a token with `ecommerce:stock:write` requires the permission to adjust and transfer stock in your Keebai role, unless you are the company owner or a superuser. See [scopes](/dev/scopes#scopes-are-independent-from-role-permissions).
+</Note>
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Path parameters
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `id` | `string` | Yes | `ObjectId` of the product. |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `quantity` | `integer` | Yes | Units to move. At least `1`. |
+| `variant_id` | `string` | Conditional | `ObjectId` of the variant. Required on products with variants. |
+| `from_branch_id` | `string` | No | Origin branch. Without it, the units leave the warehouse. |
+| `to_branch_id` | `string` | No | Destination branch. Without it, the units go back to the warehouse. |
+| `note` | `string` | No | Reason for the transfer, kept on the movement. |
+
+### Where the units go
+
+| `from_branch_id` | `to_branch_id` | Move |
+|---|---|---|
+| — | Set | Warehouse → branch. |
+| Set | — | Branch → warehouse. |
+| Set | Set | Branch → branch. Must be different branches. |
+| — | — | Fails with `TRANSFER_BRANCH_REQUIRED`. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/ecommerce/products/65d3e4f5a6b7c8d9e0f1a2b3/stock/transfer \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "quantity": 3,
+    "variant_id": "65d3e4f5a6b7c8d9e0f1a2c1",
+    "from_branch_id": "br_01",
+    "to_branch_id": "br_02",
+    "note": "Reposición fin de semana"
+  }'
+```
+
+```js JavaScript
+const response = await fetch(
+  `https://api.keebai.com/v1/ecommerce/products/${productId}/stock/transfer`,
+  {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ quantity: 5, variant_id: variantId, to_branch_id: "br_01" }),
+  },
+);
+const stock = await response.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    f"https://api.keebai.com/v1/ecommerce/products/{product_id}/stock/transfer",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={"quantity": 5, "variant_id": variant_id, "to_branch_id": "br_01"},
+    timeout=10,
+)
+resp.raise_for_status()
+stock = resp.json()
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+The product's stock after the transfer, in the same shape as [`GET /v1/ecommerce/products/{id}/stock`](/dev/endpoints/ecommerce-product-stock).
+
+```json
+{
+  "product_id": "65d3e4f5a6b7c8d9e0f1a2b3",
+  "variants": [
+    {
+      "variant_id": "65d3e4f5a6b7c8d9e0f1a2c1",
+      "name": "42 / Negro",
+      "total": 12,
+      "allocated": 8,
+      "warehouse_available": 4,
+      "branches": [
+        { "branch_id": "br_01", "quantity": 2 },
+        { "branch_id": "br_02", "quantity": 6 }
+      ]
+    }
+  ]
+}
+```
+
+### 400 Bad Request
+
+The body does not match the schema — for example `quantity` below `1` — or one of these:
+
+| `code` | Meaning |
+|---|---|
+| `TRANSFER_BRANCH_REQUIRED` | Neither `from_branch_id` nor `to_branch_id` was sent. |
+| `TRANSFER_SAME_BRANCH` | Origin and destination are the same branch. |
+| `STOCK_INSUFFICIENT_IN_WAREHOUSE` | The warehouse does not have that many units to send. |
+| `STOCK_INSUFFICIENT_IN_BRANCH` | The origin branch does not have that many units to send. |
+| `VARIANT_REQUIRED` | The product has variants and no `variant_id` was sent. |
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `ecommerce:stock:write` scope.
+
+### 404 Not Found
+
+No product with that id, or it belongs to a different company.
+
+### 502 Bad Gateway
+
+`ECOMMERCE_UPSTREAM_ERROR` — the ecommerce service could not answer.
+
+## Operational notes
+
+- **The total never changes.** A transfer only moves units between the warehouse and branches. To add or remove stock, [adjust it](/dev/endpoints/ecommerce-stock-adjust).
+- **This call is not idempotent.** Retrying after a timeout moves the units twice. Check [the stock movements](/dev/endpoints/ecommerce-stock-movements) before retrying.

@@ -1,12 +1,12 @@
 ---
 title: "Ecommerce overview"
 sidebarTitle: "Overview"
-description: "Read your catalog, carts, and sales — the data behind what the agent sells, and the events that fire when it does."
+description: "Read your catalog, carts, and sales, manage stock, record sales from your point of sale, and issue their electronic tax documents."
 ---
 
-The ecommerce surface is read-only. It exposes what Keebai knows about your **catalog**, the **carts** your customers built (including the ones they abandoned), and the **sales** that closed — everything under the `/v1/ecommerce` prefix, authenticated with a [PAT](/dev/api-keys) and gated by [scope](/dev/scopes).
+The ecommerce surface exposes what Keebai knows about your **catalog**, the **carts** your customers built (including the ones they abandoned), and the **sales** that closed. On top of that, it lets your own point of sale or ERP manage **stock**, **record sales**, and issue their **electronic tax documents** (DTE) — everything under the `/v1/ecommerce` prefix, authenticated with a [PAT](/dev/api-keys) and gated by [scope](/dev/scopes).
 
-Writes stay in the portal and in the integrations. If you need to create a sale or push a product from your own system, that goes through the platform integration, not this API.
+Products and carts stay read-only: creating or editing a product goes through the portal or the platform integration, not this API.
 
 ## Data model
 
@@ -19,6 +19,12 @@ Writes stay in the portal and in the integrations. If you need to create a sale 
   </Card>
   <Card title="Sales" icon="receipt" href="/dev/endpoints/ecommerce-sales-list">
     Closed transactions with their line items, amount breakdown, and payment state.
+  </Card>
+  <Card title="Inventory" icon="boxes-stacked" href="/dev/endpoints/ecommerce-product-stock">
+    Stock per variant, split between the warehouse and branches, with adjustments, transfers, and the movement history.
+  </Card>
+  <Card title="Electronic invoicing" icon="file-invoice" href="/dev/endpoints/ecommerce-sale-dte-issue">
+    Boletas and facturas for your sales, with their folio, status, and PDF.
   </Card>
   <Card title="Sale events" icon="bell" href="/dev/webhooks/events#ecommerce">
     Three webhooks fire as a sale is created, paid, and cancelled.
@@ -34,8 +40,17 @@ A cart is **not** the draft of a sale. They are separate records with no foreign
 | `ecommerce:products:read` | [List](/dev/endpoints/ecommerce-products-list) and [read](/dev/endpoints/ecommerce-product-get) the catalog. |
 | `ecommerce:carts:read` | [List](/dev/endpoints/ecommerce-carts-list) and [read](/dev/endpoints/ecommerce-cart-get) carts, including abandoned ones. |
 | `ecommerce:sales:read` | [List](/dev/endpoints/ecommerce-sales-list) and [read](/dev/endpoints/ecommerce-sale-get) sales. |
+| `ecommerce:sales:write` | [Create sales](/dev/endpoints/ecommerce-sales-create) and internal consumptions. |
+| `ecommerce:stock:read` | [Read stock](/dev/endpoints/ecommerce-product-stock) and [stock movements](/dev/endpoints/ecommerce-stock-movements). |
+| `ecommerce:stock:write` | [Adjust](/dev/endpoints/ecommerce-stock-adjust) and [transfer](/dev/endpoints/ecommerce-stock-transfer) stock. |
+| `ecommerce:invoicing:read` | [Read the issuable DTE types](/dev/endpoints/ecommerce-invoicing-types), [a sale's documents](/dev/endpoints/ecommerce-sale-documents), and [their PDF](/dev/endpoints/ecommerce-invoicing-document-pdf). |
+| `ecommerce:invoicing:issue` | [Issue a sale's DTE](/dev/endpoints/ecommerce-sale-dte-issue). |
 
-The three are separate because they leak different things. Carts and sales carry customer contact details and money; the catalog carries neither. A pricing widget on your website needs `ecommerce:products:read` and nothing else.
+The read scopes are separate because they leak different things. Carts and sales carry customer contact details and money; the catalog carries neither. A pricing widget on your website needs `ecommerce:products:read` and nothing else.
+
+<Warning>
+  **The scopes carry the role's permissions.** On every call the API passes the ecommerce service the permissions that match the token's scopes, and those scopes were already limited to the user's role when the token was minted. Minting a token with `ecommerce:stock:write` or `ecommerce:invoicing:issue` requires those permissions in your role — adjusting and transferring stock, or issuing DTE — unless you are the company owner or a superuser.
+</Warning>
 
 <Warning>
   **Reads are company-wide.** Like [CRM](/dev/crm/overview#tenancy-is-implicit), these endpoints return records from every project in your company, not just the project your token belongs to.
@@ -49,6 +64,26 @@ The three are separate because they leak different things. Carts and sales carry
 | Integration | Synced from Shopify, WooCommerce, Justo, and the like. `external_id` and `integration_id` are set, and edits made in Keebai are overwritten on the next sync. |
 
 `stock` is only meaningful when `stock_managed` is `true`. On integration products, stock is whatever the last sync brought over — not a live read of the platform.
+
+## Inventory
+
+A variant's stock has one **master total**. Part of it is **allocated** to branches and the rest is **available in the warehouse**. [`GET /v1/ecommerce/products/{id}/stock`](/dev/endpoints/ecommerce-product-stock) returns all three, plus the quantity per branch.
+
+| Operation | Effect on the total | Endpoint |
+|---|---|---|
+| Adjust | Changes it: a positive `delta` is an entry, a negative one an exit. | [`POST .../stock/adjust`](/dev/endpoints/ecommerce-stock-adjust) |
+| Transfer | None. Units only move between the warehouse and branches. | [`POST .../stock/transfer`](/dev/endpoints/ecommerce-stock-transfer) |
+| Sale | Deducts from the sale's branch. | [`POST /v1/ecommerce/sales`](/dev/endpoints/ecommerce-sales-create) |
+
+Every change leaves an entry in [the stock movements](/dev/endpoints/ecommerce-stock-movements), and adjustments are synced to the stores you have connected. To find the `product_id` and `variant_id` from a scanned code, use [`GET /v1/ecommerce/products/find`](/dev/endpoints/ecommerce-products-find).
+
+## Recording sales and invoicing
+
+[`POST /v1/ecommerce/sales`](/dev/endpoints/ecommerce-sales-create) records a sale from your own point of sale: it deducts stock, calculates commissions, and, with `dte`, issues the boleta or factura right after. A `type: "internal"` sale records internal consumption instead, with no payments and no DTE.
+
+Send an `Idempotency-Key` header so a retry after a timeout does not create the sale twice.
+
+A DTE that fails does not undo the sale. It comes back in `dte.failed` with its reason, and you issue it later with [`POST /v1/ecommerce/sales/{id}/dte`](/dev/endpoints/ecommerce-sale-dte-issue). Check which types the company can issue today with [`GET /v1/ecommerce/invoicing/types`](/dev/endpoints/ecommerce-invoicing-types).
 
 ## Abandoned carts
 
@@ -118,14 +153,15 @@ List endpoints take `limit` and `offset` and return the same envelope as the res
 
 | Status | When |
 |---|---|
-| `400` | An invalid query parameter, or one the endpoint does not accept. |
+| `400` | An invalid query parameter or body, or one the endpoint does not accept. |
 | `401` | Missing, invalid, revoked, or expired token. |
 | `403` | The token lacks the scope the endpoint requires. |
 | `404` | No record with that id, or it belongs to a different company. |
+| `422` | A business rule rejected a sale, such as a missing branch, an invalid payment, or not enough stock. |
 | `429` | You hit a [rate limit](/dev/rate-limits). |
-| `502` | The ecommerce service could not answer. |
+| `502` | `ECOMMERCE_UPSTREAM_ERROR`: the ecommerce service could not answer. |
 
-Branch on `error.code`, not on the message text.
+Branch on `error.code`, not on the message text. A `4xx` keeps the business code the ecommerce service returned, such as `STOCK_INSUFFICIENT_IN_BRANCH` or `SKU_NOT_FOUND`.
 
 ## Rate limits
 
@@ -153,6 +189,12 @@ That is the binding constraint for anyone mirroring a catalog. A 4,000-product c
   </Card>
   <Card title="Chase abandoned carts" icon="cart-shopping" href="/dev/endpoints/ecommerce-carts-list">
     Filter for `abandoned_at` and send `recovery_url` over WhatsApp.
+  </Card>
+  <Card title="Record sales from your POS" icon="cash-register" href="/dev/endpoints/ecommerce-sales-create">
+    Create the sale, deduct stock, and issue the boleta in one call.
+  </Card>
+  <Card title="Keep stock in step" icon="boxes-stacked" href="/dev/endpoints/ecommerce-stock-adjust">
+    Adjust and transfer stock from your ERP and audit the movements.
   </Card>
   <Card title="Record it on the CRM" icon="bolt" href="/dev/crm/events">
     Emit a CRM event so the order shows up on the contact's timeline and the agent knows about it.

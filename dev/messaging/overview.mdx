@@ -1,7 +1,7 @@
 ---
 title: "Messaging overview"
 sidebarTitle: "Overview"
-description: "Send messages on WhatsApp, Instagram and Messenger, manage templates and Flows, and connect channels — the sending identity, the 24-hour window, and how broadcasts work."
+description: "Send messages on WhatsApp, Instagram and Messenger, send email to a list, manage templates and Flows, and connect channels — the sending identity, the 24-hour window, and how broadcasts work."
 ---
 
 The messaging surface is how you send from your own backend: one endpoint for every message type on every connected channel, plus the contacts, templates, Flows and channels that back them.
@@ -17,6 +17,9 @@ The messaging surface is how you send from your own backend: one endpoint for ev
   </Card>
   <Card title="Broadcast" icon="tower-broadcast" href="/dev/endpoints/messages-bulk">
     Schedule a template to many recipients in one call and poll the campaign's status.
+  </Card>
+  <Card title="Send email" icon="envelope" href="/dev/endpoints/email-send">
+    Send one email to up to 5000 recipients from your company sender, with plain text or a portal template, and track opens.
   </Card>
   <Card title="Manage templates" icon="file-lines" href="/dev/endpoints/templates-list">
     List the approved catalog, create new templates, and submit them to Meta for approval.
@@ -40,13 +43,13 @@ The messaging surface is how you send from your own backend: one endpoint for ev
 | `contacts:write` | [Create](/dev/endpoints/contacts-create) and [update](/dev/endpoints/contacts-update) contacts, including custom fields. |
 | `contacts:delete` | [Delete contacts](/dev/endpoints/contacts-delete). Permanent. |
 | `messages:send` | [Send a single message](/dev/endpoints/messages-send) of any type, on any channel. Also covers the whole `/v1/media` surface: upload, metadata, download, delete. |
-| `messages:bulk` | [Launch broadcasts](/dev/endpoints/messages-bulk) and [read their status](/dev/endpoints/messages-bulk-status). |
-| `templates:read` | [Read the approved template catalog](/dev/endpoints/templates-list). |
+| `messages:bulk` | [Launch broadcasts](/dev/endpoints/messages-bulk) and [read their status](/dev/endpoints/messages-bulk-status). Also [send email to a list](/dev/endpoints/email-send) and [read its status](/dev/endpoints/email-send-status). |
+| `templates:read` | [Read the approved template catalog](/dev/endpoints/templates-list) and [the email templates](/dev/endpoints/email-templates-list). |
 | `templates:create` | [Create templates](/dev/endpoints/templates-create) and submit them to Meta. |
 | `templates:update` | [Edit an existing template](/dev/endpoints/templates-update). |
 | `flows:read` | [List](/dev/endpoints/flows-list) and [read](/dev/endpoints/flows-get) WhatsApp Flows. |
 | `flows:write` | [Create](/dev/endpoints/flows-create), [update](/dev/endpoints/flows-update), [publish](/dev/endpoints/flows-publish) and [delete](/dev/endpoints/flows-delete) Flows. |
-| `channels:read` | [List channels](/dev/endpoints/channels-list) and [WhatsApp numbers](/dev/endpoints/whatsapp-numbers). |
+| `channels:read` | [List channels](/dev/endpoints/channels-list), [WhatsApp numbers](/dev/endpoints/whatsapp-numbers), and [email senders](/dev/endpoints/email-senders). |
 | `channels:connect` | [Start and poll a connect session](/dev/endpoints/channels-whatsapp-connect). |
 
 `messages:send` and `messages:bulk` are deliberately separate: bulk is the higher-risk one, since it costs money at Meta and can damage sender reputation. Keep it in a key the marketing tool owns, not the one your transactional backend uses.

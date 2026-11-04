@@ -1,0 +1,150 @@
+---
+title: "POST /v1/ecommerce/products/:id/stock/adjust"
+sidebarTitle: "POST ecommerce/.../stock/adjust"
+description: "Add or remove stock of a product or variant, in the warehouse or in one branch. The change syncs to your connected stores."
+openapi: "POST /v1/ecommerce/products/{id}/stock/adjust"
+---
+
+Records a stock entry or exit. A positive `delta` adds stock, a negative one removes it. Without `branch_id` the change happens in the warehouse; with it, in that branch.
+
+The change is synced to the stores you have connected, and it leaves an `adjustment` entry in [the stock movements](/dev/endpoints/ecommerce-stock-movements).
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/ecommerce/products/{id}/stock/adjust
+```
+
+## Required scope
+
+`ecommerce:stock:write`
+
+<Note>
+  **The scope comes from your role.** Minting a token with `ecommerce:stock:write` requires the permission to adjust and transfer stock in your Keebai role, unless you are the company owner or a superuser. See [scopes](/dev/scopes#scopes-are-independent-from-role-permissions).
+</Note>
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Path parameters
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `id` | `string` | Yes | `ObjectId` of the product. |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `delta` | `integer` | Yes | Units to add or remove. Not `0`. Positive is an entry, negative is an exit. |
+| `variant_id` | `string` | Conditional | `ObjectId` of the variant. Required on products with variants. |
+| `branch_id` | `string` | No | Branch to adjust. Without it, the warehouse is adjusted. |
+| `note` | `string` | No | Reason for the adjustment, kept on the movement. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/ecommerce/products/65d3e4f5a6b7c8d9e0f1a2b3/stock/adjust \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "delta": -2,
+    "variant_id": "65d3e4f5a6b7c8d9e0f1a2c1",
+    "branch_id": "br_01",
+    "note": "Producto dañado"
+  }'
+```
+
+```js JavaScript
+const response = await fetch(
+  `https://api.keebai.com/v1/ecommerce/products/${productId}/stock/adjust`,
+  {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ delta: 10, variant_id: variantId, note: "Recepción de proveedor" }),
+  },
+);
+const stock = await response.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    f"https://api.keebai.com/v1/ecommerce/products/{product_id}/stock/adjust",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={"delta": 10, "variant_id": variant_id, "note": "Recepción de proveedor"},
+    timeout=10,
+)
+resp.raise_for_status()
+stock = resp.json()
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+The product's stock after the adjustment, in the same shape as [`GET /v1/ecommerce/products/{id}/stock`](/dev/endpoints/ecommerce-product-stock).
+
+```json
+{
+  "product_id": "65d3e4f5a6b7c8d9e0f1a2b3",
+  "variants": [
+    {
+      "variant_id": "65d3e4f5a6b7c8d9e0f1a2c1",
+      "name": "42 / Negro",
+      "total": 10,
+      "allocated": 6,
+      "warehouse_available": 4,
+      "branches": [
+        { "branch_id": "br_01", "quantity": 3 },
+        { "branch_id": "br_02", "quantity": 3 }
+      ]
+    }
+  ]
+}
+```
+
+### 400 Bad Request
+
+The body does not match the schema — for example `delta` is `0` or not an integer — or one of these:
+
+| `code` | Meaning |
+|---|---|
+| `STOCK_BELOW_ZERO` | The exit would leave the stock below zero. |
+| `STOCK_INSUFFICIENT_IN_WAREHOUSE` | The warehouse does not have that many units to remove. |
+| `STOCK_INSUFFICIENT_IN_BRANCH` | The branch does not have that many units to remove. |
+| `VARIANT_REQUIRED` | The product has variants and no `variant_id` was sent. |
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `ecommerce:stock:write` scope.
+
+### 404 Not Found
+
+No product with that id, or it belongs to a different company.
+
+### 502 Bad Gateway
+
+`ECOMMERCE_UPSTREAM_ERROR` — the ecommerce service could not answer.
+
+## Operational notes
+
+- **The change reaches your stores.** Connected stores receive the new stock, so an adjustment here is what customers see online.
+- **This call is not idempotent.** Retrying after a timeout applies the delta twice. Check [the stock movements](/dev/endpoints/ecommerce-stock-movements) before retrying.
+- **To move stock between branches, transfer it.** [`POST .../stock/transfer`](/dev/endpoints/ecommerce-stock-transfer) keeps the total; two adjustments would record an exit and an entry instead.

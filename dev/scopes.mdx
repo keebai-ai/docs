@@ -37,8 +37,8 @@ The catalog lives in the `api_scopes` MongoDB collection. The portal pulls it vi
 | Scope | Group | Action |
 |---|---|---|
 | `messages:send` | messages | [Send a single message](/dev/endpoints/messages-send) of any type, on any connected channel. |
-| `messages:bulk` | messages | Bulk-send a template to many recipients and read campaign status. |
-| `templates:read` | templates | Read the company's approved template catalog. |
+| `messages:bulk` | messages | Bulk-send a template to many recipients and read campaign status. Also [send email to a list](/dev/endpoints/email-send) and [read its status](/dev/endpoints/email-send-status). |
+| `templates:read` | templates | Read the company's approved template catalog, and [its email templates](/dev/endpoints/email-templates-list). |
 | `templates:create` | templates | Create WhatsApp templates and submit them to Meta. |
 | `templates:update` | templates | Edit an existing template (components, category, language, status). |
 | `flows:read` | flows | [List](/dev/endpoints/flows-list) and [read](/dev/endpoints/flows-get) [WhatsApp Flows](/dev/messaging/flows). |
@@ -46,7 +46,7 @@ The catalog lives in the `api_scopes` MongoDB collection. The portal pulls it vi
 | `contacts:read` | contacts | [List](/dev/endpoints/contacts-list) and [read](/dev/endpoints/contacts-get) the messaging contacts of your company. |
 | `contacts:write` | contacts | [Create](/dev/endpoints/contacts-create) and [update](/dev/endpoints/contacts-update) contacts, including custom fields. |
 | `contacts:delete` | contacts | [Delete contacts](/dev/endpoints/contacts-delete) and their change history. Permanent. |
-| `channels:read` | channels | List channels (`/v1/channels`) and WhatsApp numbers (`/v1/whatsapp/numbers`). |
+| `channels:read` | channels | List channels (`/v1/channels`), WhatsApp numbers (`/v1/whatsapp/numbers`), and [email senders](/dev/endpoints/email-senders) (`/v1/email/senders`). |
 | `channels:connect` | channels | Start and poll [WhatsApp Business connect sessions](/dev/endpoints/channels-whatsapp-connect) from the CLI or your backend. |
 | `webhooks:read` | webhooks | List [outbound webhook](/dev/webhooks/overview) subscriptions and read delivery history. |
 | `webhooks:manage` | webhooks | Create, update, rotate secret, delete subscriptions, and fire test events. |
@@ -78,9 +78,14 @@ The catalog lives in the `api_scopes` MongoDB collection. The portal pulls it vi
 | `crm:notes:write` | crm | [Create](/dev/endpoints/crm-note-create) and [update](/dev/endpoints/crm-note-update) notes. The author is the token's owner. |
 | `crm:notes:delete` | crm | [Delete notes](/dev/endpoints/crm-note-delete). Permanent. |
 | `crm:events:write` | crm | [Emit CRM events](/dev/endpoints/crm-events-emit) onto a contact's timeline. Opens a ticket if the contact has none, and writes the event's values onto the ticket and the contact. No read counterpart. |
-| `ecommerce:products:read` | ecommerce | [List](/dev/endpoints/ecommerce-products-list) and [read](/dev/endpoints/ecommerce-product-get) the product catalog. |
+| `ecommerce:products:read` | ecommerce | [List](/dev/endpoints/ecommerce-products-list) and [read](/dev/endpoints/ecommerce-product-get) the product catalog, and [find a product by SKU or barcode](/dev/endpoints/ecommerce-products-find). |
 | `ecommerce:carts:read` | ecommerce | [List](/dev/endpoints/ecommerce-carts-list) and [read](/dev/endpoints/ecommerce-cart-get) carts, including abandoned ones. |
 | `ecommerce:sales:read` | ecommerce | [List](/dev/endpoints/ecommerce-sales-list) and [read](/dev/endpoints/ecommerce-sale-get) sales, with amounts and payment state. |
+| `ecommerce:sales:write` | ecommerce | [Create sales](/dev/endpoints/ecommerce-sales-create) and internal consumptions. Deducts stock and calculates commissions. |
+| `ecommerce:stock:read` | ecommerce | [Read a product's stock](/dev/endpoints/ecommerce-product-stock) per variant and branch, and [list stock movements](/dev/endpoints/ecommerce-stock-movements). |
+| `ecommerce:stock:write` | ecommerce | [Adjust](/dev/endpoints/ecommerce-stock-adjust) and [transfer](/dev/endpoints/ecommerce-stock-transfer) stock. Changes sync to the connected stores. |
+| `ecommerce:invoicing:read` | ecommerce | [Read the DTE types](/dev/endpoints/ecommerce-invoicing-types) the company can issue, [a sale's documents](/dev/endpoints/ecommerce-sale-documents), and [their PDF](/dev/endpoints/ecommerce-invoicing-document-pdf). |
+| `ecommerce:invoicing:issue` | ecommerce | [Issue the DTE of a sale](/dev/endpoints/ecommerce-sale-dte-issue) (boleta or factura). |
 | `loyalty:read` | loyalty | [Read programs](/dev/endpoints/loyalty-programs-list), [templates](/dev/endpoints/loyalty-templates-list), [memberships](/dev/endpoints/loyalty-memberships-list), balances and [ledger movements](/dev/endpoints/loyalty-ledger-list). |
 | `loyalty:write` | loyalty | [Enroll customers](/dev/endpoints/loyalty-membership-enroll), [move points and stamps](/dev/endpoints/loyalty-ledger-record), [issue wallet passes](/dev/endpoints/loyalty-pass-google) and [notify the customer's card](/dev/endpoints/loyalty-pass-notify). |
 | `projects:read` | projects | [List the projects](/dev/endpoints/me) of your company the token can reach. |
@@ -91,19 +96,23 @@ The catalog lives in the `api_scopes` MongoDB collection. The portal pulls it vi
 
 ## The MCP server uses the same scopes
 
-The [MCP server](/dev/mcp/overview) does not have a scope system of its own. Each of its 117 tools requires exactly the scope its REST counterpart does — `keebai_crm_ticket_create` needs `crm:tickets:write`, `keebai_contacts_list` needs `contacts:read`, and so on. The [tool catalogue](/dev/mcp/tools) lists the mapping.
+The [MCP server](/dev/mcp/overview) does not have a scope system of its own. Each of its 130 tools requires exactly the scope its REST counterpart does — `keebai_crm_ticket_create` needs `crm:tickets:write`, `keebai_contacts_list` needs `contacts:read`, and so on. The [tool catalogue](/dev/mcp/tools) lists the mapping.
 
 One difference matters when you hand a token to an agent: **a missing scope is not a `403`**. Every tool stays visible in `tools/list` regardless of your scopes, and the call comes back as a tool error carrying `INSUFFICIENT_SCOPE`. An agent will happily try something it cannot do and discover the limit afterwards, so pick the scope set deliberately rather than relying on the agent not to reach for a tool.
 
 ## Scopes are independent from role permissions
 
-Scopes are **independent** from the role permissions of the user who creates the token. The backend validates *what scopes you're allowed to assign* at creation time (each scope must exist and be active in `api_scopes`), but once minted, the token uses its assigned scopes regardless of later changes to your role.
+Scopes are **independent** from the role permissions of the user who creates the token. The backend validates *what scopes you're allowed to assign* at creation time (each scope must exist and be active in `api_scopes`, and a few are tied to role permissions — see below), but once minted, the token uses its assigned scopes regardless of later changes to your role.
 
 That means:
 
 1. **To create a token** you need `developer.manage_tokens` on your role. Without it you don't even see the API Keys screen.
 2. **Once created, a token's scopes are fixed.** If your role is later trimmed, the token keeps working with its original scopes. To revoke access, revoke the key explicitly.
 3. **To use new scopes, mint a new token.** You can't add scopes to an existing key.
+
+<Note>
+  **Two ecommerce scopes require the permission in your role.** Minting a token with `ecommerce:stock:write` requires the permissions to adjust and transfer stock in your Keebai role, and `ecommerce:invoicing:issue` requires the permission to issue DTE. The company owner and superusers are exempt. On every call the API passes the ecommerce service the permissions that match the token's scopes, so what the token can do is what the role allowed when it was minted.
+</Note>
 
 <Warning>
   Because scopes survive role changes, **audit the API Keys table periodically** and revoke tokens belonging to people who shouldn't have access anymore. The *Last used* column helps find forgotten keys.
@@ -198,6 +207,21 @@ Pick the smallest scope set that does the job. Splitting `messages:send` and `me
     A BI job pulls closed sales nightly. Read-only, no catalog, no carts.
 
     `ecommerce:sales:read`.
+  </Card>
+  <Card title="Point of sale">
+    Your POS looks up products by barcode, records sales with their boleta or factura, and keeps stock in step.
+
+    `ecommerce:products:read`, `ecommerce:stock:read`, `ecommerce:sales:write`, `ecommerce:invoicing:read`, `ecommerce:invoicing:issue`.
+  </Card>
+  <Card title="Warehouse and stock sync">
+    Your ERP or warehouse system adjusts and transfers stock and audits the movements. It never creates sales or touches invoicing.
+
+    `ecommerce:products:read`, `ecommerce:stock:read`, `ecommerce:stock:write`.
+  </Card>
+  <Card title="Email campaigns">
+    Your marketing tool sends emails to a list from the company sender and tracks opens.
+
+    `messages:bulk`, `templates:read`, `channels:read`.
   </Card>
   <Card title="Loyalty terminal">
     Your point of sale enrolls customers, accrues on purchase, and hands out the wallet card.

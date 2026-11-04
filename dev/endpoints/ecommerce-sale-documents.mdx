@@ -1,0 +1,112 @@
+---
+title: "GET /v1/ecommerce/sales/:id/documents"
+sidebarTitle: "GET ecommerce/sales/{id}/documents"
+description: "List the electronic tax documents (DTE) issued for a sale, with their folio, status, and PDF link."
+openapi: "GET /v1/ecommerce/sales/{id}/documents"
+---
+
+Returns the DTE issued for one sale. Use it to show the folio to the customer, check the document's status, or fetch its PDF.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/ecommerce/sales/{id}/documents
+```
+
+## Required scope
+
+`ecommerce:invoicing:read`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+
+## Path parameters
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `id` | `string` | Yes | `ObjectId` of the sale. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl https://api.keebai.com/v1/ecommerce/sales/65e4f5a6b7c8d9e0f1a2b3c4/documents \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+```js JavaScript
+const response = await fetch(
+  `https://api.keebai.com/v1/ecommerce/sales/${saleId}/documents`,
+  { headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` } },
+);
+const { items } = await response.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.get(
+    f"https://api.keebai.com/v1/ecommerce/sales/{sale_id}/documents",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    timeout=10,
+)
+resp.raise_for_status()
+documents = resp.json()["items"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "items": [
+    {
+      "id": "6653e4f5a6b7c8d9e0f1a2b3",
+      "type": 39,
+      "folio": 15422,
+      "status": "uploaded",
+      "issue_date": "2026-11-04",
+      "total": 59990,
+      "pdf_url": "https://api.keebai.com/v1/ecommerce/invoicing/documents/6653e4f5a6b7c8d9e0f1a2b3/pdf"
+    }
+  ]
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | `string` | Document id. |
+| `type` | `number` | DTE type: `39`, `41`, `33`, or `34`. |
+| `folio` | `number` | Folio of the document. |
+| `status` | `string` | Status of the document at the tax authority. |
+| `issue_date` | `string` | Issue date. |
+| `total` | `number` | Total of the document. |
+| `pdf_url` | `string` | Link to the PDF. |
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `ecommerce:invoicing:read` scope.
+
+### 404 Not Found
+
+No sale with that id, or it belongs to a different company.
+
+### 502 Bad Gateway
+
+`ECOMMERCE_UPSTREAM_ERROR` — the ecommerce service could not answer.
+
+## Operational notes
+
+- **An empty `items` means nothing was issued yet.** Issue it with [`POST /v1/ecommerce/sales/{id}/dte`](/dev/endpoints/ecommerce-sale-dte-issue).
+- **The PDF is also available through the API.** [`GET /v1/ecommerce/invoicing/documents/{id}/pdf`](/dev/endpoints/ecommerce-invoicing-document-pdf) takes the document `id` from this list.

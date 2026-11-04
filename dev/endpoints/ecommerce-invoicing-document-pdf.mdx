@@ -1,0 +1,92 @@
+---
+title: "GET /v1/ecommerce/invoicing/documents/:id/pdf"
+sidebarTitle: "GET ecommerce/invoicing/documents/{id}/pdf"
+description: "Download the PDF of an issued electronic tax document (DTE)."
+openapi: "GET /v1/ecommerce/invoicing/documents/{id}/pdf"
+---
+
+Returns the PDF of one DTE, as raw bytes. Take the document id from [`GET /v1/ecommerce/sales/{id}/documents`](/dev/endpoints/ecommerce-sale-documents).
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/ecommerce/invoicing/documents/{id}/pdf
+```
+
+## Required scope
+
+`ecommerce:invoicing:read`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+
+## Path parameters
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `id` | `string` | Yes | Document id, from the sale's documents. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl https://api.keebai.com/v1/ecommerce/invoicing/documents/6653e4f5a6b7c8d9e0f1a2b3/pdf \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -o boleta-15422.pdf
+```
+
+```js JavaScript
+import { writeFile } from "node:fs/promises";
+
+const response = await fetch(
+  `https://api.keebai.com/v1/ecommerce/invoicing/documents/${documentId}/pdf`,
+  { headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` } },
+);
+await writeFile("boleta.pdf", Buffer.from(await response.arrayBuffer()));
+```
+
+```python Python
+import os, requests
+
+resp = requests.get(
+    f"https://api.keebai.com/v1/ecommerce/invoicing/documents/{document_id}/pdf",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    timeout=30,
+)
+resp.raise_for_status()
+with open("boleta.pdf", "wb") as f:
+    f.write(resp.content)
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+The PDF file, with `Content-Type: application/pdf`.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `ecommerce:invoicing:read` scope.
+
+### 404 Not Found
+
+No document with that id, or it belongs to a different company.
+
+### 502 Bad Gateway
+
+`ECOMMERCE_UPSTREAM_ERROR` — the ecommerce service could not answer.
+
+## Operational notes
+
+- **The body is binary, not JSON.** Errors still come back as JSON, so check the status before saving the body to a file.
+- **There is no MCP tool for the PDF.** Like media download, it is a file, not JSON. [`keebai_ecommerce_sale_documents`](/dev/mcp/tools#ecommerce) returns the document list.

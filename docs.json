@@ -301,6 +301,15 @@
             ]
           },
           {
+            "group": "Email",
+            "pages": [
+              "dev/endpoints/email-send",
+              "dev/endpoints/email-send-status",
+              "dev/endpoints/email-senders",
+              "dev/endpoints/email-templates-list"
+            ]
+          },
+          {
             "group": "WhatsApp Flows",
             "pages": [
               "dev/messaging/flows",
@@ -468,7 +477,17 @@
             "group": "Products",
             "pages": [
               "dev/endpoints/ecommerce-products-list",
-              "dev/endpoints/ecommerce-product-get"
+              "dev/endpoints/ecommerce-product-get",
+              "dev/endpoints/ecommerce-products-find"
+            ]
+          },
+          {
+            "group": "Inventory",
+            "pages": [
+              "dev/endpoints/ecommerce-product-stock",
+              "dev/endpoints/ecommerce-stock-movements",
+              "dev/endpoints/ecommerce-stock-adjust",
+              "dev/endpoints/ecommerce-stock-transfer"
             ]
           },
           {
@@ -482,7 +501,17 @@
             "group": "Sales",
             "pages": [
               "dev/endpoints/ecommerce-sales-list",
-              "dev/endpoints/ecommerce-sale-get"
+              "dev/endpoints/ecommerce-sale-get",
+              "dev/endpoints/ecommerce-sales-create"
+            ]
+          },
+          {
+            "group": "Electronic invoicing",
+            "pages": [
+              "dev/endpoints/ecommerce-invoicing-types",
+              "dev/endpoints/ecommerce-sale-dte-issue",
+              "dev/endpoints/ecommerce-sale-documents",
+              "dev/endpoints/ecommerce-invoicing-document-pdf"
             ]
           }
         ]

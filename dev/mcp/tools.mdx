@@ -1,7 +1,7 @@
 ---
 title: "Tool catalogue"
 sidebarTitle: "Tools"
-description: "All 117 MCP tools, grouped by domain, with the scope each one requires."
+description: "All 130 MCP tools, grouped by domain, with the scope each one requires."
 ---
 
 Every tool below is exposed by [`POST /v1/mcp`](/dev/mcp/overview) and delegates to the same service as its REST counterpart, so the behaviour, validation, and tenancy rules documented across these pages apply unchanged.
@@ -111,6 +111,17 @@ Everything under [`/v1/messages`](/dev/messaging/overview). Every send tool take
 | `keebai_send_bulk` | `messages:bulk` | Broadcast a template to up to 5000 recipients. Costs money at Meta. |
 | `keebai_bulk_status` | `messages:bulk` | Progress of a broadcast: sent, failed, pending. |
 
+## Email
+
+Send an email to a list from the company sender. See [`POST /v1/email/send`](/dev/endpoints/email-send) for the full field reference.
+
+| Tool | Scope | What it does |
+|---|---|---|
+| `keebai_email_senders_list` | `channels:read` | The addresses the company can send from right now: `channel_id`, `email`, `name`, `provider`. Empty means no email sender is connected yet. |
+| `keebai_email_templates_list` | `templates:read` | The active email templates designed in the portal. Pass the `id` as `template_id` to `keebai_send_email`. |
+| `keebai_send_email` | `messages:bulk` | Send one email to up to 5000 recipients, with `subject` + `body` or a portal `template_id`. Same parameters as the REST endpoint. A real send: unsubscribed addresses are skipped. |
+| `keebai_email_send_status` | `messages:bulk` | Status and counters of a send by `broadcast_id`: sent, delivered, opened (`read`), failed, pending. |
+
 ## WhatsApp Flows
 
 In-chat forms. See the [Flows guide](/dev/messaging/flows) for the full lifecycle.
@@ -137,7 +148,7 @@ In-chat forms. See the [Flows guide](/dev/messaging/flows) for the full lifecycl
 
 ## Ecommerce
 
-Read-only access to the catalog, carts, and sales. See the [ecommerce overview](/dev/ecommerce/overview) for how the records relate — a cart is not a draft sale.
+The catalog, carts, and sales, plus stock, sale creation, and electronic invoicing (DTE). See the [ecommerce overview](/dev/ecommerce/overview) for how the records relate — a cart is not a draft sale.
 
 | Tool | Scope | What it does |
 |---|---|---|
@@ -147,10 +158,23 @@ Read-only access to the catalog, carts, and sales. See the [ecommerce overview](
 | `keebai_ecommerce_cart_get` | `ecommerce:carts:read` | Get one cart with its line items and the customer's contact details. |
 | `keebai_ecommerce_sales_list` | `ecommerce:sales:read` | List sales by status, payment status, contact, or date range. |
 | `keebai_ecommerce_sale_get` | `ecommerce:sales:read` | Get one sale with its items, amount breakdown, and payment state. |
+| `keebai_ecommerce_product_find` | `ecommerce:products:read` | Find a product or variant by exact SKU or barcode (`match: "exact"`), or by text (`match: "search"`). |
+| `keebai_ecommerce_stock_get` | `ecommerce:stock:read` | Stock of a product per variant: master total, allocated to branches, left in the warehouse, and per branch. |
+| `keebai_ecommerce_stock_movements_list` | `ecommerce:stock:read` | Stock movements filtered by date, type, branch, or text. |
+| ⚠️ `keebai_ecommerce_stock_adjust` | `ecommerce:stock:write` | Add or remove stock in the warehouse or a branch. Syncs to the connected stores. Not idempotent. |
+| `keebai_ecommerce_stock_transfer` | `ecommerce:stock:write` | Move stock between the warehouse and branches. The total does not change. |
+| ⚠️ `keebai_ecommerce_sale_create` | `ecommerce:sales:write` | Record a sale or an internal consumption. Deducts stock, calculates commissions, and can issue the DTE. Pass `idempotency_key` to retry without duplicating. |
+| `keebai_ecommerce_dte_types` | `ecommerce:invoicing:read` | The DTE types the company can issue today. |
+| ⚠️ `keebai_ecommerce_dte_issue` | `ecommerce:invoicing:issue` | Issue the DTE of an existing sale. Failures come back in `failed` with their reason. |
+| `keebai_ecommerce_sale_documents` | `ecommerce:invoicing:read` | The DTE issued for a sale, with folio, status, and PDF link. |
 
-<Note>
-  There are no write tools here. Creating a sale or pushing a product goes through the platform integration, not the API.
-</Note>
+<Warning>
+  Tools marked ⚠️ have effects outside Keebai. A stock adjustment reaches the connected stores, a sale moves stock and money records, and a DTE is a document filed with the tax authority. None of them can be undone by calling the tool again.
+
+  `ecommerce:stock:write` and `ecommerce:invoicing:issue` can only be put on a token whose owner has those permissions in their role (or is the company owner or a superuser) — see [scopes](/dev/scopes#scopes-are-independent-from-role-permissions). `keebai_ecommerce_sale_create` with a `dte` also needs `ecommerce:invoicing:issue`.
+
+  The DTE PDF has no tool — it is a file, not JSON. Use [`GET /v1/ecommerce/invoicing/documents/{id}/pdf`](/dev/endpoints/ecommerce-invoicing-document-pdf).
+</Warning>
 
 ## Loyalty
 
@@ -248,7 +272,7 @@ Read and write the configuration of the agents themselves: their goal, the [sect
 
 ## Not exposed as tools
 
-Templates, channels, webhooks, tenants, and setup links have no MCP tools yet. Use the [REST API](/dev/overview) for those.
+WhatsApp templates, channels, webhooks, tenants, and setup links have no MCP tools yet. Use the [REST API](/dev/overview) for those.
 
 [CRM events](/dev/crm/events) are not tools either, and that one is on purpose rather than pending. Emitting an event is a system-of-record write from a system that *knows* something happened — an order closed, a delivery completed. A model deciding to emit one is a model asserting a fact it cannot verify. Call [`POST /v1/webhook/events`](/dev/endpoints/crm-events-emit) from the system that owns the fact.
 

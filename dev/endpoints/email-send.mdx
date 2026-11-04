@@ -1,0 +1,207 @@
+---
+title: "POST /v1/email/send"
+sidebarTitle: "POST email/send"
+description: "Send one email to up to 5000 recipients from your company sender, with a plain subject and body or with a template designed in the portal."
+openapi: "POST /v1/email/send"
+---
+
+Sends one email to a list. You either write it here, with `subject` and `body`, or point at a template your team designed in the portal with `template_id`.
+
+The send is created as an **email broadcast**: it shows up in **Channels › Broadcasts** in the portal, opens are tracked, every email carries an unsubscribe link, and addresses that already unsubscribed are skipped. Follow it with [`GET /v1/email/sends/{id}`](/dev/endpoints/email-send-status).
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/email/send
+```
+
+## Required scope
+
+`messages:bulk`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `recipients` | `object[]` | Yes | 1 to 5000 recipients. See below. |
+| `subject` | `string` | Conditional | Subject line, up to 200 characters. Required unless you send `template_id`. |
+| `body` | `string` | Conditional | Plain text of the email, up to 5000 characters. Line breaks are kept. `{{nombre}}`, `{{correo}}` and `{{empresa}}` are replaced per recipient. Required unless you send `template_id`. |
+| `heading` | `string` | No | Title shown above the text, up to 200 characters. |
+| `button` | `object` | No | Call-to-action button: `label` (up to 60 characters) and `url` (`http` or `https`). |
+| `template_id` | `string` | No | Id of a template designed in the portal, from [`GET /v1/email/templates`](/dev/endpoints/email-templates-list). Replaces `subject` and `body`. |
+| `kind` | `string` | No | `promo` (default) or `notice`. `promo` honors marketing unsubscribes; `notice` is a service notice. |
+| `from_email` | `string` | No | Send from this address. Must be one of [`GET /v1/email/senders`](/dev/endpoints/email-senders). |
+| `from_name` | `string` | No | Sender name the recipients see, up to 80 characters — for example `Keebai AI`. Defaults to the name of the sender account. |
+| `channel_id` | `string` | No | Sender by channel id, from [`GET /v1/email/senders`](/dev/endpoints/email-senders). |
+| `name` | `string` | No | Name of the send in the portal, up to 120 characters. Defaults to the subject. |
+| `scheduled_at` | `string` | No | ISO 8601 date-time to send later. |
+
+### Recipient
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `email` | `string` | Yes | Recipient address. |
+| `name` | `string` | No | Recipient name, up to 120 characters. Fills `{{nombre}}`. |
+| `variables` | `object` | No | Extra per-recipient values for the template variables, as string pairs. |
+
+### Which sender is used
+
+| You send | Sender |
+|---|---|
+| Neither `from_email` nor `channel_id` | Your own verified address (`ses`) and, if there is none, the connected Gmail or Outlook mailbox. |
+| `from_email` | The sender with that address. |
+| `channel_id` | The sender with that channel id. |
+| Both | The sender matching both. If none matches, the send fails with `EMAIL_SENDER_NOT_READY`. |
+
+## Example requests
+
+<CodeGroup>
+
+```bash Subject and body
+curl -X POST https://api.keebai.com/v1/email/send \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "recipients": [
+      { "email": "ana@example.com", "name": "Ana" },
+      { "email": "juan@example.com", "name": "Juan" }
+    ],
+    "subject": "Novedades de noviembre",
+    "heading": "Llegó la temporada",
+    "body": "Hola {{nombre}},\n\nEste mes tenemos nuevos productos en {{empresa}}.",
+    "button": { "label": "Ver productos", "url": "https://tienda.example.com" },
+    "from_email": "hola@empresa.com",
+    "from_name": "Keebai AI"
+  }'
+```
+
+```bash Portal template
+curl -X POST https://api.keebai.com/v1/email/send \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "recipients": [
+      { "email": "ana@example.com", "name": "Ana", "variables": { "cupon": "ANA10" } }
+    ],
+    "template_id": "6651c2d3e4f5a6b7c8d9e0f1",
+    "name": "Cupón de bienvenida",
+    "scheduled_at": "2026-11-10T13:00:00.000Z"
+  }'
+```
+
+</CodeGroup>
+
+```js JavaScript
+const response = await fetch("https://api.keebai.com/v1/email/send", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    recipients: [{ email: "ana@example.com", name: "Ana" }],
+    subject: "Tu reserva está confirmada",
+    body: "Hola {{nombre}},\n\nTe esperamos el viernes.",
+    kind: "notice",
+  }),
+});
+const { broadcast_id } = await response.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/email/send",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={
+        "recipients": [{"email": "ana@example.com", "name": "Ana"}],
+        "subject": "Tu reserva está confirmada",
+        "body": "Hola {{nombre}},\n\nTe esperamos el viernes.",
+        "kind": "notice",
+    },
+    timeout=10,
+)
+resp.raise_for_status()
+broadcast_id = resp.json()["broadcast_id"]
+```
+
+## Response
+
+### 201 Created
+
+```json
+{
+  "broadcast_id": "6652d3e4f5a6b7c8d9e0f1a2",
+  "broadcast_status": "pending",
+  "recipients": 2,
+  "sender": {
+    "channel_id": "6650b1c2d3e4f5a6b7c8d9e0",
+    "email": "hola@empresa.com",
+    "name": "Empresa",
+    "provider": "ses"
+  },
+  "from_name": "Keebai AI",
+  "template_id": "6652d3e4f5a6b7c8d9e0f1a3",
+  "scheduled_at": null
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `broadcast_id` | `string` | Id of the send. Follow it with [`GET /v1/email/sends/{id}`](/dev/endpoints/email-send-status). |
+| `broadcast_status` | `string` | Status of the broadcast at creation. |
+| `recipients` | `number` | Recipients accepted, after removing duplicate addresses. |
+| `sender` | `object` | The sender used: `channel_id`, `email`, `name`, `provider`. |
+| `from_name` | `string` | Sender name the recipients see. |
+| `template_id` | `string` | Template used. With `subject` and `body`, Keebai builds one for the send and returns its id. |
+| `scheduled_at` | `string \| null` | When the send goes out. `null` means right away. |
+
+### 400 Bad Request
+
+The body does not match the schema — for example an empty `recipients`, more than 5000, an invalid address, or a field over its length limit — or one of these:
+
+| `code` | Meaning |
+|---|---|
+| `EMAIL_SUBJECT_AND_BODY_REQUIRED` | No `template_id`, and `subject` or `body` is missing or empty. |
+| `EMAIL_RECIPIENTS_REQUIRED` | No valid recipient left. |
+| `EMAIL_RECIPIENTS_LIMIT` | More than 5000 recipients. |
+| `EMAIL_SCHEDULED_AT_INVALID` | `scheduled_at` is not a valid date. |
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `messages:bulk` scope.
+
+### 422 Unprocessable Entity
+
+| `code` | Meaning |
+|---|---|
+| `EMAIL_SENDER_NOT_CONNECTED` | The company has no ready email sender. Connect one in **Channels** in the portal. |
+| `EMAIL_SENDER_NOT_READY` | The `from_email` or `channel_id` you passed is not one of the ready senders. |
+
+<Note>
+  The reason arrives in `error.code`, so you can branch on it directly.
+</Note>
+
+### 502 Bad Gateway
+
+The messaging service could not answer.
+
+## Operational notes
+
+- **This is a real send.** Every recipient gets the email. There is no draft or preview step on this endpoint.
+- **Duplicate addresses are sent once.** Addresses are trimmed and lowercased, and repeats are dropped. `recipients` in the response is the count after that.
+- **A `scheduled_at` in the past sends right away.** The response then carries `scheduled_at: null`.
+- **`promo` respects marketing unsubscribes.** Use `notice` only for service messages, such as a booking confirmation, not for promotions.
+- **Outlook can ignore `from_name`.** When the sender is an Outlook mailbox, Microsoft may show the account name instead.
