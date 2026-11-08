@@ -1,0 +1,353 @@
+---
+title: "OAuth reference"
+sidebarTitle: "OAuth reference"
+description: "Discovery, authorization, token, registration and revocation endpoints for building an MCP client that signs in to Keebai."
+---
+
+This page is for people building an MCP client. If you only want to connect an existing app, see [Claude](/dev/mcp/claude), [ChatGPT](/dev/mcp/chatgpt) or [other MCP apps](/dev/mcp/other-clients).
+
+Keebai implements the [MCP authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization) flow: OAuth 2.1 authorization code with PKCE, protected resource metadata ([RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728)), authorization server metadata ([RFC 8414](https://datatracker.ietf.org/doc/html/rfc8414)), client ID metadata documents and dynamic client registration ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)), resource indicators ([RFC 8707](https://datatracker.ietf.org/doc/html/rfc8707)), and revocation ([RFC 7009](https://datatracker.ietf.org/doc/html/rfc7009)).
+
+| | Value |
+|---|---|
+| Resource | `https://api.keebai.com/v1/mcp` |
+| Issuer | `https://api.keebai.com` |
+| Sign-in and consent | `https://accounts.keebai.com` |
+
+| Endpoint | URL |
+|---|---|
+| Protected resource metadata | `GET https://api.keebai.com/.well-known/oauth-protected-resource/v1/mcp` |
+| Authorization server metadata | `GET https://api.keebai.com/.well-known/oauth-authorization-server` |
+| Authorization | `GET https://api.keebai.com/oauth/authorize` |
+| Token | `POST https://api.keebai.com/oauth/token` |
+| Registration | `POST https://api.keebai.com/oauth/register` |
+| Revocation | `POST https://api.keebai.com/oauth/revoke` |
+| Signing keys | `GET https://api.keebai.com/oauth/jwks` |
+
+The OAuth and `.well-known` endpoints sit at the root of `api.keebai.com`, not under `/v1`. The metadata and signing-key endpoints answer CORS requests from any origin. The token and revocation endpoints answer them only for public clients, and only from the origin of one of the client's registered redirect URIs.
+
+## Discovery
+
+<Steps>
+  <Step title="Call the server without a token">
+    `POST /v1/mcp` without `Authorization`, or with an invalid or expired token, returns `401` with a pointer to the resource metadata:
+
+    ```http
+    HTTP/1.1 401 Unauthorized
+    WWW-Authenticate: Bearer resource_metadata="https://api.keebai.com/.well-known/oauth-protected-resource/v1/mcp"
+    ```
+  </Step>
+  <Step title="Read the protected resource metadata">
+    `GET https://api.keebai.com/.well-known/oauth-protected-resource/v1/mcp` (also served at `/.well-known/oauth-protected-resource`):
+
+    ```json
+    {
+      "resource": "https://api.keebai.com/v1/mcp",
+      "authorization_servers": ["https://api.keebai.com"],
+      "scopes_supported": ["messages:send", "messages:bulk", "...", "offline_access"],
+      "bearer_methods_supported": ["header"],
+      "resource_name": "Keebai"
+    }
+    ```
+  </Step>
+  <Step title="Read the authorization server metadata">
+    `GET https://api.keebai.com/.well-known/oauth-authorization-server` (the same document is served at `/.well-known/openid-configuration`):
+
+    ```json
+    {
+      "issuer": "https://api.keebai.com",
+      "authorization_endpoint": "https://api.keebai.com/oauth/authorize",
+      "token_endpoint": "https://api.keebai.com/oauth/token",
+      "registration_endpoint": "https://api.keebai.com/oauth/register",
+      "revocation_endpoint": "https://api.keebai.com/oauth/revoke",
+      "jwks_uri": "https://api.keebai.com/oauth/jwks",
+      "response_types_supported": ["code"],
+      "grant_types_supported": ["authorization_code", "refresh_token"],
+      "code_challenge_methods_supported": ["S256"],
+      "token_endpoint_auth_methods_supported": ["none", "client_secret_post", "client_secret_basic"],
+      "scopes_supported": ["messages:send", "messages:bulk", "...", "offline_access"],
+      "client_id_metadata_document_supported": true,
+      "authorization_response_iss_parameter_supported": true
+    }
+    ```
+
+    Only the fields that matter for an MCP client are shown.
+  </Step>
+</Steps>
+
+`scopes_supported` lists every scope a connection can be granted: the active scopes that belong to a [permission group](/dev/scopes#permission-groups), plus `offline_access`. The user approves them in groups, not one by one. Both documents read the list from the same catalog, which is cached for up to one minute.
+
+## Identify your client
+
+You have two options. Neither needs anyone at Keebai to do anything.
+
+<Tabs>
+  <Tab title="Client ID metadata document">
+    Host a JSON document over HTTPS and use **its URL** as `client_id`. Keebai fetches it when the user starts the flow.
+
+    ```json
+    {
+      "client_id": "https://example.com/oauth/client.json",
+      "client_name": "Example Agent",
+      "client_uri": "https://example.com",
+      "logo_uri": "https://example.com/logo.png",
+      "redirect_uris": ["https://example.com/oauth/callback"],
+      "grant_types": ["authorization_code", "refresh_token"],
+      "response_types": ["code"],
+      "token_endpoint_auth_method": "none"
+    }
+    ```
+
+    - `client_id` inside the document must equal the URL it is served from, and `redirect_uris` is required.
+    - The client is public: set `token_endpoint_auth_method` to `none`. Shared-secret methods, `client_secret` and `client_secret_expires_at` are rejected in a metadata document.
+    - The URL must be `https` on the default port, with a domain name as host. IP addresses, `localhost` and hosts ending in `.local`, `.localhost`, `.internal`, `.lan` or `.home.arpa` are rejected without being fetched, and a host that resolves to a private or special-use address is refused when Keebai connects.
+    - The document must answer `200` within 2.5 seconds and weigh at most 5 KB. Redirects are not followed.
+    - `client_uri`, `logo_uri` and the other URL fields must be `https`.
+    - Keebai caches the document for the `max-age` of its `Cache-Control` header, between 30 seconds and one day; without the header, for 30 seconds.
+  </Tab>
+  <Tab title="Dynamic client registration">
+    Register once with `POST https://api.keebai.com/oauth/register` (JSON body) and keep the `client_id` you get back. Registration is open: no initial access token is needed.
+
+    ```bash
+    curl -X POST https://api.keebai.com/oauth/register \
+      -H "Content-Type: application/json" \
+      -d '{
+        "client_name": "Example Agent",
+        "client_uri": "https://example.com",
+        "redirect_uris": ["http://127.0.0.1/callback"],
+        "token_endpoint_auth_method": "none",
+        "grant_types": ["authorization_code", "refresh_token"],
+        "response_types": ["code"]
+      }'
+    ```
+
+    ```json 201 Created
+    {
+      "client_id": "V1StGXR8_Z5jdHi6B-myT",
+      "client_id_issued_at": 1793980800,
+      "client_name": "Example Agent",
+      "client_uri": "https://example.com",
+      "redirect_uris": ["http://127.0.0.1/callback"],
+      "application_type": "native",
+      "token_endpoint_auth_method": "none",
+      "grant_types": ["authorization_code", "refresh_token"],
+      "response_types": ["code"]
+    }
+    ```
+
+    - Accepted metadata: the standard RFC 7591 fields (`client_name`, `client_uri`, `logo_uri`, `redirect_uris`, `token_endpoint_auth_method`, `grant_types`, `response_types`, …) plus `software_id` and `software_version`. Unrecognized fields are dropped.
+    - `token_endpoint_auth_method` defaults to `client_secret_basic`. Send `none` for a public client — a CLI, a desktop app or a browser app.
+    - `client_secret` is returned only for `client_secret_post` and `client_secret_basic`, and only in this response. Store it then.
+    - `grant_types` defaults to `authorization_code` and `refresh_token`. Leave `refresh_token` out and no refresh token is ever issued.
+    - No `registration_access_token` is issued: a registration cannot be read, updated or deleted afterwards. Register again if your metadata changes.
+    - A client with a loopback or private-use redirect URI is registered as `application_type: "native"`.
+  </Tab>
+</Tabs>
+
+### Redirect URIs
+
+| Kind | Example | Allowed for |
+|---|---|---|
+| HTTPS | `https://example.com/oauth/callback` | Every client |
+| Loopback | `http://127.0.0.1/callback`, `http://localhost/callback`, `http://[::1]/callback` | Every client |
+| Private-use scheme | `com.example.agent:/callback`, `cursor://anysphere.cursor-retrieval/oauth/callback` | Public clients only (`token_endpoint_auth_method: none`) |
+
+- **Matching is exact**, character for character. The one exception is loopback: any port is accepted, as [RFC 8252](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3) requires for native apps. Register the URI with or without a port and use whichever port you get at runtime.
+- `http` is allowed only for loopback hosts.
+- A private-use scheme must be in reverse-domain form (`com.example.agent`). `cursor:` is the only other scheme accepted.
+- `javascript:`, `data:`, `file:`, `blob:`, `about:`, `vbscript:`, `ftp:`, `ws:` and `wss:` are always rejected.
+
+A redirect URI outside these rules fails registration with `400 invalid_redirect_uri`.
+
+## Authorize
+
+Send the user's browser to:
+
+```
+GET https://api.keebai.com/oauth/authorize
+  ?response_type=code
+  &client_id=https%3A%2F%2Fexample.com%2Foauth%2Fclient.json
+  &redirect_uri=https%3A%2F%2Fexample.com%2Foauth%2Fcallback
+  &code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+  &code_challenge_method=S256
+  &state=af0ifjsldkj
+  &resource=https%3A%2F%2Fapi.keebai.com%2Fv1%2Fmcp
+```
+
+| Parameter | Required | Notes |
+|---|---|---|
+| `response_type` | Yes | Always `code`. |
+| `client_id` | Yes | Metadata document URL or registered `client_id`. |
+| `redirect_uri` | Yes | Must match a registered redirect URI. |
+| `code_challenge` | Yes | `base64url(sha256(code_verifier))`, no padding. |
+| `code_challenge_method` | Yes | Always `S256`. `plain` is rejected. |
+| `state` | Recommended | Returned unchanged. Use it to tie the response to the request. |
+| `scope` | No | Space-separated. Unknown scopes are dropped as long as at least one requested scope is supported. If you send no scope, or only `offline_access`, you ask for every scope in `scopes_supported`. If every scope you send is unknown, the request fails with `invalid_scope`. |
+| `resource` | No | Omitted means `https://api.keebai.com/v1/mcp`. Any other value fails with `invalid_target`. |
+
+**PKCE with `S256` is mandatory** for every client, public or confidential.
+
+`offline_access` is accepted and ignored. Whether you get a refresh token depends only on the client allowing the `refresh_token` grant, which it does by default.
+
+Keebai sends the browser to `accounts.keebai.com`, where the user signs in, chooses a company and approves [permission groups](/dev/scopes#permission-groups). The granted scopes are the scopes your request asked for that belong to an approved group and that the user's role allows. The user has 10 minutes to finish.
+
+### The redirect back
+
+On approval:
+
+```
+https://example.com/oauth/callback?code=…&state=af0ifjsldkj&iss=https%3A%2F%2Fapi.keebai.com
+```
+
+When the user cancels:
+
+```
+https://example.com/oauth/callback?error=access_denied&error_description=End-User+aborted+interaction&state=af0ifjsldkj&iss=https%3A%2F%2Fapi.keebai.com
+```
+
+**Check `iss`** against `https://api.keebai.com` before using the code ([RFC 9207](https://datatracker.ietf.org/doc/html/rfc9207)). It is always present, on success and on error.
+
+If the `client_id` or the `redirect_uri` is invalid — an unknown client, a metadata document that cannot be fetched or fails validation, a redirect URI that is not registered — Keebai **does not redirect** to your client, because it cannot trust the address. The user sees an error page on `accounts.keebai.com` instead. Every other error goes back to your `redirect_uri` with `error` set.
+
+The code is single-use and expires after **60 seconds**.
+
+## Exchange the code
+
+`POST https://api.keebai.com/oauth/token`, as `application/x-www-form-urlencoded`.
+
+```bash
+curl -X POST https://api.keebai.com/oauth/token \
+  -d grant_type=authorization_code \
+  -d code=… \
+  -d code_verifier=dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk \
+  -d redirect_uri=https://example.com/oauth/callback \
+  -d client_id=https://example.com/oauth/client.json \
+  -d resource=https://api.keebai.com/v1/mcp
+```
+
+`redirect_uri` must be the same one you sent to `/oauth/authorize`, and `resource`, if sent, must be the MCP resource. Confidential clients from dynamic registration also authenticate, with HTTP Basic (`client_secret_basic`) or `client_secret` in the body (`client_secret_post`), whichever they registered.
+
+```json 200 OK
+{
+  "access_token": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImF0K2p3dCIsImtpZCI6Ii4uLiJ9.…",
+  "token_type": "Bearer",
+  "expires_in": 900,
+  "refresh_token": "…",
+  "scope": "messages:send templates:read crm:tickets:read"
+}
+```
+
+The response carries `Cache-Control: no-store`. Read `scope` to know what the user actually granted — it can be less than you asked for.
+
+Then call the server:
+
+```http
+POST /v1/mcp HTTP/1.1
+Host: api.keebai.com
+Authorization: Bearer eyJhbGciOiJFUzI1NiIs…
+Content-Type: application/json
+Accept: application/json, text/event-stream
+```
+
+The access token is accepted only on `/v1/mcp`. The rest of the public API rejects it with `401`; use a [Personal Access Token](/dev/api-keys) there.
+
+## Refresh
+
+```bash
+curl -X POST https://api.keebai.com/oauth/token \
+  -d grant_type=refresh_token \
+  -d refresh_token=… \
+  -d client_id=https://example.com/oauth/client.json
+```
+
+The response has the same shape, with a new access token and a **new** refresh token. `scope` is optional and can only narrow what the connection already has.
+
+<Warning>
+  **Refresh tokens rotate on every use.** Store the new one and discard the old one. If a refresh token that was already used comes back, Keebai treats it as stolen: it revokes the whole chain of refresh tokens from that sign-in and answers `invalid_grant`. The user has to sign in again. Access tokens already issued keep working until they expire, at most 15 minutes later.
+</Warning>
+
+If two parts of your client refresh at the same time, one of them presents an already-used token and both lose the connection. Serialize refreshes.
+
+Every refresh checks the user again. If their account was deactivated, or they no longer have access to the company of the connection, the refresh fails with `invalid_grant`.
+
+## Tokens
+
+| Token | Format | Lifetime |
+|---|---|---|
+| Authorization code | Opaque | 60 seconds, single use |
+| Access token | JWT signed with ES256 | 15 minutes |
+| Refresh token | Opaque | 30 days, rotated on every refresh — each new one lasts another 30 days |
+
+The connection itself lasts one year from the user's last approval. After that, refreshing fails with `invalid_grant` and the user signs in again.
+
+The access token is a JWT for a single audience, `https://api.keebai.com/v1/mcp`, issued by `https://api.keebai.com` and signed with a key published at `/oauth/jwks`. It carries `sub` (the Keebai user), `client_id`, `scope`, `company`, `project_id`, `email`, `grant_id` (the connection), `jti`, `iat` and `exp`.
+
+Your client does not need to decode it — treat it as opaque, and read the granted scopes from the token response. Keebai does not store access tokens, so they cannot be revoked one by one: ending a connection stops refreshes, and the access token still in hand expires on its own.
+
+## Revoke
+
+`POST https://api.keebai.com/oauth/revoke` with `token=<refresh token>`, as `application/x-www-form-urlencoded`, authenticating the same way as on the token endpoint. Revoking a refresh token ends the whole connection: every refresh token issued from that sign-in stops working.
+
+```bash
+curl -X POST https://api.keebai.com/oauth/revoke \
+  -d token=… \
+  -d token_type_hint=refresh_token \
+  -d client_id=https://example.com/oauth/client.json
+```
+
+The answer is `200` with an empty body, whether or not the token existed. Call it when the user disconnects in your app. Access tokens are JWTs and cannot be revoked here — sending one returns `400 unsupported_token_type`. The one in hand expires within 15 minutes.
+
+Users can also disconnect from the portal, under **Developers › Connected apps** (**Desarrolladores › Apps conectadas**). That deletes the connection with its refresh tokens: the next refresh fails with `invalid_grant`, and the current access token keeps working until it expires, at most 15 minutes later.
+
+## Errors
+
+### Authorize
+
+Errors that Keebai can send back to your client arrive on the `redirect_uri` as `error` and `error_description` query parameters, with `state` and `iss`.
+
+| `error` | When |
+|---|---|
+| `invalid_request` | A required parameter is missing, `code_challenge` is missing, or `code_challenge_method` is not `S256`. |
+| `invalid_scope` | Every requested scope is unknown. |
+| `invalid_target` | `resource` is not `https://api.keebai.com/v1/mcp`. |
+| `access_denied` | The user cancelled on the consent screen. |
+
+An unknown `client_id`, a metadata document that cannot be fetched or is invalid, and an unregistered `redirect_uri` are shown to the user on an error page at `accounts.keebai.com`. Your client receives nothing.
+
+### Token, registration and revocation
+
+Errors are JSON, following [RFC 6749](https://datatracker.ietf.org/doc/html/rfc6749#section-5.2):
+
+```json
+{
+  "error": "invalid_grant",
+  "error_description": "grant request is invalid"
+}
+```
+
+| `error` | Status | When |
+|---|---|---|
+| `invalid_request` | `400` | A required parameter is missing or malformed. |
+| `invalid_client` | `401` | Unknown client, missing or wrong client authentication. |
+| `invalid_grant` | `400` | The code is expired, already used, or for another client; the `redirect_uri` or PKCE verifier does not match; the refresh token is expired, already used or revoked; the user lost access to the company. |
+| `unsupported_grant_type` | `400` | Anything other than `authorization_code` or `refresh_token`. |
+| `invalid_scope` | `400` | A refresh asked for a scope the connection does not have. |
+| `invalid_target` | `400` | `resource` is not `https://api.keebai.com/v1/mcp`. |
+| `invalid_redirect_uri` | `400` | Registration: a redirect URI breaks the [redirect URI rules](#redirect-uris). |
+| `invalid_client_metadata` | `400` | Registration: other metadata is invalid. |
+| `unsupported_token_type` | `400` | Revocation: the token is an access token. |
+
+### On `/v1/mcp`
+
+| Status | Header | Meaning |
+|---|---|---|
+| `401` | `WWW-Authenticate: Bearer resource_metadata="…"` | No token, or the token is invalid, expired, for another audience or signed by another issuer. Refresh, or start the flow again. |
+| `503` | — | `AUTH_SERVER_UNAVAILABLE`: the signing keys could not be loaded. Retry shortly; the token is not at fault. |
+
+A **tool call** that lacks a scope does not change the HTTP status: it returns `200` with a tool result carrying `isError: true` and `INSUFFICIENT_SCOPE`, as described in [how scopes are enforced](/dev/mcp/overview#scopes-are-enforced-per-tool-not-per-connection).
+
+## What a connection can reach
+
+- **One company.** The user picks it on the consent screen. Like a [Personal Access Token](/dev/authentication#the-token-decides-the-tenant), the token decides the tenant, and nothing your client sends can change it. Writes go to the company's default project.
+- **The user's own reach.** The groups and scopes the user can approve are limited by their Keebai role.
+- **One connection per client, user and company.** If the same user authorizes your client again for the same company, the new approval replaces the previous scopes.

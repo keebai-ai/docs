@@ -1,0 +1,83 @@
+---
+title: "Other MCP apps"
+sidebarTitle: "Other MCP apps"
+description: "Connect Cursor, VS Code, Gemini CLI or any MCP client that supports OAuth. Give it the URL; it finds the sign-in on its own."
+---
+
+Any MCP client that supports remote servers with OAuth can connect to Keebai with just the URL. The client discovers where to sign in from the server itself, opens your browser, and keeps the tokens.
+
+```
+https://api.keebai.com/v1/mcp
+```
+
+## Add the server
+
+Add Keebai to the client's MCP configuration with the URL and **no `Authorization` header**. The exact file and key names belong to each client; these are the usual shapes.
+
+<CodeGroup>
+
+```json Cursor (.cursor/mcp.json)
+{
+  "mcpServers": {
+    "keebai": {
+      "url": "https://api.keebai.com/v1/mcp"
+    }
+  }
+}
+```
+
+```json VS Code (.vscode/mcp.json)
+{
+  "servers": {
+    "keebai": {
+      "type": "http",
+      "url": "https://api.keebai.com/v1/mcp"
+    }
+  }
+}
+```
+
+```json Gemini CLI (~/.gemini/settings.json)
+{
+  "mcpServers": {
+    "keebai": {
+      "httpUrl": "https://api.keebai.com/v1/mcp"
+    }
+  }
+}
+```
+
+</CodeGroup>
+
+The first time the client talks to Keebai it gets a `401` that points to the sign-in metadata. The client then opens your browser at `accounts.keebai.com`. Some clients do it on their own; others show a **Sign in** or **Authenticate** action in their MCP panel. If yours does not, check its documentation for how it handles OAuth on remote servers.
+
+<Note>
+  If the client has no OAuth support, connect it with a [Personal Access Token](/dev/mcp/overview#connect-with-a-personal-access-token) instead.
+</Note>
+
+## What you see when you connect
+
+<Steps>
+  <Step title="Sign in at accounts.keebai.com">
+    Sign in with your email and password, and your second factor if you have one. If you are already signed in, this step is skipped.
+  </Step>
+  <Step title="Choose the company">
+    If you belong to more than one company, pick the one the app will work on. A connection always belongs to one company.
+  </Step>
+  <Step title="Approve the permissions">
+    Permissions come in [six groups](/dev/scopes#permission-groups). You only see as available the groups your Keebai role allows; the company owner and superusers can grant all of them. Untick any group you do not want the app to have.
+  </Step>
+  <Step title="Back to the app">
+    Click **Allow access** and the browser returns to the app, already connected.
+  </Step>
+</Steps>
+
+The approval screen shows the app's name and the site it returns to. Check that both are what you expect before you click **Allow**.
+
+## Disconnect
+
+In the portal, go to **Developers › Connected apps** (**Desarrolladores › Apps conectadas**) and disconnect the app. The app can no longer refresh its access; the access token it already holds expires within 15 minutes. The company owner and superusers see every connection in the company; everyone else sees their own.
+
+## Building your own client
+
+If you are writing the client yourself, the [OAuth reference](/dev/mcp/oauth) has every endpoint, parameter and error.

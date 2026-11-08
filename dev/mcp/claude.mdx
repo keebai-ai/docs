@@ -1,0 +1,110 @@
+---
+title: "Connect with Claude"
+sidebarTitle: "Claude"
+description: "Add Keebai as a custom connector in Claude or as a remote MCP server in Claude Code. You sign in with your Keebai account — no token to copy."
+---
+
+Claude connects to Keebai over OAuth. You paste one URL, sign in to Keebai in your browser, pick the company, and approve what Claude can do. There is no API key to create or paste.
+
+```
+https://api.keebai.com/v1/mcp
+```
+
+## Claude on the web and Claude Desktop
+
+<Steps>
+  <Step title="Open the connectors settings">
+    Go to **Customize › Connectors**.
+  </Step>
+  <Step title="Add a custom connector">
+    Click **+ Add**, then **Add custom connector**.
+  </Step>
+  <Step title="Name it and paste the URL">
+    Name it `Keebai` and enter `https://api.keebai.com/v1/mcp` as the remote MCP server URL. Click **Continue**.
+  </Step>
+  <Step title="Keep OAuth as the authentication">
+    Claude detects that Keebai uses OAuth. Leave the detected settings as they are — do not add request headers. Choose **Sign in now** to connect right away, or **Sign in when needed**, and click **Add**.
+  </Step>
+  <Step title="Sign in to Keebai">
+    A Keebai window opens. Sign in, choose the company, and approve the permissions. See [What you see when you connect](#what-you-see-when-you-connect).
+  </Step>
+</Steps>
+
+To use it in a conversation, click **+** at the lower left of the chat, open **Connectors**, and turn Keebai on.
+
+Custom connectors are available in Claude Desktop too; follow the same steps. If your version of the app shows the settings somewhere else, look for the connectors section and follow the same flow.
+
+<Note>
+  **Team and Enterprise plans.** An owner adds the connector once for the whole organization, under **Organization settings › Connectors** (**Add › Custom › Web**, then the same steps). Each member then opens **Customize › Connectors**, finds Keebai and clicks **Connect** to sign in with their own Keebai account. Every member gets their own connection, limited by their own Keebai role.
+</Note>
+
+Anthropic's reference for these screens: [Getting started with custom connectors using remote MCP](https://support.claude.com/en/articles/11175166-getting-started-with-custom-connectors-using-remote-mcp).
+
+## Claude Code
+
+<Steps>
+  <Step title="Add the server">
+    ```bash
+    claude mcp add --transport http keebai https://api.keebai.com/v1/mcp
+    ```
+
+    Add `--scope user` to make it available in all your projects, or `--scope project` to share it with your team through `.mcp.json`. Each person still signs in with their own account.
+  </Step>
+  <Step title="Sign in">
+    Inside Claude Code, run:
+
+    ```text
+    /mcp
+    ```
+
+    Pick `keebai` and follow the steps in your browser. From your shell, `claude mcp login keebai` does the same.
+  </Step>
+</Steps>
+
+Claude Code stores the tokens and refreshes them on its own.
+
+Anthropic's reference: [Connect Claude Code to tools via MCP](https://code.claude.com/docs/en/mcp).
+
+## What you see when you connect
+
+<Steps>
+  <Step title="Sign in at accounts.keebai.com">
+    The browser opens `accounts.keebai.com`. Sign in with your email and password, and your second factor if you have one. If you are already signed in, this step is skipped.
+  </Step>
+  <Step title="Choose the company">
+    If you belong to more than one company, pick the one Claude will work on. A connection always belongs to one company. To use another one, connect again and choose it.
+  </Step>
+  <Step title="Approve the permissions">
+    Permissions come in [six groups](/dev/scopes#permission-groups) — messages and email, customers, calendar, products and sales, sell and invoice, agents and knowledge. You only see as available the groups your Keebai role allows; the company owner and superusers can grant all of them. Untick any group you do not want Claude to have.
+  </Step>
+  <Step title="Back to Claude">
+    Click **Allow access** and the browser returns to Claude, already connected. If you cancel, nothing is created.
+  </Step>
+</Steps>
+
+The approval screen is valid for 10 minutes. If it expires, start the connection again from Claude.
+
+Every [tool](/dev/mcp/tools) stays visible to Claude, but a tool whose group you did not approve fails with `INSUFFICIENT_SCOPE`. See [how scopes are enforced](/dev/mcp/overview#scopes-are-enforced-per-tool-not-per-connection).
+
+## Disconnect
+
+You can cut the connection from either side.
+
+- **From Keebai** — in the portal, go to **Developers › Connected apps** (**Desarrolladores › Apps conectadas**) and disconnect Claude. Claude can no longer refresh its access, so it has to sign in again; the access token it already holds keeps working until it expires, at most 15 minutes later. The company owner and superusers see every connection in the company; everyone else sees their own.
+- **From Claude** — go to **Customize › Connectors**, click **Remove** or the three dots next to Keebai, and follow the prompts.
+- **From Claude Code** — run `claude mcp logout keebai` before `claude mcp remove keebai`. Removing the server on its own only deletes the tokens on your machine; it does not end the connection in Keebai. You can always disconnect it from **Developers › Connected apps**.
+
+<Tip>
+  To change which groups Claude has, connect again and approve a different set. The new approval replaces the old one for that company.
+</Tip>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Tool catalogue" icon="wrench" href="/dev/mcp/tools">
+    Every tool and the scope it needs.
+  </Card>
+  <Card title="Permission groups" icon="shield-halved" href="/dev/scopes#permission-groups">
+    Which scopes each group grants.
+  </Card>
+</CardGroup>

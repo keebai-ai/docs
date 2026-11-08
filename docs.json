@@ -241,7 +241,11 @@
             "group": "MCP",
             "pages": [
               "dev/mcp/overview",
-              "dev/mcp/tools"
+              "dev/mcp/claude",
+              "dev/mcp/chatgpt",
+              "dev/mcp/other-clients",
+              "dev/mcp/tools",
+              "dev/mcp/oauth"
             ]
           },
           {

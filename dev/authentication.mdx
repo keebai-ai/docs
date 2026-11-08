@@ -34,6 +34,10 @@ They are absent from responses too. Records come back without tenant identifiers
 
 To see which company and project your token resolves to, call [`GET /v1/me`](/dev/endpoints/me).
 
+<Note>
+  The [MCP server](/dev/mcp/overview) also accepts OAuth access tokens, which apps such as Claude and ChatGPT get when a user signs in and approves the connection. They are short-lived JWTs (15 minutes) issued by `https://api.keebai.com` for the audience `https://api.keebai.com/v1/mcp`, and they work only on `/v1/mcp` — every other endpoint, `/v1/me` included, rejects them with `401`. They follow the same rule: the company is the one the user chose on the consent screen, and the caller cannot change it. See the [OAuth reference](/dev/mcp/oauth).
+</Note>
+
 ## Examples
 
 <CodeGroup>

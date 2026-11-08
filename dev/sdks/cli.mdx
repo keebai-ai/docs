@@ -49,8 +49,8 @@ npx @keebai/cli@latest login
 `keebai login` runs the [OAuth 2.0 Device Authorization Grant flow (RFC 8628)](https://datatracker.ietf.org/doc/html/rfc8628):
 
 1. The CLI requests a `device_code` and `user_code` from the public API.
-2. Your browser opens at `https://developers.keebai.com/cli?code=ABCD-1234`.
-3. You sign in to the developer portal (if you aren't already) and confirm the request.
+2. Your browser opens at `https://accounts.keebai.com/cli?code=ABCD-1234`.
+3. You sign in to Keebai (if you aren't already) and confirm the request.
 4. The CLI finishes polling and saves the PAT (`kbai_pk_...`) to `~/.keebai/credentials.json` with mode `0600`.
 
 ```bash
@@ -167,7 +167,7 @@ curl https://api.keebai.com/v1/messages \
 
 ## Endpoints the CLI hits
 
-The CLI talks exclusively to `https://api.keebai.com/v1/...`. Browser flows (login approval, channel connect) happen at `https://developers.keebai.com/cli` and `https://connect.keebai.com/connect/whatsapp` respectively.
+The CLI talks exclusively to `https://api.keebai.com/v1/...`. Browser flows (login approval, channel connect) happen at `https://accounts.keebai.com/cli` and `https://connect.keebai.com/connect/whatsapp` respectively.
 
 ## Resources
 

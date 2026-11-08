@@ -58,13 +58,17 @@ The catalog lives in the `api_scopes` MongoDB collection. The portal pulls it vi
 | `agents:read` | agents | [List agents](/dev/endpoints/agents-list), [read the sections of their prompt](/dev/endpoints/agents-prompts-list) and [their history](/dev/endpoints/agents-prompt-versions-list), read [the catalogue](/dev/endpoints/prompt-types-list), and [list webhook tools](/dev/endpoints/tools-list). |
 | `agents:write` | agents | [Create](/dev/endpoints/agents-create) and [configure agents](/dev/endpoints/agents-update), [write the sections of their prompt](/dev/endpoints/agents-prompt-set) and [restore older ones](/dev/endpoints/agents-prompt-version-restore), and [manage the webhook tools](/dev/endpoints/tools-create) they can call. |
 | `scheduling:branches:read` | scheduling | [List branches](/dev/endpoints/scheduling-branches-list) and [get details](/dev/endpoints/scheduling-branch-get). |
+| `scheduling:sectors:read` | scheduling | List the venue's table sectors, for public booking flows. |
 | `scheduling:services:read` | scheduling | [List services](/dev/endpoints/scheduling-services-list) and [details](/dev/endpoints/scheduling-service-get) (duration, restrictions, allowed professionals). |
 | `scheduling:professionals:read` | scheduling | [List professionals](/dev/endpoints/scheduling-professionals-list) and [details](/dev/endpoints/scheduling-professional-get) by branch or service. |
 | `scheduling:availability:read` | scheduling | Query availability [by date](/dev/endpoints/scheduling-availability), [by range](/dev/endpoints/scheduling-availability-range), and [next available slots](/dev/endpoints/scheduling-availability-next). |
 | `scheduling:appointments:read` | scheduling | [Get an appointment](/dev/endpoints/scheduling-appointment-get) by id within the tenant. |
 | `scheduling:appointments:create` | scheduling | [Create appointments](/dev/endpoints/scheduling-appointment-create) with embedded customer data. |
+| `scheduling:appointments:update` | scheduling | Change the service, professional, branch or date of an appointment. |
 | `scheduling:appointments:confirm` | scheduling | [Confirm appointments](/dev/endpoints/scheduling-appointment-confirm) (`pending` → `confirmed`). |
 | `scheduling:appointments:cancel` | scheduling | [Cancel appointments](/dev/endpoints/scheduling-appointment-cancel) with an optional reason. |
+| `scheduling:payment-links:create` | scheduling | Generate a payment link for a customer's pending appointments or for an agreed amount. |
+| `restaurants:menu:read` | restaurants | List the dishes on the menu, with their section, price and allergens. |
 | `crm:customers:read` | crm | [List](/dev/endpoints/crm-customers-list) and [read](/dev/endpoints/crm-customer-get) CRM customers. |
 | `crm:customers:write` | crm | [Create](/dev/endpoints/crm-customer-create) and [update](/dev/endpoints/crm-customer-update) customers, including custom fields and tags. |
 | `crm:customers:delete` | crm | [Delete customers](/dev/endpoints/crm-customer-delete). Permanent. |
@@ -80,6 +84,7 @@ The catalog lives in the `api_scopes` MongoDB collection. The portal pulls it vi
 | `crm:events:write` | crm | [Emit CRM events](/dev/endpoints/crm-events-emit) onto a contact's timeline. Opens a ticket if the contact has none, and writes the event's values onto the ticket and the contact. No read counterpart. |
 | `ecommerce:products:read` | ecommerce | [List](/dev/endpoints/ecommerce-products-list) and [read](/dev/endpoints/ecommerce-product-get) the product catalog, and [find a product by SKU or barcode](/dev/endpoints/ecommerce-products-find). |
 | `ecommerce:carts:read` | ecommerce | [List](/dev/endpoints/ecommerce-carts-list) and [read](/dev/endpoints/ecommerce-cart-get) carts, including abandoned ones. |
+| `ecommerce:carts:write` | ecommerce | Record abandoned carts coming from the connected store. |
 | `ecommerce:sales:read` | ecommerce | [List](/dev/endpoints/ecommerce-sales-list) and [read](/dev/endpoints/ecommerce-sale-get) sales, with amounts and payment state. |
 | `ecommerce:sales:write` | ecommerce | [Create sales](/dev/endpoints/ecommerce-sales-create) and internal consumptions. Deducts stock and calculates commissions. |
 | `ecommerce:stock:read` | ecommerce | [Read a product's stock](/dev/endpoints/ecommerce-product-stock) per variant and branch, and [list stock movements](/dev/endpoints/ecommerce-stock-movements). |
@@ -99,6 +104,33 @@ The catalog lives in the `api_scopes` MongoDB collection. The portal pulls it vi
 The [MCP server](/dev/mcp/overview) does not have a scope system of its own. Each of its 130 tools requires exactly the scope its REST counterpart does — `keebai_crm_ticket_create` needs `crm:tickets:write`, `keebai_contacts_list` needs `contacts:read`, and so on. The [tool catalogue](/dev/mcp/tools) lists the mapping.
 
 One difference matters when you hand a token to an agent: **a missing scope is not a `403`**. Every tool stays visible in `tools/list` regardless of your scopes, and the call comes back as a tool error carrying `INSUFFICIENT_SCOPE`. An agent will happily try something it cannot do and discover the limit afterwards, so pick the scope set deliberately rather than relying on the agent not to reach for a tool.
+
+## Permission groups
+
+When an app connects to the [MCP server over OAuth](/dev/mcp/overview#connect-with-oauth) — Claude, ChatGPT, Cursor — the user does not tick scopes one by one. The consent screen shows six **groups**. The token ends up with the scopes the app asked for that belong to a group the user approved and that the user's role allows.
+
+Each scope's group is stored with it in the `api_scopes` catalog, as `consent_group`. It is not derived from the scope's name: `contacts:` and `loyalty:` sit with `crm:` in **Customers**, `restaurants:menu:read` sits with the catalog reads in **Products and sales**, and `ecommerce:` splits by action — reads go to **Products and sales**, anything that writes or issues goes to **Sell and invoice** — so a user can let an app look at sales without letting it create them.
+
+| Group | Key | Scopes |
+|---|---|---|
+| **Messages and email** | `messages` | `messages:send`, `messages:bulk`, `templates:read`, `templates:create`, `templates:update`, `channels:read`, `channels:connect`, `webhooks:read`, `webhooks:manage`, `flows:read`, `flows:write` |
+| **Customers** | `customers` | `crm:customers:read`, `crm:customers:write`, `crm:customers:delete`, `crm:tickets:read`, `crm:tickets:write`, `crm:tickets:delete`, `crm:tasks:read`, `crm:tasks:write`, `crm:tasks:delete`, `crm:notes:read`, `crm:notes:write`, `crm:notes:delete`, `crm:events:write`, `contacts:read`, `contacts:write`, `contacts:delete`, `loyalty:read`, `loyalty:write` |
+| **Calendar** | `scheduling` | `scheduling:branches:read`, `scheduling:sectors:read`, `scheduling:services:read`, `scheduling:professionals:read`, `scheduling:availability:read`, `scheduling:appointments:read`, `scheduling:appointments:create`, `scheduling:appointments:update`, `scheduling:appointments:confirm`, `scheduling:appointments:cancel`, `scheduling:payment-links:create` |
+| **Products and sales** | `catalog` | `restaurants:menu:read`, `ecommerce:products:read`, `ecommerce:carts:read`, `ecommerce:sales:read`, `ecommerce:stock:read`, `ecommerce:invoicing:read` |
+| **Sell and invoice** | `commerce` | `ecommerce:carts:write`, `ecommerce:sales:write`, `ecommerce:stock:write`, `ecommerce:invoicing:issue` |
+| **Agents and knowledge** | `agents` | `knowledge:read`, `knowledge:write`, `knowledge:delete`, `knowledge:query`, `knowledge:assign`, `agents:read`, `agents:write`, `projects:read` |
+
+`cli:device` is in no group. It is an internal marker that Keebai puts on tokens issued to the [CLI](/dev/sdks/cli), not a permission an app can ask for. Inactive scopes are in no group either.
+
+Rules that apply on the consent screen:
+
+- **Your role limits the groups.** A group is available only if your Keebai role has the permission behind at least one of the scopes the app asked for in it. Inside an approved group, scopes your role does not allow are left out. The company owner and superusers can approve every group.
+- **One company per connection.** The user picks the company before approving. To use another company, connect again.
+- **Reconnecting replaces.** A second approval from the same user, for the same app and company, replaces the scopes of the first one.
+- **Disconnecting stops the connection within 15 minutes.** Under **Developers › Connected apps** in the portal, the company owner and superusers see every connection in the company and everyone else sees their own. Disconnecting revokes the refresh token at once; the app's current access token is not revoked and expires on its own, at most 15 minutes later.
+- **Losing access ends the connection.** If the user is deactivated or loses access to the company, the app's next refresh fails and it has to sign in again. A change of role alone does not change the scopes already granted; disconnect and connect again to apply it.
+
+Personal Access Tokens do not use groups. You still pick single scopes when you [create a token](/dev/api-keys).
 
 ## Scopes are independent from role permissions
 

@@ -1,0 +1,72 @@
+---
+title: "Connect with ChatGPT"
+sidebarTitle: "ChatGPT"
+description: "Add Keebai to ChatGPT as a custom MCP server with OAuth. You sign in with your Keebai account — no token to copy."
+---
+
+ChatGPT connects to Keebai as a custom MCP server and signs in over OAuth. You give it one URL, sign in to Keebai in your browser, pick the company, and approve what ChatGPT can do.
+
+```
+https://api.keebai.com/v1/mcp
+```
+
+<Note>
+  OpenAI renames these screens often. Older help pages call them **connectors** under **developer mode**; newer ones call them **apps** or **plugins**. The labels below match OpenAI's current guide. If your workspace shows a different name, look for the option to add a custom MCP server — the fields are the same. Custom MCP servers run in ChatGPT on the web, and your workspace admin may need to allow them.
+</Note>
+
+## Add Keebai
+
+<Steps>
+  <Step title="Add a custom MCP server">
+    Open **Plugins** in ChatGPT, select **+**, then **Add custom MCP server**.
+  </Step>
+  <Step title="Name it and paste the URL">
+    Name it `Keebai`. Under **Connection**, enter `https://api.keebai.com/v1/mcp` as the **Server URL**.
+  </Step>
+  <Step title="Choose OAuth">
+    Set the authentication to **OAuth**. Leave the client credentials empty: ChatGPT registers itself with Keebai on its own, using a client metadata document or dynamic registration. Keebai supports both.
+  </Step>
+  <Step title="Create it">
+    Review the risk warning, select **I understand and want to continue**, then **Create as a plugin**, and install it.
+  </Step>
+  <Step title="Sign in to Keebai">
+    A Keebai window opens. Sign in, choose the company, and approve the permissions. See [What you see when you connect](#what-you-see-when-you-connect).
+  </Step>
+</Steps>
+
+OpenAI's reference for these screens: [Add custom MCP server](https://developers.openai.com/api/docs/guides/custom-mcp-server).
+
+## What you see when you connect
+
+<Steps>
+  <Step title="Sign in at accounts.keebai.com">
+    The browser opens `accounts.keebai.com`. Sign in with your email and password, and your second factor if you have one. If you are already signed in, this step is skipped.
+  </Step>
+  <Step title="Choose the company">
+    If you belong to more than one company, pick the one ChatGPT will work on. A connection always belongs to one company. To use another one, connect again and choose it.
+  </Step>
+  <Step title="Approve the permissions">
+    Permissions come in [six groups](/dev/scopes#permission-groups). You only see as available the groups your Keebai role allows; the company owner and superusers can grant all of them. Untick any group you do not want ChatGPT to have.
+  </Step>
+  <Step title="Back to ChatGPT">
+    Click **Allow access** and the browser returns to ChatGPT, already connected. If you cancel, nothing is created.
+  </Step>
+</Steps>
+
+The approval screen is valid for 10 minutes. Keebai issues refresh tokens that last 30 days and renew on every use, so ChatGPT stays connected without asking you to sign in again as long as it uses the connection at least once a month.
+
+## Disconnect
+
+- **From Keebai** — in the portal, go to **Developers › Connected apps** (**Desarrolladores › Apps conectadas**) and disconnect ChatGPT. ChatGPT can no longer refresh its access; the access token it already holds expires within 15 minutes. The company owner and superusers see every connection in the company; everyone else sees their own.
+- **From ChatGPT** — remove the app or plugin from your ChatGPT settings. That stops ChatGPT from using it; disconnecting from Keebai is what ends the connection on Keebai's side.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Tool catalogue" icon="wrench" href="/dev/mcp/tools">
+    Every tool and the scope it needs.
+  </Card>
+  <Card title="Permission groups" icon="shield-halved" href="/dev/scopes#permission-groups">
+    Which scopes each group grants.
+  </Card>
+</CardGroup>
