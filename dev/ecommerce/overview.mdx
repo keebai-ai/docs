@@ -43,7 +43,7 @@ A cart is **not** the draft of a sale. They are separate records with no foreign
 | `ecommerce:sales:write` | [Create sales](/dev/endpoints/ecommerce-sales-create) and internal consumptions. |
 | `ecommerce:stock:read` | [Read stock](/dev/endpoints/ecommerce-product-stock) and [stock movements](/dev/endpoints/ecommerce-stock-movements). |
 | `ecommerce:stock:write` | [Adjust](/dev/endpoints/ecommerce-stock-adjust) and [transfer](/dev/endpoints/ecommerce-stock-transfer) stock. |
-| `ecommerce:invoicing:read` | [Read the issuable DTE types](/dev/endpoints/ecommerce-invoicing-types), [a sale's documents](/dev/endpoints/ecommerce-sale-documents), and [their PDF](/dev/endpoints/ecommerce-invoicing-document-pdf). |
+| `ecommerce:invoicing:read` | [Read the issuable DTE documents](/dev/endpoints/ecommerce-invoicing-types), [a sale's documents](/dev/endpoints/ecommerce-sale-documents), and [their PDF](/dev/endpoints/ecommerce-invoicing-document-pdf). |
 | `ecommerce:invoicing:issue` | [Issue a sale's DTE](/dev/endpoints/ecommerce-sale-dte-issue). |
 
 The read scopes are separate because they leak different things. Carts and sales carry customer contact details and money; the catalog carries neither. A pricing widget on your website needs `ecommerce:products:read` and nothing else.
@@ -79,11 +79,13 @@ Every change leaves an entry in [the stock movements](/dev/endpoints/ecommerce-s
 
 ## Recording sales and invoicing
 
-[`POST /v1/ecommerce/sales`](/dev/endpoints/ecommerce-sales-create) records a sale from your own point of sale: it deducts stock, calculates commissions, and, with `dte`, issues the boleta or factura right after. A `type: "internal"` sale records internal consumption instead, with no payments and no DTE.
+[`POST /v1/ecommerce/sales`](/dev/endpoints/ecommerce-sales-create) records a sale from your own point of sale: it deducts stock, calculates commissions, and, with `dte`, issues the receipt (boleta) or invoice (factura) right after. Lines can be catalog products or free lines, such as a service outside the catalog, with their own `name`. Each line takes a price with VAT (`price`) or a net price (`net_price`), and the document shows that net exactly. For an invoice to a customer you invoiced before, the RUT alone is enough. A `type: "internal"` sale records internal consumption instead, with no payments and no DTE.
 
 Send an `Idempotency-Key` header so a retry after a timeout does not create the sale twice.
 
-A DTE that fails does not undo the sale. It comes back in `dte.failed` with its reason, and you issue it later with [`POST /v1/ecommerce/sales/{id}/dte`](/dev/endpoints/ecommerce-sale-dte-issue). Check which types the company can issue today with [`GET /v1/ecommerce/invoicing/types`](/dev/endpoints/ecommerce-invoicing-types).
+A DTE that fails does not undo the sale. It comes back in `dte.failed` with its reason, and you issue it later with [`POST /v1/ecommerce/sales/{id}/dte`](/dev/endpoints/ecommerce-sale-dte-issue). Check which documents the company can issue today with [`GET /v1/ecommerce/invoicing/types`](/dev/endpoints/ecommerce-invoicing-types).
+
+A receipt always needs a paid sale. An invoice can go on credit: when the company enables credit invoices in **Sales › Settings**, an invoice on a sale that is not fully paid is issued with a due date (`dte.due_date`, or today plus the company's credit days).
 
 ## Abandoned carts
 

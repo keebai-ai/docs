@@ -1,7 +1,7 @@
 ---
 title: "MCP server"
 sidebarTitle: "Overview"
-description: "Connect an AI agent to Keebai over the Model Context Protocol — sign in with OAuth or use a token, same scopes, 130 tools."
+description: "Connect an AI agent to Keebai over the Model Context Protocol — sign in with OAuth or use a token, same scopes, one tool per operation."
 ---
 
 Keebai exposes a **Model Context Protocol** server so an AI agent can use your account directly: send WhatsApp messages and emails, search your knowledge base, read and write CRM records, manage contacts, look up products, manage stock, record sales and issue their tax documents, run the loyalty programme, book appointments. It is the same API described in the rest of these docs, presented as tools an LLM can call.
@@ -94,7 +94,7 @@ This is the one behaviour that surprises people:
 
 <Steps>
   <Step title="Every tool is always listed">
-    `tools/list` returns all 130 tools regardless of what your token can do. The catalogue is not filtered by scope.
+    `tools/list` returns every tool regardless of what your token can do. The catalogue is not filtered by scope.
   </Step>
   <Step title="The check happens on call">
     `tools/call` verifies the scope for that specific tool.
@@ -161,7 +161,7 @@ The whole scope catalogue is on the [Scopes](/dev/scopes) page. Over OAuth you a
 </CardGroup>
 
 <Warning>
-  **Twelve of the 130 tools delete things permanently**, and CRM and contact reads span your whole company, not just one project. Think about that before handing an agent a token with `*:delete` scopes — the [tool catalogue](/dev/mcp/tools) marks every destructive tool.
+  **Twelve tools delete things permanently**, and CRM and contact reads span your whole company, not just one project. Think about that before handing an agent a token with `*:delete` scopes — the [tool catalogue](/dev/mcp/tools) marks every destructive tool.
 </Warning>
 
 ## What is not exposed
@@ -189,7 +189,7 @@ Everything else in the REST surface has a matching tool.
     Add Keebai as a connector and sign in.
   </Card>
   <Card title="Tool catalogue" icon="wrench" href="/dev/mcp/tools">
-    All 130 tools with their required scope.
+    Every tool with its required scope.
   </Card>
   <Card title="OAuth reference" icon="shield-halved" href="/dev/mcp/oauth">
     Endpoints and errors for your own client.

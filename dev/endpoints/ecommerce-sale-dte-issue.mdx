@@ -1,7 +1,7 @@
 ---
 title: "POST /v1/ecommerce/sales/:id/dte"
 sidebarTitle: "POST ecommerce/sales/{id}/dte"
-description: "Issue the electronic tax document (DTE) of an existing sale: a boleta or a factura."
+description: "Issue the electronic tax document (DTE) of an existing sale: a receipt (boleta) or an invoice (factura), paid or on credit."
 openapi: "POST /v1/ecommerce/sales/{id}/dte"
 ---
 
@@ -38,8 +38,9 @@ POST https://api.keebai.com/v1/ecommerce/sales/{id}/dte
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `type` | `number` | Yes | `39` boleta, `41` boleta exenta, `33` factura, or `34` factura exenta. |
-| `receiver` | `object` | Conditional | `rut`, `legal_name`, `activity`, `address`, `commune`, `email?`. Required for a factura (`33`, `34`). |
+| `document` | `string` | Yes | `receipt` (boleta), `exempt_receipt` (boleta exenta), `invoice` (factura), or `exempt_invoice` (factura exenta). |
+| `receiver` | `object` | Conditional | `rut`, `legal_name`, `activity`, `address`, `commune`, `email?`. Required for `invoice` and `exempt_invoice`. For a RUT the company invoiced before, `rut` alone is enough: the rest is filled in from the stored data, and any field you send overrides it. |
+| `due_date` | `string` | No | `YYYY-MM-DD`. Due date of an invoice issued on credit, on a sale that is not fully paid. Defaults to today plus the company's credit days. Ignored when the sale is paid. |
 | `save_receiver` | `boolean` | No | Save the receiver for later documents. |
 
 ## Example request
@@ -51,7 +52,7 @@ curl -X POST https://api.keebai.com/v1/ecommerce/sales/65e4f5a6b7c8d9e0f1a2b3c4/
   -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
-    "type": 33,
+    "document": "invoice",
     "receiver": {
       "rut": "76123456-7",
       "legal_name": "Comercial Ejemplo SpA",
@@ -73,7 +74,7 @@ const response = await fetch(
       Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ type: 39 }),
+    body: JSON.stringify({ document: "receipt" }),
   },
 );
 const { issued, failed } = await response.json();
@@ -85,7 +86,7 @@ import os, requests
 resp = requests.post(
     f"https://api.keebai.com/v1/ecommerce/sales/{sale_id}/dte",
     headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
-    json={"type": 39},
+    json={"document": "receipt"},
     timeout=30,
 )
 resp.raise_for_status()
@@ -105,6 +106,7 @@ The call answers with what was issued and what failed. A DTE that cannot be issu
   "issued": [
     {
       "sale_id": "65e4f5a6b7c8d9e0f1a2b3c4",
+      "document": "invoice",
       "type": 33,
       "folio": 8211,
       "document_id": "6653e4f5a6b7c8d9e0f1a2b4",
@@ -129,7 +131,7 @@ The call answers with what was issued and what failed. A DTE that cannot be issu
 
 | Field | Type | Description |
 |---|---|---|
-| `issued[]` | `object[]` | Documents issued: `sale_id`, `type`, `folio`, `document_id`, `status`. |
+| `issued[]` | `object[]` | Documents issued: `sale_id`, `document`, `type` (SII code), `folio`, `document_id`, `status`. |
 | `failed[]` | `object[]` | Documents not issued: `sale_id`, `reason` (the error code), `message?`. |
 
 ### Failure reasons
@@ -137,19 +139,21 @@ The call answers with what was issued and what failed. A DTE that cannot be issu
 | `reason` | Meaning |
 |---|---|
 | `already_issued` | The sale already has its DTE. |
-| `unpaid` | The sale is not fully paid. Only a paid sale can be invoiced. |
-| `receiver_required` | A factura needs `receiver`. |
+| `unpaid` | A `receipt` or `exempt_receipt` on a sale that is not fully paid. Receipts always need full payment. |
+| `credit_not_enabled` | An `invoice` or `exempt_invoice` on a sale that is not fully paid, and the company has not enabled credit invoices. |
+| `due_date_invalid` | `due_date` is not a valid date or is earlier than the issue date. |
+| `receiver_required` | An `invoice` or `exempt_invoice` needs `receiver`. |
 | `not_completed` | The sale is not completed. |
 | `deleted` | The sale was deleted. |
-| `exempt_type_required` | The sale has no taxed lines, so it needs an exempt type (`41` or `34`). |
-| `taxed_lines` | The sale has taxed lines, so an exempt type does not apply. |
+| `exempt_type_required` | The sale has no taxed lines, so it needs an exempt document (`exempt_receipt` or `exempt_invoice`). |
+| `taxed_lines` | The sale has taxed lines, so an exempt document does not apply. |
 | `no_lines` | The sale has no lines to invoice. |
 | `too_many_items` | The sale has more lines than the document allows. |
 | `amount_invalid` | The sale's amount cannot be invoiced. |
 
 ### 400 Bad Request
 
-The body does not match the schema, or `dte_issuer_missing`: the company has not registered its DTE issuer yet. That is configured in the portal.
+The body does not match the schema, `DUE_DATE_INVALID` (`due_date` is not `YYYY-MM-DD` or is before today), or `dte_issuer_missing`: the company has not registered its DTE issuer yet. That is configured in the portal.
 
 ### 401 Unauthorized
 
@@ -163,6 +167,10 @@ The token does not have the `ecommerce:invoicing:issue` scope.
 
 No sale with that id, or it belongs to a different company.
 
+### 422 Unprocessable Entity
+
+`RECEIVER_DATA_REQUIRED` — the invoice receiver is incomplete and the RUT has no stored data to fill it. `missing` lists the fields. Nothing is issued.
+
 ### 502 Bad Gateway
 
 `ECOMMERCE_UPSTREAM_ERROR` — the ecommerce service could not answer.
@@ -171,5 +179,6 @@ No sale with that id, or it belongs to a different company.
 
 - **Branch on `failed`, not only on the status.** A request that did not issue anything can still succeed at the HTTP level.
 - **`already_issued` makes retries safe.** Calling again for a sale that already has its DTE does not issue a second one; it comes back in `failed` with that reason.
-- **Check the types first.** [`GET /v1/ecommerce/invoicing/types`](/dev/endpoints/ecommerce-invoicing-types) tells you which `type` values the company can issue today.
+- **Check the documents first.** [`GET /v1/ecommerce/invoicing/types`](/dev/endpoints/ecommerce-invoicing-types) tells you which `document` values the company can issue today and whether it allows credit invoices.
+- **Invoices can go on credit.** With credit invoices enabled in **Sales › Settings**, an invoice on a sale that is not fully paid is issued as a credit invoice with its due date. Record the payment later from the Keebai portal or with the MCP tool `keebai_ecommerce_sale_payment_add`.
 - **Read the issued documents** with [`GET /v1/ecommerce/sales/{id}/documents`](/dev/endpoints/ecommerce-sale-documents).

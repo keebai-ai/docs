@@ -1,13 +1,13 @@
 ---
 title: "GET /v1/ecommerce/invoicing/types"
 sidebarTitle: "GET ecommerce/invoicing/types"
-description: "The electronic tax documents (DTE) your company can issue today."
+description: "The electronic tax documents (DTE) your company can issue today, and whether it allows credit invoices."
 openapi: "GET /v1/ecommerce/invoicing/types"
 ---
 
-Returns the DTE types your company can issue right now. A type is listed only when the issuer is active, its certificate is installed, and it has folios left for that type.
+Returns the DTE documents your company can issue right now and whether it allows credit invoices. A document is listed only when the issuer is active, its certificate is installed, and it has folios left for that document.
 
-Read it before offering a boleta or a factura at your point of sale, so you never send a `dte.type` the company cannot issue.
+Read it before offering a receipt (boleta) or an invoice (factura) at your point of sale, so you never send a `dte.document` the company cannot issue.
 
 ## Endpoint
 
@@ -38,7 +38,7 @@ curl https://api.keebai.com/v1/ecommerce/invoicing/types \
 const response = await fetch("https://api.keebai.com/v1/ecommerce/invoicing/types", {
   headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` },
 });
-const { types, env } = await response.json();
+const { documents, credit_invoices } = await response.json();
 ```
 
 ```python Python
@@ -50,7 +50,7 @@ resp = requests.get(
     timeout=10,
 )
 resp.raise_for_status()
-types = resp.json()["types"]
+documents = resp.json()["documents"]
 ```
 
 </CodeGroup>
@@ -61,24 +61,28 @@ types = resp.json()["types"]
 
 ```json
 {
+  "documents": ["receipt", "invoice"],
   "types": [39, 33],
+  "credit_invoices": { "enabled": true, "default_days": 30 },
   "env": "prod"
 }
 ```
 
 | Field | Type | Description |
 |---|---|---|
-| `types` | `number[]` | DTE types the company can issue today. See the table below. |
-| `env` | `string \| null` | `prod` or `cert` (the tax authority's certification environment). `null` when no type can be issued. |
+| `documents` | `string[]` | Documents the company can issue today. Send one of these as `dte.document`. See the table below. |
+| `types` | `number[]` | The same documents, as SII codes. |
+| `credit_invoices` | `object` | `enabled`: whether the company allows invoices on sales that are not fully paid. `default_days`: days until the due date when you send no `due_date`. |
+| `env` | `string \| null` | `prod` or `cert` (the tax authority's certification environment). `null` when no document can be issued. |
 
-### DTE types
+### Documents
 
-| `type` | Document |
-|---|---|
-| `39` | Boleta electrónica |
-| `41` | Boleta exenta electrónica |
-| `33` | Factura electrónica |
-| `34` | Factura exenta electrónica |
+| `document` | SII code | Document |
+|---|---|---|
+| `receipt` | `39` | Boleta electrónica |
+| `exempt_receipt` | `41` | Boleta exenta electrónica |
+| `invoice` | `33` | Factura electrónica |
+| `exempt_invoice` | `34` | Factura exenta electrónica |
 
 ### 401 Unauthorized
 
@@ -94,5 +98,6 @@ The token does not have the `ecommerce:invoicing:read` scope.
 
 ## Operational notes
 
+- **Credit invoices are a company setting.** They are enabled in **Sales › Settings** in the Keebai portal, off by default. Receipts always need full payment.
 - **An empty list means the company cannot issue.** The issuer is not configured or active, the certificate is missing, or the folios ran out. That is fixed in the portal, not through this API.
-- **A type can drop out of the list.** When the folios of a type run out, it stops appearing until more are loaded. Read the list again instead of caching it for days.
+- **A document can drop out of the list.** When the folios of a document run out, it stops appearing until more are loaded. Read the list again instead of caching it for days.

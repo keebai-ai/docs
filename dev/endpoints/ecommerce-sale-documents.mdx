@@ -69,6 +69,7 @@ documents = resp.json()["items"]
   "items": [
     {
       "id": "6653e4f5a6b7c8d9e0f1a2b3",
+      "document": "receipt",
       "type": 39,
       "folio": 15422,
       "status": "uploaded",
@@ -83,7 +84,8 @@ documents = resp.json()["items"]
 | Field | Type | Description |
 |---|---|---|
 | `id` | `string` | Document id. |
-| `type` | `number` | DTE type: `39`, `41`, `33`, or `34`. |
+| `document` | `string` | `receipt`, `exempt_receipt`, `invoice`, `exempt_invoice`, or `credit_note`. |
+| `type` | `number` | SII code of the document: `39`, `41`, `33`, `34`, or `61`. |
 | `folio` | `number` | Folio of the document. |
 | `status` | `string` | Status of the document at the tax authority. |
 | `issue_date` | `string` | Issue date. |

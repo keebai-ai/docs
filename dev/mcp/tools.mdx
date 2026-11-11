@@ -1,7 +1,7 @@
 ---
 title: "Tool catalogue"
 sidebarTitle: "Tools"
-description: "All 130 MCP tools, grouped by domain, with the scope each one requires."
+description: "The MCP tools, grouped by domain, with the scope each one requires."
 ---
 
 Every tool below is exposed by [`POST /v1/mcp`](/dev/mcp/overview) and delegates to the same service as its REST counterpart, so the behaviour, validation, and tenancy rules documented across these pages apply unchanged.
@@ -163,9 +163,10 @@ The catalog, carts, and sales, plus stock, sale creation, and electronic invoici
 | `keebai_ecommerce_stock_movements_list` | `ecommerce:stock:read` | Stock movements filtered by date, type, branch, or text. |
 | ⚠️ `keebai_ecommerce_stock_adjust` | `ecommerce:stock:write` | Add or remove stock in the warehouse or a branch. Syncs to the connected stores. Not idempotent. |
 | `keebai_ecommerce_stock_transfer` | `ecommerce:stock:write` | Move stock between the warehouse and branches. The total does not change. |
-| ⚠️ `keebai_ecommerce_sale_create` | `ecommerce:sales:write` | Record a sale or an internal consumption. Deducts stock, calculates commissions, and can issue the DTE. Pass `idempotency_key` to retry without duplicating. |
-| `keebai_ecommerce_dte_types` | `ecommerce:invoicing:read` | The DTE types the company can issue today. |
-| ⚠️ `keebai_ecommerce_dte_issue` | `ecommerce:invoicing:issue` | Issue the DTE of an existing sale. Failures come back in `failed` with their reason. |
+| ⚠️ `keebai_ecommerce_sale_create` | `ecommerce:sales:write` | Record a sale or an internal consumption, and issue its DTE in the same call (`dte.document`: `receipt`, `exempt_receipt`, `invoice`, `exempt_invoice`; `dte.due_date` for a credit invoice). Lines are a product (`product_id`, `variant_id`), a `sku`, or a free line with its own `name`; each line takes `price` (VAT included) or `net_price` (exact net). For an invoice, a known customer RUT fills in the rest of the receiver. `branch_id` defaults to the only active branch, and a single payment without `amount` charges the total. Missing data, payment or credit fails before anything is written. Pass `idempotency_key` to retry without duplicating. |
+| ⚠️ `keebai_ecommerce_sale_payment_add` | `ecommerce:sales:write` | Record a payment received for a sale that is not fully paid, such as an invoice issued on credit. |
+| `keebai_ecommerce_dte_types` | `ecommerce:invoicing:read` | The DTE documents the company can issue today, and whether it allows credit invoices. |
+| ⚠️ `keebai_ecommerce_dte_issue` | `ecommerce:invoicing:issue` | Issue the DTE of an existing sale (`document`, `due_date` for a credit invoice). For an invoice, a known customer RUT fills in the rest of the receiver. Failures come back in `failed` with their reason. |
 | `keebai_ecommerce_sale_documents` | `ecommerce:invoicing:read` | The DTE issued for a sale, with folio, status, and PDF link. |
 
 <Warning>
