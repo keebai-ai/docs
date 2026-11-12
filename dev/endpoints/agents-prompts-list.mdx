@@ -74,11 +74,26 @@ sections = resp.json()["data"]
       "section": "agent_limits",
       "label": null,
       "markdown": "Los precios los das del catálogo. Si no está, ofreces confirmarlo con el equipo."
+    },
+    {
+      "section": "cases_possible",
+      "label": null,
+      "markdown": "",
+      "cases": [
+        {
+          "condition": "pide cancelar una cita",
+          "action": "identificas la cita y la cancelas tras un sí explícito",
+          "actions": [{ "kind": "native", "target": "cancel_appointment" }]
+        }
+      ],
+      "steps": []
     }
   ],
-  "total": 2
+  "total": 3
 }
 ```
+
+Every section also carries `cases` (each with the `actions` that mount its functions) and `steps` (a section written as steps, with sub-steps and their `actions`). Both come back empty for a plain text section.
 
 ### 401 Unauthorized
 

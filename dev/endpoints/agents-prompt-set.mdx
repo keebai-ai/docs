@@ -32,6 +32,7 @@ PUT https://api.keebai.com/v1/agents/{id}/prompts/{section}
 |---|---|---|---|
 | `markdown` | `string` | Yes | The complete section text, plain markdown, up to 20 000 characters. |
 | `label` | `string` | No | A title of your own for this section. Omit it to keep the current one. |
+| `cases` | `array` | No | Only for `cases_possible`: one `{condition, action, actions}` per case. `actions` lists the functions the case uses (`{kind, target}`, as [the list endpoint](/dev/endpoints/agents-prompts-list) returns them). Omit `actions` and the case keeps the ones it had; send `[]` to remove them. |
 
 ## Example request
 
@@ -105,6 +106,10 @@ The token does not have the `agents:write` scope.
 
 `ASSISTANT_NOT_FOUND` when no agent has that id in the token's company and project, or `PROMPT_SECTION_NOT_FOUND` when the section is not in the catalogue. The error lists the valid sections.
 
+### 400 Bad Request
+
+`PROMPT_SECTION_HAS_STEPS` when you send `markdown` to a section written as steps (`step_by_step`): it is not text, so the write would change nothing.
+
 ### 502 Bad Gateway
 
 The agent service is unreachable.
@@ -112,6 +117,7 @@ The agent service is unreachable.
 ## Operational notes
 
 - **Send the whole section, not the new paragraph.** The text is replaced. Appending is your job before the call.
+- **The functions of a case are what gives the agent its tools.** A case that loses its `actions` takes those tools away from the agent. That is why omitting `actions` keeps them: only an explicit `[]` removes them. The other sections, and the steps, rules and status of this one, go back exactly as they were.
 - **An unknown section is rejected, on purpose.** Storing it would return `200` and change nothing: the agent only reads sections the catalogue declares.
 - **Two writes to different sections of the same agent can lose one.** The section is written by reading the agent, replacing that entry and saving it back, so simultaneous writes race. Serialise your writes per agent.
 - **Saving identical text does not create a version.** The history records changes, not calls.
