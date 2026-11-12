@@ -1,0 +1,82 @@
+---
+title: "GET /v1/agents/{id}/actions"
+sidebarTitle: "GET agents/:id/actions"
+description: "What the actions of a case or step can point to."
+openapi: "GET /v1/agents/{id}/actions"
+---
+
+A case or a step carries `actions`, each one `{kind, target}`. An action is what gives the agent the tool: a case that points to `create_appointment` is what lets the agent book. This endpoint lists the valid `target` for each `kind`, so you can fill them without guessing.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/agents/{id}/actions
+```
+
+## Required scope
+
+`agents:read`
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | `ObjectId` of the agent. |
+
+## Example request
+
+```bash curl
+curl https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/actions \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "native": [
+    { "target": "get_appointment_availability", "group": "scheduling", "description": "..." },
+    { "target": "create_appointment", "group": "scheduling", "description": "..." }
+  ],
+  "catalog": [
+    { "target": "services", "name": "Servicios" }
+  ],
+  "tool": [
+    { "target": "6650b0c1d2e3f4a5b6c7d8e9", "name": "CRM externo", "description": "..." }
+  ],
+  "move_stage": [
+    { "target": "6650c1d2e3f4a5b6c7d8e9f0", "name": "Inicial", "pipeline": "Ventas", "is_human_stage": false, "stage_type": "normal" },
+    { "target": "6650c1d2e3f4a5b6c7d8e9f1", "name": "Atención manual", "pipeline": "Ventas", "is_human_stage": true, "stage_type": "normal" }
+  ]
+}
+```
+
+| Group | `kind` of the action | What `target` is |
+|---|---|---|
+| `native` | `native` | A platform function the company has. Functions of an app or channel the company does not have are left out. |
+| `catalog` | `catalog` | The type of one of the company's active catalogs. |
+| `tool` | `tool` | The id of an active [webhook tool](/dev/endpoints/tools-list). |
+| `move_stage` | `move_stage` | The id of a stage in a pipeline tied to this agent. A stage with `is_human_stage: true` hands the conversation to a person. |
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `agents:read` scope.
+
+### 404 Not Found
+
+No agent with that id in the token's company and project.
+
+### 502 Bad Gateway
+
+The agent service or the CRM is unreachable.
+
+## Operational notes
+
+- **Use these targets in the `actions` of [a section](/dev/endpoints/agents-prompt-set)** or of a route. A `target` that is not here gives the agent no tool.
+- **Removing the last action that points to a function takes that tool away from the agent.** Omitting `actions` on a case keeps the ones it had.

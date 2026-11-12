@@ -244,7 +244,8 @@ Read and write the configuration of the agents themselves: their goal, the [sect
 | 🔴 `keebai_agent_delete` | `agents:write` | Delete permanently, with its sections and their history. |
 | `keebai_agent_query` | `agents:read` | Write to the agent as a customer and read its answer. Always in test mode: write tools are simulated. |
 | `keebai_agent_prompts_list` | `agents:read` | The sections of one agent, with their text. |
-| `keebai_agent_prompt_set` | `agents:write` | Write ONE section, leaving the rest alone. Every save leaves a version. |
+| `keebai_agent_actions_list` | `agents:read` | What a case or step action can point to: native functions, catalogs, webhook tools and the agent's pipeline stages. |
+| `keebai_agent_prompt_set` | `agents:write` | Write ONE section, leaving the rest alone. Every save leaves a version. Case `actions` omitted are kept. |
 | `keebai_agent_prompt_delete` | `agents:write` | Remove a section. Its history stays. |
 | `keebai_agent_prompt_versions_list` | `agents:read` | The history of a section, newest first. |
 | `keebai_agent_prompt_version_get` | `agents:read` | One version, to diff it before restoring. |

@@ -599,6 +599,7 @@
             "pages": [
               "dev/endpoints/prompt-types-list",
               "dev/endpoints/agents-prompts-list",
+              "dev/endpoints/agents-actions-list",
               "dev/endpoints/agents-prompt-set",
               "dev/endpoints/agents-prompt-delete"
             ]
