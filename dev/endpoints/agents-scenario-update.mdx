@@ -1,0 +1,109 @@
+---
+title: "PATCH /v1/agents/{id}/scenarios/{scenarioId}"
+sidebarTitle: "PATCH .../scenarios/{scenarioId}"
+description: "Partial update of a scenario."
+openapi: "PATCH /v1/agents/{id}/scenarios/{scenarioId}"
+---
+
+Changes only the fields you send. Its routes are edited with [`PATCH .../routes/{routeId}`](/dev/endpoints/agents-route-update).
+
+## Endpoint
+
+```
+PATCH https://api.keebai.com/v1/agents/{id}/scenarios/{scenarioId}
+```
+
+## Required scope
+
+`agents:write`
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | `ObjectId` of the agent. |
+| `scenarioId` | `string` | `ObjectId` of the scenario. |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `name` | `string` | No | 1 to 120 characters. |
+| `icon` | `string` | No | Up to 60 characters. |
+| `kind` | `string` | No | `instructions` (a folder of routes, the default) or `information` (points to a knowledge base folder and needs `knowledge_node_id`). |
+| `when_to_open` | `string` | No | Up to 1000. When the agent opens this scenario — all it sees of it in the index. |
+| `description` | `string` | No | Up to 2000. |
+| `description_locked` | `boolean` | No | Keeps the description from being rewritten automatically. |
+| `channel_ids` | `string[]` | No | Channels where it applies, up to 50. Empty means every channel. |
+| `order` | `number` | No | Position in the index. |
+| `status` | `string` | No | `proposed`, `approved` or `archived`. Only `approved` reaches the agent. |
+| `knowledge_node_id` | `string \| null` | No | Knowledge base folder; `null` removes it. |
+| `expected_updated_at` | `string` | No | The `updated_at` you read, sent back as is. |
+
+## Example request
+
+```bash curl
+curl -X PATCH https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/scenarios/6652c0ffee11223344556677 \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "when_to_open": "The customer wants to book, change, cancel or confirm an appointment.",
+    "expected_updated_at": "2026-11-11T14:01:55.103000"
+  }'
+```
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "scenario": {
+    "id": "6652c0ffee11223344556677",
+    "agent": "6650a1b2c3d4e5f6a7b8c9d0",
+    "name": "Bookings",
+    "icon": "calendar",
+    "kind": "instructions",
+    "when_to_open": "The customer wants to book, change, cancel or confirm an appointment.",
+    "description": "",
+    "description_locked": false,
+    "channel_ids": [],
+    "knowledge_node_id": null,
+    "knowledge_missing": false,
+    "order": 0,
+    "status": "approved",
+    "source": "manual",
+    "created_by": "ana@example.com",
+    "created_at": "2026-11-11T14:01:55.103000",
+    "updated_at": "2026-11-11T14:01:55.103000"
+  }
+}
+```
+
+### 400 Bad Request
+
+An unknown value or property, or a `scenarioId` that is not an `ObjectId`.
+### 404 Not Found
+
+`AGENT_NOT_FOUND` when the agent belongs to another project of the company, `UPSTREAM_ERROR` (message `AGENT_NOT_FOUND`) when no agent has that id in the company; `scenario_not_found` when the agent has no scenario with that id.
+### 409 Conflict
+
+`stale_revision`: `expected_updated_at` no longer matches — someone saved in between. Read it again and re-apply your change.
+### 422 Unprocessable Entity
+
+`knowledge_folder_required` or `knowledge_folder_not_found`.
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `agents:write` scope.
+
+### 502 Bad Gateway
+
+The agent service is unreachable.
+
+## Operational notes
+
+- **`null` only clears `knowledge_node_id`.** Any other field sent as `null` is left as it was.

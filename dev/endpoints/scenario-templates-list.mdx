@@ -1,0 +1,82 @@
+---
+title: "GET /v1/scenario-templates"
+sidebarTitle: "GET /v1/scenario-templates"
+description: "The scenario templates by business vertical."
+openapi: "GET /v1/scenario-templates"
+---
+
+Lists the scenario templates by vertical: when each one opens and the titles of the routes it leaves. Apply one with [`POST /v1/agents/{id}/scenarios/from-template`](/dev/endpoints/agents-scenario-from-template).
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/scenario-templates
+```
+
+## Required scope
+
+`agents:read`
+
+## Query parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `language` | `string` | `es` (default) or `en`. |
+
+## Example request
+
+```bash curl
+curl -X GET https://api.keebai.com/v1/scenario-templates \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "data": [
+    {
+      "key": "agenda",
+      "vertical": "general",
+      "name": "Book an appointment",
+      "kind": "instructions",
+      "when_to_open": "The customer wants to book, move, confirm, or cancel an appointment.",
+      "routes": [
+        "Asks for a specific time",
+        "Writes about an existing appointment",
+        "Can't make it or cancels"
+      ]
+    },
+    {
+      "key": "informacion",
+      "vertical": "general",
+      "name": "Business information",
+      "kind": "information",
+      "when_to_open": "The customer asks about location, hours, payment methods, or policies.",
+      "routes": []
+    }
+  ],
+  "total": 2
+}
+```
+
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `agents:read` scope.
+
+### 502 Bad Gateway
+
+The agent service is unreachable.
+
+## Operational notes
+
+- **The list comes from the platform**, not from this page: a template added there appears here without a new release.
+- **`vertical` is one of `general`, `ecommerce`, `b2b`, `soporte` or `salud`.** `general` holds the templates any business can start from (bookings, store, welcome, business information).
+- **`kind: information` templates need a knowledge base folder** when you apply them: send `knowledge_node_id` to [`POST .../from-template`](/dev/endpoints/agents-scenario-from-template). Their routes list is empty: the agent answers from the folder.

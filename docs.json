@@ -612,6 +612,39 @@
             ]
           },
           {
+            "group": "Scenarios",
+            "pages": [
+              "dev/endpoints/scenario-templates-list",
+              "dev/endpoints/agents-scenarios-list",
+              "dev/endpoints/agents-scenario-create",
+              "dev/endpoints/agents-scenario-from-template",
+              "dev/endpoints/agents-scenario-update",
+              "dev/endpoints/agents-scenario-delete"
+            ]
+          },
+          {
+            "group": "Scenario routes",
+            "pages": [
+              "dev/endpoints/agents-route-create",
+              "dev/endpoints/agents-route-update",
+              "dev/endpoints/agents-route-delete",
+              "dev/endpoints/agents-route-versions-list",
+              "dev/endpoints/agents-route-version-restore"
+            ]
+          },
+          {
+            "group": "Agent tests",
+            "pages": [
+              "dev/endpoints/agents-tests-list",
+              "dev/endpoints/agents-tests-summary",
+              "dev/endpoints/agents-test-create",
+              "dev/endpoints/agents-test-update",
+              "dev/endpoints/agents-test-run-create",
+              "dev/endpoints/agents-test-runs-list",
+              "dev/endpoints/agents-test-run-get"
+            ]
+          },
+          {
             "group": "Tools",
             "pages": [
               "dev/endpoints/tools-list",

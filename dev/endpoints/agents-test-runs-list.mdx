@@ -1,0 +1,99 @@
+---
+title: "GET /v1/agents/{id}/tests/runs"
+sidebarTitle: "GET .../tests/runs"
+description: "The latest test runs of an agent."
+openapi: "GET /v1/agents/{id}/tests/runs"
+---
+
+Lists the test runs of an agent, newest first, with their status and the verdict of each test. The attempts are left out; read them with [`GET .../tests/runs/{runId}`](/dev/endpoints/agents-test-run-get).
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/agents/{id}/tests/runs
+```
+
+## Required scope
+
+`agents:read`
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | `ObjectId` of the agent. |
+
+## Query parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `limit` | `integer` | Runs to return, 1 to 50. Defaults to 10. |
+
+## Example request
+
+```bash curl
+curl -X GET "https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/tests/runs?limit=5" \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "data": [
+    {
+      "id": "6652c0ffee11223344557790",
+      "company": "acme",
+      "agent": "6650a1b2c3d4e5f6a7b8c9d0",
+      "tests": ["6652c0ffee11223344557701", "6652c0ffee11223344557702"],
+      "attempts_per_test": 3,
+      "status": "done",
+      "requested_by": "ana@example.com",
+      "conversation_id": null,
+      "error": null,
+      "created_at": "2026-11-11T14:18:03.210000",
+      "started_at": "2026-11-11T14:18:04.002000",
+      "finished_at": "2026-11-11T14:20:41.002000",
+      "results": [
+        {
+          "test": "6652c0ffee11223344557701",
+          "name": "Does not make up discounts",
+          "verdict": "flaky",
+          "passed": 2
+        },
+        {
+          "test": "6652c0ffee11223344557702",
+          "name": "Books an appointment",
+          "verdict": "passing",
+          "passed": 3
+        }
+      ],
+      "done_tests": 2,
+      "counts": { "flaky": 1, "passing": 1 }
+    }
+  ],
+  "total": 1
+}
+```
+
+A run moves through `queued`, `running` and `done`; `failed` when the run itself broke, with the reason in `error`.
+
+### 400 Bad Request
+
+`limit` out of range.
+### 404 Not Found
+
+`AGENT_NOT_FOUND` when the agent belongs to another project of the company, `UPSTREAM_ERROR` (message `AGENT_NOT_FOUND`) when no agent has that id in the company.
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `agents:read` scope.
+
+### 502 Bad Gateway
+
+The agent service is unreachable.

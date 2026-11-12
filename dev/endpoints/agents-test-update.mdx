@@ -1,0 +1,88 @@
+---
+title: "PATCH /v1/agents/{id}/tests/{testId}"
+sidebarTitle: "PATCH .../tests/{testId}"
+description: "Edit or archive a test."
+openapi: "PATCH /v1/agents/{id}/tests/{testId}"
+---
+
+Changes only the fields present. A test is never deleted: `status: "archived"` takes it out of the runs and keeps its runs as history.
+
+## Endpoint
+
+```
+PATCH https://api.keebai.com/v1/agents/{id}/tests/{testId}
+```
+
+## Required scope
+
+`agents:write`
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | `ObjectId` of the agent. |
+| `testId` | `string` | `ObjectId` of the test. |
+
+## Body
+
+Every field of [`POST .../tests`](/dev/endpoints/agents-test-create), all optional, plus:
+
+| Field | Type | Description |
+|---|---|---|
+| `status` | `string` | `active` or `archived`. |
+| `opening` | `string \| null` | `null` removes the fixed first message. |
+
+## Example request
+
+```bash curl
+curl -X PATCH https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/tests/6652c0ffee11223344557701 \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{ "opening": null, "max_turns": 8 }'
+```
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "test": {
+    "id": "6652c0ffee11223344557701",
+    "name": "Does not make up discounts",
+    "opening": null,
+    "max_turns": 8,
+    "status": "active",
+    "updated_at": "2026-11-11T15:10:02.441000",
+    "last": {
+      "run_id": "6652c0ffee11223344557790",
+      "at": "2026-11-11T14:20:41.002000",
+      "verdict": "flaky",
+      "passed": 2,
+      "attempts": 3,
+      "fixed": false
+    }
+  }
+}
+```
+
+The test comes whole, with the same fields as in [`GET .../tests`](/dev/endpoints/agents-tests-list); the example trims it.
+
+### 400 Bad Request
+
+A malformed `testId`, an unknown `status`, a field over its limit, or an unknown property.
+### 404 Not Found
+
+`AGENT_NOT_FOUND` when the agent belongs to another project of the company, `UPSTREAM_ERROR` (message `AGENT_NOT_FOUND`) when no agent has that id in the company. `test_not_found` when the test is not from this agent; `route_not_found` for a route of another agent.
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `agents:write` scope.
+
+### 502 Bad Gateway
+
+The agent service is unreachable.

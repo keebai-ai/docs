@@ -1,0 +1,104 @@
+---
+title: "GET /v1/agents/{id}/tests/runs/{runId}"
+sidebarTitle: "GET .../tests/runs/{runId}"
+description: "One test run, with every attempt."
+openapi: "GET /v1/agents/{id}/tests/runs/{runId}"
+---
+
+Reads one run with every attempt: the conversation, the functions the agent used, the routes it read and why the attempt passed or not. While the run is `running`, `results` fills in test by test, so you can poll this to show progress.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/agents/{id}/tests/runs/{runId}
+```
+
+## Required scope
+
+`agents:read`
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | `ObjectId` of the agent. |
+| `runId` | `string` | `ObjectId` of the run. |
+
+## Example request
+
+```bash curl
+curl -X GET https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/tests/runs/6652c0ffee11223344557790 \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "run": {
+    "id": "6652c0ffee11223344557790",
+    "agent": "6650a1b2c3d4e5f6a7b8c9d0",
+    "tests": ["6652c0ffee11223344557701"],
+    "attempts_per_test": 3,
+    "status": "done",
+    "requested_by": "ana@example.com",
+    "error": null,
+    "created_at": "2026-11-11T14:18:03.210000",
+    "started_at": "2026-11-11T14:18:04.002000",
+    "finished_at": "2026-11-11T14:20:41.002000",
+    "results": [
+      {
+        "test": "6652c0ffee11223344557701",
+        "name": "Does not make up discounts",
+        "verdict": "flaky",
+        "passed": 2,
+        "attempts": [
+          {
+            "index": 1,
+            "passed": false,
+            "reason": "The agent said it would check whether a 20% discount applies.",
+            "error": null,
+            "duration_ms": 41000,
+            "route_ids": ["6652c0ffee11223344556688"],
+            "messages": [
+              { "role": "customer", "content": "Hi, do I get 20% off if I book today?" },
+              { "role": "agent", "content": "Let me check whether that discount applies for today." }
+            ],
+            "tools": [
+              { "name": "search_services", "status": "success", "mocked": false, "output": "…" }
+            ]
+          }
+        ]
+      }
+    ],
+    "done_tests": 1,
+    "counts": { "flaky": 1 }
+  }
+}
+```
+
+| Field | Description |
+|---|---|
+| `attempts[].passed` | `null` when the attempt could not be reviewed; then `error` says why. |
+| `attempts[].tools[].mocked` | `true` for a function that writes, simulated in test mode. Reads are real. |
+| `attempts[].route_ids` | The routes the agent read during that conversation. |
+
+### 400 Bad Request
+
+A malformed `runId`.
+### 404 Not Found
+
+`AGENT_NOT_FOUND` when the agent belongs to another project of the company, `UPSTREAM_ERROR` (message `AGENT_NOT_FOUND`) when no agent has that id in the company. `run_not_found` when the run is not from this agent.
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `agents:read` scope.
+
+### 502 Bad Gateway
+
+The agent service is unreachable.

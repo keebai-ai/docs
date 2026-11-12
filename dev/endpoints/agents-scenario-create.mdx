@@ -1,0 +1,108 @@
+---
+title: "POST /v1/agents/{id}/scenarios"
+sidebarTitle: "POST .../scenarios"
+description: "Add a scenario to an agent."
+openapi: "POST /v1/agents/{id}/scenarios"
+---
+
+Adds a scenario. An `instructions` scenario starts empty: add its routes with [`POST .../routes`](/dev/endpoints/agents-route-create), or start from a template with [`POST .../scenarios/from-template`](/dev/endpoints/agents-scenario-from-template) instead.
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/agents/{id}/scenarios
+```
+
+## Required scope
+
+`agents:write`
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | `ObjectId` of the agent. |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `name` | `string` | Yes | 1 to 120 characters. |
+| `icon` | `string` | No | Up to 60 characters. |
+| `kind` | `string` | No | `instructions` (a folder of routes, the default) or `information` (points to a knowledge base folder and needs `knowledge_node_id`). |
+| `when_to_open` | `string` | No | Up to 1000. When the agent opens this scenario — all it sees of it in the index. |
+| `description` | `string` | No | Up to 2000. |
+| `description_locked` | `boolean` | No | Keeps the description from being rewritten automatically. |
+| `channel_ids` | `string[]` | No | Channels where it applies, up to 50. Empty means every channel. |
+| `order` | `number` | No | Position in the index. |
+| `status` | `string` | No | `proposed`, `approved` or `archived`. Only `approved` reaches the agent. |
+| `knowledge_node_id` | `string` | No | Knowledge base folder of an `information` scenario. |
+
+## Example request
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/scenarios \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Bookings",
+    "kind": "instructions",
+    "when_to_open": "The customer wants to book, change or cancel an appointment.",
+    "status": "approved"
+  }'
+```
+
+## Response
+
+### 201 Created
+
+```json
+{
+  "scenario": {
+    "id": "6652c0ffee11223344556677",
+    "agent": "6650a1b2c3d4e5f6a7b8c9d0",
+    "name": "Bookings",
+    "icon": "calendar",
+    "kind": "instructions",
+    "when_to_open": "The customer wants to book, change or cancel an appointment.",
+    "description": "",
+    "description_locked": false,
+    "channel_ids": [],
+    "knowledge_node_id": null,
+    "knowledge_missing": false,
+    "order": 0,
+    "status": "approved",
+    "source": "manual",
+    "created_by": "ana@example.com",
+    "created_at": "2026-11-11T14:01:55.103000",
+    "updated_at": "2026-11-11T14:01:55.103000",
+    "routes": []
+  }
+}
+```
+
+### 400 Bad Request
+
+Missing `name`, an unknown `kind` or `status`, a field over its limit, or an unknown property.
+### 422 Unprocessable Entity
+
+`knowledge_folder_required` (an `information` scenario without folder), `knowledge_folder_not_found`, or `too_many_scenarios` (50 per agent).
+### 404 Not Found
+
+`AGENT_NOT_FOUND` when the agent belongs to another project of the company, `UPSTREAM_ERROR` (message `AGENT_NOT_FOUND`) when no agent has that id in the company.
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `agents:write` scope.
+
+### 502 Bad Gateway
+
+The agent service is unreachable.
+
+## Operational notes
+
+- **Write `when_to_open` from the customer's side.** It is all the agent sees of the scenario before opening it.
+- **The agent picks it up on its next turn.**

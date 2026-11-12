@@ -1,0 +1,133 @@
+---
+title: "GET /v1/agents/{id}/scenarios"
+sidebarTitle: "GET .../scenarios"
+description: "The scenarios of an agent, each with its routes."
+openapi: "GET /v1/agents/{id}/scenarios"
+---
+
+Lists the scenarios of an agent in index order, each with its routes. Scenarios only drive an agent whose [engine](/dev/agents/configuration#engine) is `scenarios`; on `turn` they are kept but mount nothing.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/agents/{id}/scenarios
+```
+
+## Required scope
+
+`agents:read`
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | `ObjectId` of the agent. |
+
+## Example request
+
+```bash curl
+curl -X GET https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/scenarios \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "data": [
+    {
+      "id": "6652c0ffee11223344556677",
+      "agent": "6650a1b2c3d4e5f6a7b8c9d0",
+      "name": "Bookings",
+      "icon": "calendar",
+      "kind": "instructions",
+      "when_to_open": "The customer wants to book, change or cancel an appointment.",
+      "description": "",
+      "description_locked": false,
+      "channel_ids": [],
+      "knowledge_node_id": null,
+      "knowledge_missing": false,
+      "order": 0,
+      "status": "approved",
+      "source": "manual",
+      "created_by": "ana@example.com",
+      "created_at": "2026-11-11T14:01:55.103000",
+      "updated_at": "2026-11-11T14:01:55.103000",
+      "routes": [
+        {
+          "id": "6652c0ffee11223344556688",
+          "scenario": "6652c0ffee11223344556677",
+          "title": "Book an appointment",
+          "applies_when": "The customer asks for an appointment for a service.",
+          "not_applies_when": "They only ask for the price, without wanting to book.",
+          "steps": [
+            {
+              "instruction": "Ask which service and which day.",
+              "actions": [],
+              "steps": []
+            },
+            {
+              "instruction": "Offer the available times.",
+              "actions": [
+                {
+                  "kind": "native",
+                  "target": "search_availability"
+                }
+              ],
+              "steps": [
+                {
+                  "instruction": "If none fits, offer the next day with availability.",
+                  "actions": [],
+                  "steps": []
+                }
+              ]
+            }
+          ],
+          "cases": [
+            {
+              "condition": "There is no availability this week",
+              "action": "Offer the waiting list.",
+              "actions": [
+                {
+                  "kind": "native",
+                  "target": "join_waitlist"
+                }
+              ]
+            }
+          ],
+          "order": 0,
+          "status": "approved",
+          "version": 1,
+          "source": "manual",
+          "created_by": "ana@example.com",
+          "created_at": "2026-11-11T14:02:10.512000",
+          "updated_at": "2026-11-11T14:02:10.512000"
+        }
+      ]
+    }
+  ],
+  "total": 1
+}
+```
+
+### 404 Not Found
+
+`AGENT_NOT_FOUND` when the agent belongs to another project of the company, `UPSTREAM_ERROR` (message `AGENT_NOT_FOUND`) when no agent has that id in the company.
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `agents:read` scope.
+
+### 502 Bad Gateway
+
+The agent service is unreachable.
+
+## Operational notes
+
+- **Send `updated_at` back as `expected_updated_at`** when you edit a scenario or route you read here, so a concurrent change fails with 409 instead of being overwritten.
+- **Routes come whole**: steps, cases and the current `version`.

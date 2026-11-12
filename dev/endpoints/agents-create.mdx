@@ -30,6 +30,7 @@ POST https://api.keebai.com/v1/agents
 | `model` | `string` | No | Model id, for example `gpt-5`. An unsupported one fails with `INVALID_MODEL`. |
 | `language` | `string` | No | Locale. **The country matters**: `es-CL` and `es-MX` do not conjugate the same. |
 | `timezone` | `string` | No | IANA name, for example `America/Santiago`. |
+| `engine` | `string` | No | `turn` (default) or `scenarios`. See [engine](/dev/agents/configuration#engine). |
 | `goal` | `object` | No | `{ type, instructions? }`. `instructions` only applies to the `custom` goal. |
 | `prompts` | `array` | No | `{ section, label?, markdown }`, up to 20. |
 | `channels` | `string[]` | No | Channel types from the catalogue, up to 10. |
@@ -113,6 +114,7 @@ agent = resp.json()["agent"]
     "model": "gpt-5",
     "language": "es-CL",
     "timezone": "America/Santiago",
+    "engine": "turn",
     "goal": { "type": "appointment_management", "instructions": null },
     "prompts": [
       { "section": "business_context", "label": null, "markdown": "# Quiénes somos\n\nBarbería en Providencia..." }
@@ -150,4 +152,5 @@ The agent service is unreachable.
 - **An agent created here is not yet answering.** The channel has to be connected on the company as well as enabled on the agent, and a goal that uses tools needs the data behind them — services, staff, catalogue — to exist.
 - **Every section you send is versioned from the start.** The creation is version 1 of each.
 - **`language` carries the country and it is not cosmetic.** It is what decides how the agent conjugates; getting it wrong is the first thing a customer notices.
+- **`engine: "scenarios"` moves the behaviour out of the sections.** The agent then reads the index of its [scenarios](/dev/endpoints/agents-scenarios-list) and opens the one that fits; create them after the agent, or start from a [template](/dev/endpoints/scenario-templates-list).
 - **Leaving a section out is better than inventing one.** An empty section is filled later; an invented one is discovered by a customer.

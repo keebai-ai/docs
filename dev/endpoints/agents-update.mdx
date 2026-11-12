@@ -42,6 +42,7 @@ Every field is optional.
 | `description` | `string` | Up to 500 characters. |
 | `language` | `string` | Locale, for example `es-CL`. |
 | `timezone` | `string` | IANA name. |
+| `engine` | `string` | `turn` or `scenarios`. Switching to `scenarios` makes the agent run from its scenarios on the next turn, so create them first. |
 | `goal` | `object` | `{ type, instructions? }`. |
 | `prompts` | `array` | **Replaces every section.** |
 | `channels` | `string[]` | Channel types from the catalogue. |

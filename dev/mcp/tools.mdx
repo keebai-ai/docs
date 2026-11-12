@@ -232,14 +232,14 @@ Arguments keep the REST names: the availability and list tools take `serviceId`,
 
 ## Agents
 
-Read and write the configuration of the agents themselves: their goal, the [sections of their prompt](/dev/agents/configuration), the funnel, and the webhook tools they can call. Twenty-five tools, all on `agents:read` or `agents:write`.
+Read and write the configuration of the agents themselves: their goal, the [sections of their prompt](/dev/agents/configuration), the funnel, the webhook tools they can call, and — for agents on the `scenarios` [engine](/dev/agents/configuration#engine) — their scenarios and routes, and the saved [tests](/dev/endpoints/agents-tests-list) that check how an agent behaves. Forty tools, all on `agents:read` or `agents:write`.
 
 | Tool | Scope | What it does |
 |---|---|---|
 | `keebai_agent_prompt_types` | `agents:read` | The catalogue: which sections, goals and channels exist. Read this before writing, instead of a hardcoded list. |
 | `keebai_agents_list` | `agents:read` | List the active agents of the project. Start here for the id everything else needs. |
 | `keebai_agent_get` | `agents:read` | One agent whole: goal, sections with their text, channels, tools, knowledge. |
-| `keebai_agent_create` | `agents:write` | Create one. `stages` creates a CRM pipeline named after the agent and limits it to those stages. |
+| `keebai_agent_create` | `agents:write` | Create one. `stages` creates a CRM pipeline named after the agent and limits it to those stages. `engine` picks `turn` or `scenarios`. |
 | `keebai_agent_update` | `agents:write` | Partial update of the config. Sending `prompts` replaces them all. |
 | 🔴 `keebai_agent_delete` | `agents:write` | Delete permanently, with its sections and their history. |
 | `keebai_agent_query` | `agents:read` | Write to the agent as a customer and read its answer. Always in test mode: write tools are simulated. |
@@ -261,6 +261,21 @@ Read and write the configuration of the agents themselves: their goal, the [sect
 | `keebai_agent_channel_attach` | `agents:write` | Enable one channel. Only half of it: the account must be connected too. |
 | `keebai_agent_channel_detach` | `agents:write` | Disable one channel. It stops answering there. |
 | `keebai_agent_reengagement_set` | `agents:write` | How often it comes back to a cold conversation. `max_attempts: 0` turns it off. |
+| `keebai_scenario_templates_list` | `agents:read` | The scenario templates by vertical: when each opens and the titles of its routes. |
+| `keebai_agent_scenarios_list` | `agents:read` | The scenarios of an agent, in order, each with its routes. |
+| `keebai_agent_scenario_create` | `agents:write` | Add a scenario. An `instructions` one starts empty. Up to 50 per agent. |
+| `keebai_agent_scenario_template_apply` | `agents:write` | Add a scenario from a template with all its routes, or nothing. An `information` template needs `knowledge_node_id`. Returns `missing_functions`. |
+| `keebai_agent_scenario_update` | `agents:write` | Partial update. `knowledge_node_id: null` removes the folder. |
+| 🔴 `keebai_agent_scenario_delete` | `agents:write` | Delete a scenario with its routes and their history. |
+| `keebai_agent_route_create` | `agents:write` | Add a route: when it applies, steps up to 6 levels deep, cases. Mounts the functions it names. |
+| `keebai_agent_route_update` | `agents:write` | Partial update. Writes a new version; `move_to_scenario_id` moves it. |
+| 🔴 `keebai_agent_route_delete` | `agents:write` | Delete a route with its history. Archiving keeps it instead. |
+| `keebai_agent_route_versions_list` | `agents:read` | The history of a route, newest first. |
+| `keebai_agent_route_version_restore` | `agents:write` | Restore a version by writing a new one that copies it. |
+| `keebai_agent_tests_list` | `agents:read` | The saved tests of an agent, each with the verdict of its latest run, plus a summary by verdict and the run in progress. |
+| `keebai_agent_test_save` | `agents:write` | Create a test, or update one when `test_id` is sent. `status: archived` takes it out of the runs; a test is never deleted. |
+| `keebai_agent_tests_run` | `agents:write` | Start a run and return at once. Each test is talked through 3 times in test mode. Fails with `run_in_progress` while one is going. |
+| `keebai_agent_test_run_get` | `agents:read` | One run with every attempt: conversation, functions used (simulated ones marked) and why it passed. Without `run_id`, the latest runs. |
 
 <Warning>
   **Writing here changes what your bots say to customers.** An agent with `agents:write` can rewrite any prompt section and create webhook tools that make Keebai's infrastructure call an external host — the URL is validated against loopback, private ranges and internal names, but a public host of the agent's choosing is allowed. Treat it as a higher-privilege scope than the read side, and read [webhook security](/dev/agents/webhook-security) before handing it out.
@@ -268,6 +283,8 @@ Read and write the configuration of the agents themselves: their goal, the [sect
   **Tools are company-wide**, unlike agents and their sections, which are scoped to the token's project.
 
   **`keebai_agent_query` never touches real data.** It runs the turn with the write tools simulated, so an agent can verify its own change without booking anything.
+
+  **Test runs cost conversations.** `keebai_agent_tests_run` holds 3 simulated conversations per test, each reviewed against its `pass_if`. They run in test mode with an invented customer, so nothing is booked or written, but every conversation runs the agent, the simulated customer and the review on the model.
 </Warning>
 
 ## Not exposed as tools

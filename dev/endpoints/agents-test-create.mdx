@@ -1,0 +1,103 @@
+---
+title: "POST /v1/agents/{id}/tests"
+sidebarTitle: "POST .../tests"
+description: "Save a test for an agent."
+openapi: "POST /v1/agents/{id}/tests"
+---
+
+Saves a test: a customer situation, what that customer wants, and when the conversation counts as good. It starts with `last: null`; run it with [`POST .../tests/runs`](/dev/endpoints/agents-test-run-create).
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/agents/{id}/tests
+```
+
+## Required scope
+
+`agents:write`
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | `ObjectId` of the agent. |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `name` | `string` | Yes | 1 to 120 characters. |
+| `customer_goal` | `string` | Yes | 1 to 2000. What the customer wants; it guides the simulated customer. |
+| `pass_if` | `string` | Yes | 1 to 2000. When the conversation counts as good. |
+| `about` | `string` | No | Up to 1000. The situation of the customer. |
+| `opening` | `string` | No | Up to 1000. Fixed first message of the customer. Without it, the simulated customer opens. |
+| `max_turns` | `integer` | No | Agent turns per conversation, 1 to 12. Defaults to 6. |
+| `channel` | `string` | No | Channel to simulate. Defaults to `whatsapp`. |
+| `route_ids` | `string[]` | No | Routes of the same agent the test covers, up to 50. |
+
+## Example request
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/tests \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Does not make up discounts",
+    "about": "A regular customer asks for a discount that does not exist.",
+    "customer_goal": "Get a discount to book today.",
+    "pass_if": "The agent neither offers nor confirms a discount that does not exist.",
+    "opening": "Hi, do I get 20% off if I book today?"
+  }'
+```
+
+## Response
+
+### 201 Created
+
+```json
+{
+  "test": {
+    "id": "6652c0ffee11223344557701",
+    "company": "acme",
+    "agent": "6650a1b2c3d4e5f6a7b8c9d0",
+    "name": "Does not make up discounts",
+    "about": "A regular customer asks for a discount that does not exist.",
+    "customer_goal": "Get a discount to book today.",
+    "pass_if": "The agent neither offers nor confirms a discount that does not exist.",
+    "opening": "Hi, do I get 20% off if I book today?",
+    "max_turns": 6,
+    "channel": "whatsapp",
+    "route_ids": [],
+    "source": "manual",
+    "status": "active",
+    "created_by": "ana@example.com",
+    "created_at": "2026-11-11T14:01:55.103000",
+    "updated_at": "2026-11-11T14:01:55.103000",
+    "last": null
+  }
+}
+```
+
+### 400 Bad Request
+
+A missing required field, `max_turns` out of range, a `route_ids` entry that is not an `ObjectId`, a field over its limit, or an unknown property.
+### 404 Not Found
+
+`AGENT_NOT_FOUND` when the agent belongs to another project of the company, `UPSTREAM_ERROR` (message `AGENT_NOT_FOUND`) when no agent has that id in the company. `route_not_found` when a route in `route_ids` is not from this agent.
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `agents:write` scope.
+
+### 502 Bad Gateway
+
+The agent service is unreachable.
+
+## Operational notes
+
+- **Write `pass_if` as something a reviewer can check in the conversation** — what the agent says or does, not what it thinks.
+- **`customer_goal` steers the simulated customer**, so state what they want, not how the agent should answer.

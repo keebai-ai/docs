@@ -1,0 +1,98 @@
+---
+title: "POST /v1/agents/{id}/tests/runs"
+sidebarTitle: "POST .../tests/runs"
+description: "Run the tests of an agent."
+openapi: "POST /v1/agents/{id}/tests/runs"
+---
+
+Queues a run and answers at once, without waiting for it. Each test is talked through 3 times with the agent in test mode, against a simulated customer, and each conversation is reviewed against its `pass_if`. Follow it with [`GET .../tests/runs/{runId}`](/dev/endpoints/agents-test-run-get).
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/agents/{id}/tests/runs
+```
+
+## Required scope
+
+`agents:write`
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | `ObjectId` of the agent. |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `test_ids` | `string[]` | No | The tests to run, up to 200. Empty or missing runs every active test. |
+
+## Example request
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/tests/runs \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+## Response
+
+### 202 Accepted
+
+```json
+{
+  "run": {
+    "id": "6652c0ffee11223344557790",
+    "company": "acme",
+    "agent": "6650a1b2c3d4e5f6a7b8c9d0",
+    "tests": ["6652c0ffee11223344557701", "6652c0ffee11223344557702"],
+    "attempts_per_test": 3,
+    "status": "queued",
+    "requested_by": "ana@example.com",
+    "conversation_id": null,
+    "error": null,
+    "created_at": "2026-11-11T14:18:03.210000",
+    "started_at": null,
+    "finished_at": null,
+    "results": [],
+    "done_tests": 0,
+    "counts": {},
+    "conversations": 6
+  }
+}
+```
+
+`conversations` is tests × attempts: how many simulated conversations this run holds.
+
+### 400 Bad Request
+
+A `test_ids` entry that is not an `ObjectId`, or an unknown property.
+### 404 Not Found
+
+`AGENT_NOT_FOUND` when the agent belongs to another project of the company, `UPSTREAM_ERROR` (message `AGENT_NOT_FOUND`) when no agent has that id in the company. `test_not_found` when a test in `test_ids` does not exist or is archived.
+### 409 Conflict
+
+`run_in_progress`: the agent already has a run `queued` or `running`. Its id is in the message and in `running_run_id` of the [summary](/dev/endpoints/agents-tests-summary).
+### 422 Unprocessable Entity
+
+`no_tests`: the agent has no active tests to run.
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `agents:write` scope.
+
+### 502 Bad Gateway
+
+The agent service is unreachable.
+
+## Operational notes
+
+- **Nothing real is touched.** The agent runs in test mode: the functions that write (booking, charging, opening a ticket) are simulated, and the customer is invented.
+- **A run costs conversations.** Each one runs the agent for up to `max_turns` turns, plus the simulated customer and one review.
+- **One run per agent at a time.**

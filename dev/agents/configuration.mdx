@@ -84,6 +84,35 @@ Timezone belongs to the business, not to the customer. An agent set to the wrong
 
 ---
 
+## Engine
+
+**What it decides.** How the agent runs its turn. `turn` reads the whole prompt every time. `scenarios` reads only an index of its scenarios — their names and when to open each — opens the one that fits, and follows that scenario's routes.
+
+**Portal.** The agent's configuration. Agents created from the scenarios editor start on `scenarios`.
+
+**API.** `engine` on [create](/dev/endpoints/agents-create) and [update](/dev/endpoints/agents-update): `turn` (the default) or `scenarios`.
+
+**Getting it right.** Switch to `scenarios` once the agent does several distinct things — booking, prices, complaints — and a single prompt starts mixing their rules. Create the scenarios **before** switching: an agent on `scenarios` with none approved has nothing to open.
+
+---
+
+## Scenarios and routes
+
+**What it decides.** On the `scenarios` engine, everything the agent does. A **scenario** is a folder the agent opens by its `when_to_open`. A **route** inside it says when it applies, what the agent does step by step — with sub-steps up to six levels — and its cases. The functions a route's actions name are mounted on the agent automatically.
+
+**Portal.** The scenarios editor of the agent.
+
+**API.** [`/v1/agents/{id}/scenarios`](/dev/endpoints/agents-scenarios-list) and its routes. Start from a [template](/dev/endpoints/scenario-templates-list) with [`POST /v1/agents/{id}/scenarios/from-template`](/dev/endpoints/agents-scenario-from-template), then adjust. Every route keeps a [version history](/dev/endpoints/agents-route-versions-list).
+
+**Getting it right.**
+
+- **Write `when_to_open` from the customer's side.** It is all the agent sees of the scenario before opening it. "The customer wants to book, change or cancel" beats "Booking flow".
+- **One route, one situation.** `not_applies_when` is where you stop a route from catching the case next door.
+- **Only `approved` reaches the agent.** `proposed` is for review; `archived` keeps a route without using it, which is the safe alternative to deleting it.
+- **Read `missing_functions` after applying a template.** Those are functions its routes use that your company does not have yet; the routes keep them and the agent gets them as soon as they exist.
+
+---
+
 ## Channels
 
 **What it decides.** Where the agent answers, and with it the mechanics of the medium — message length, buttons, how a link is written, whether it is read or heard.

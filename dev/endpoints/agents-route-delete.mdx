@@ -1,0 +1,62 @@
+---
+title: "DELETE /v1/agents/{id}/scenarios/{scenarioId}/routes/{routeId}"
+sidebarTitle: "DELETE .../routes/{routeId}"
+description: "Delete a route with its history."
+openapi: "DELETE /v1/agents/{id}/scenarios/{scenarioId}/routes/{routeId}"
+---
+
+Deletes the route permanently, with its version history.
+
+## Endpoint
+
+```
+DELETE https://api.keebai.com/v1/agents/{id}/scenarios/{scenarioId}/routes/{routeId}
+```
+
+## Required scope
+
+`agents:write`
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | `ObjectId` of the agent. |
+| `scenarioId` | `string` | `ObjectId` of the scenario. |
+| `routeId` | `string` | `ObjectId` of the route. |
+
+## Example request
+
+```bash curl
+curl -X DELETE https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/scenarios/6652c0ffee11223344556677/routes/6652c0ffee11223344556688 \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+## Response
+
+### 204 No Content
+
+No body.
+
+### 400 Bad Request
+
+`scenarioId` or `routeId` is not an `ObjectId`.
+
+### 404 Not Found
+
+`AGENT_NOT_FOUND` when the agent belongs to another project of the company, `UPSTREAM_ERROR` (message `AGENT_NOT_FOUND`) when no agent has that id in the company; `scenario_not_found` or `route_not_found` when the scenario or the route is not the agent's.
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `agents:write` scope.
+
+### 502 Bad Gateway
+
+The agent service is unreachable.
+
+## Operational notes
+
+- **It cannot be undone.** To stop using it while keeping it, set its `status` to `archived`.
