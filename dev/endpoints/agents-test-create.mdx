@@ -35,6 +35,7 @@ POST https://api.keebai.com/v1/agents/{id}/tests
 | `max_turns` | `integer` | No | Agent turns per conversation, 1 to 12. Defaults to 6. |
 | `channel` | `string` | No | Channel to simulate. Defaults to `whatsapp`. |
 | `route_ids` | `string[]` | No | Routes of the same agent the test covers, up to 50. |
+| `expected_tools` | `string[]` | No | Up to 10 function names the agent has to call in the conversation, such as `move_ticket_stage` (hand off to a person) or `create_appointment` (book). Each name is 1 to 64 characters from `A-Z`, `a-z`, `0-9`, `_` and `-`. |
 
 ## Example request
 
@@ -69,6 +70,7 @@ curl -X POST https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/tests \
     "max_turns": 6,
     "channel": "whatsapp",
     "route_ids": [],
+    "expected_tools": [],
     "source": "manual",
     "status": "active",
     "created_by": "ana@example.com",
@@ -81,7 +83,7 @@ curl -X POST https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/tests \
 
 ### 400 Bad Request
 
-A missing required field, `max_turns` out of range, a `route_ids` entry that is not an `ObjectId`, a field over its limit, or an unknown property.
+A missing required field, `max_turns` out of range, a `route_ids` entry that is not an `ObjectId`, an `expected_tools` entry that is not a function name or more than 10 of them, a field over its limit, or an unknown property.
 ### 404 Not Found
 
 `AGENT_NOT_FOUND` when the agent belongs to another project of the company, `UPSTREAM_ERROR` (message `AGENT_NOT_FOUND`) when no agent has that id in the company. `route_not_found` when a route in `route_ids` is not from this agent.
@@ -101,3 +103,4 @@ The agent service is unreachable.
 
 - **Write `pass_if` as something a reviewer can check in the conversation** — what the agent says or does, not what it thinks.
 - **`customer_goal` steers the simulated customer**, so state what they want, not how the agent should answer.
+- **Use `expected_tools` when `pass_if` needs an action, not just something said.** Besides the review against `pass_if`, each attempt checks the functions the agent called: it passes only if every function in the list was called, in any order and with any arguments, even if others were called too. A call that came back with an error does not count. When one is missing the attempt fails and its `reason` names it. Writing functions are simulated in test mode, so a simulated hand-off or booking counts as called. The names are the ones listed in `attempts[].tools[].name` of a run.

@@ -274,7 +274,7 @@ Read and write the configuration of the agents themselves: their goal, the [sect
 | `keebai_agent_route_versions_list` | `agents:read` | The history of a route, newest first. |
 | `keebai_agent_route_version_restore` | `agents:write` | Restore a version by writing a new one that copies it. |
 | `keebai_agent_tests_list` | `agents:read` | The saved tests of an agent, each with the verdict of its latest run, plus a summary by verdict and the run in progress. |
-| `keebai_agent_test_save` | `agents:write` | Create a test, or update one when `test_id` is sent. `status: archived` takes it out of the runs; a test is never deleted. |
+| `keebai_agent_test_save` | `agents:write` | Create a test, or update one when `test_id` is sent. `expected_tools` lists the functions the agent has to call for an attempt to pass. `status: archived` takes it out of the runs; a test is never deleted. |
 | `keebai_agent_tests_run` | `agents:write` | Start a run and return at once. Each test is talked through 3 times in test mode. Fails with `run_in_progress` while one is going. |
 | `keebai_agent_test_run_get` | `agents:read` | One run with every attempt: conversation, functions used (simulated ones marked) and why it passed. Without `run_id`, the latest runs. |
 
