@@ -112,6 +112,52 @@ agent = resp.json()["agent"]
 
 </CodeGroup>
 
+### An agent on the scenarios engine
+
+With `engine: "scenarios"` the agent reads the sections `identity` and `objective` ([`kind=escenarios`](/dev/endpoints/prompt-types-list)) and works from its scenarios. Create the agent first, then its [scenarios](/dev/endpoints/agents-scenario-create) and their [routes](/dev/endpoints/agents-route-create): the steps of a route carry the `actions` it uses.
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/agents \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Camila",
+    "language": "es-CL",
+    "timezone": "America/Santiago",
+    "engine": "scenarios",
+    "channels": ["whatsapp"],
+    "prompts": [
+      { "section": "identity", "markdown": "Eres la recepción de una barbería en Providencia." },
+      { "section": "objective", "markdown": "Que cada cliente salga con su hora agendada." }
+    ],
+    "stages": ["Nuevo", "Agendado", "Atención manual"]
+  }'
+
+curl -X POST https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/scenarios \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Agenda",
+    "kind": "instructions",
+    "when_to_open": "El cliente quiere reservar, cambiar o cancelar una hora.",
+    "status": "approved"
+  }'
+
+curl -X POST https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/scenarios/6652c0ffee11223344556677/routes \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Reservar una hora",
+    "applies_when": "El cliente pide una hora para un servicio.",
+    "steps": [
+      { "instruction": "Pregunta qué servicio quiere y para qué día.", "actions": ["search_services"] },
+      { "instruction": "Busca las horas libres de ese día y ofrece tres.", "actions": ["get_appointment_availability"] },
+      { "instruction": "Con la hora elegida, agenda y confirma.", "actions": ["create_appointment"] }
+    ],
+    "status": "approved"
+  }'
+```
+
 ## Response
 
 ### 201 Created
