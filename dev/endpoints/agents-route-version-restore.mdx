@@ -54,12 +54,7 @@ curl -X POST https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/routes/66
       },
       {
         "instruction": "Offer the available times.",
-        "actions": [
-          {
-            "kind": "native",
-            "target": "search_availability"
-          }
-        ],
+        "actions": ["get_appointment_availability"],
         "steps": [
           {
             "instruction": "If none fits, offer the next day with availability.",
@@ -72,13 +67,8 @@ curl -X POST https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/routes/66
     "cases": [
       {
         "condition": "There is no availability this week",
-        "action": "Offer the waiting list.",
-        "actions": [
-          {
-            "kind": "native",
-            "target": "join_waitlist"
-          }
-        ]
+        "action": "Offer the first free time next week.",
+        "actions": ["get_appointment_availability"]
       }
     ],
     "order": 0,

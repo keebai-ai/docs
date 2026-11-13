@@ -44,9 +44,9 @@ Every field is optional.
 | `timezone` | `string` | IANA name. |
 | `engine` | `string` | `turn` or `scenarios`. Switching to `scenarios` makes the agent run from its scenarios on the next turn, so create them first. |
 | `goal` | `object` | `{ type, instructions? }`. |
-| `prompts` | `array` | **Replaces every section.** |
+| `prompts` | `array` | **Replaces every section**: a section left out is deleted. A section sent keeps its steps and rules, and a case without `actions` keeps its own. Case `actions` are strings, as in [`PUT /v1/agents/{id}/prompts/{section}`](/dev/endpoints/agents-prompt-set). |
 | `channels` | `string[]` | Channel types from the catalogue. |
-| `reengagement` | `object` | Cadence for coming back to a cold conversation. |
+| `reengagement` | `object` | Cadence for coming back to a cold conversation, same body as [`PUT /v1/agents/{id}/reengagement`](/dev/endpoints/agents-reengagement). |
 | `tools` | `string[]` | `ObjectId`s of webhook tools. |
 | `model` | `string` | Model id. Validated only when it differs from the current one. |
 | `knowledge_node_ids` | `string[]` | Replaces the whole list. Send `[]` to unassign everything. |
@@ -101,7 +101,7 @@ The full agent, same shape as [`GET /v1/agents/{id}`](/dev/endpoints/agents-get)
 
 ### 400 Bad Request
 
-A field over its length limit, a malformed `ObjectId`, an unknown property, or `INVALID_MODEL` when the new model is not supported.
+A field over its length limit, a malformed `ObjectId`, an unknown property, `INVALID_MODEL` when the new model is not supported, or `UNKNOWN_ACTION_TARGET` / `AMBIGUOUS_ACTION_TARGET` for a case action.
 
 ### 401 Unauthorized
 

@@ -32,9 +32,9 @@ POST https://api.keebai.com/v1/agents
 | `timezone` | `string` | No | IANA name, for example `America/Santiago`. |
 | `engine` | `string` | No | `turn` (default) or `scenarios`. See [engine](/dev/agents/configuration#engine). |
 | `goal` | `object` | No | `{ type, instructions? }`. `instructions` only applies to the `custom` goal. |
-| `prompts` | `array` | No | `{ section, label?, markdown }`, up to 20. |
+| `prompts` | `array` | No | `{ section, label?, markdown?, cases? }`, up to 20. `cases` is for `cases_possible`: `{ condition, action, actions? }`, where `actions` are strings from [the actions endpoint](/dev/endpoints/agents-actions-list), for example `["get_appointment_availability"]`. |
 | `channels` | `string[]` | No | Channel types from the catalogue, up to 10. |
-| `reengagement` | `object` | No | How often it comes back to a conversation that went cold. |
+| `reengagement` | `object` | No | How often it comes back to a conversation that went cold: `{ max_attempts, first_wait_hours?, between_hours?, ... }`, same body as [`PUT /v1/agents/{id}/reengagement`](/dev/endpoints/agents-reengagement). `max_attempts: 0` turns it off. |
 | `tools` | `string[]` | No | `ObjectId`s from [`GET /v1/tools`](/dev/endpoints/tools-list), up to 100. |
 | `knowledge_node_ids` | `string[]` | No | Up to 200. |
 
@@ -57,8 +57,19 @@ curl -X POST https://api.keebai.com/v1/agents \
       {
         "section": "business_context",
         "markdown": "# Quiénes somos\n\nBarbería en Providencia. Atendemos con hora, de martes a sábado."
+      },
+      {
+        "section": "cases_possible",
+        "cases": [
+          {
+            "condition": "pide hora para hoy y ya no quedan horas",
+            "action": "ofrece las dos primeras horas libres de mañana",
+            "actions": ["get_appointment_availability"]
+          }
+        ]
       }
-    ]
+    ],
+    "reengagement": { "max_attempts": 2, "first_wait_hours": 3, "between_hours": 24 }
   }'
 ```
 
@@ -133,7 +144,7 @@ agent = resp.json()["agent"]
 
 ### 400 Bad Request
 
-A field over its length limit, a malformed `ObjectId`, an unknown property, or `INVALID_MODEL`.
+A field over its length limit, a malformed `ObjectId`, an unknown property, `INVALID_MODEL`, or a case action that is not in [the actions list](/dev/endpoints/agents-actions-list) (`UNKNOWN_ACTION_TARGET`). A new agent has no stages yet, so a case cannot point to one until it exists.
 
 ### 401 Unauthorized
 

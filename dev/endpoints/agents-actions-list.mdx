@@ -5,7 +5,7 @@ description: "What the actions of a case or step can point to."
 openapi: "GET /v1/agents/{id}/actions"
 ---
 
-A case or a step carries `actions`, each one `{kind, target}`. An action is what gives the agent the tool: a case that points to `create_appointment` is what lets the agent book. This endpoint lists the valid `target` for each `kind`, so you can fill them without guessing.
+A case or a step carries `actions`: a list of strings, each one a function name or an id, for example `["get_appointment_availability", "create_appointment"]`. An action is what gives the agent the tool: a case that points to `create_appointment` is what lets the agent book. This endpoint lists every valid string, grouped by what it is, so you can fill them without guessing. You send only the string; the API works out what it is.
 
 ## Endpoint
 
@@ -49,16 +49,24 @@ curl https://api.keebai.com/v1/agents/6650a1b2c3d4e5f6a7b8c9d0/actions \
   "move_stage": [
     { "target": "6650c1d2e3f4a5b6c7d8e9f0", "name": "Inicial", "pipeline": "Ventas", "is_human_stage": false, "stage_type": "normal" },
     { "target": "6650c1d2e3f4a5b6c7d8e9f1", "name": "Atención manual", "pipeline": "Ventas", "is_human_stage": true, "stage_type": "normal" }
+  ],
+  "tag": [
+    { "target": "6650d2e3f4a5b6c7d8e9f0a1", "name": "Cliente frecuente" }
+  ],
+  "send_file": [
+    { "target": "6650e3f4a5b6c7d8e9f0a1b2", "name": "Lista de precios 2026", "mime_type": "application/pdf" }
   ]
 }
 ```
 
-| Group | `kind` of the action | What `target` is |
-|---|---|---|
-| `native` | `native` | A platform function the company has. Functions of an app or channel the company does not have are left out. |
-| `catalog` | `catalog` | The type of one of the company's active catalogs. |
-| `tool` | `tool` | The id of an active [webhook tool](/dev/endpoints/tools-list). |
-| `move_stage` | `move_stage` | The id of a stage in a pipeline tied to this agent. A stage with `is_human_stage: true` hands the conversation to a person. |
+| Group | What `target` is |
+|---|---|
+| `native` | A platform function the company has. Functions of an app or channel the company does not have are left out. |
+| `catalog` | The type of one of the company's active catalogs. |
+| `tool` | The id of an active [webhook tool](/dev/endpoints/tools-list). |
+| `move_stage` | The id of a stage in a pipeline tied to this agent. A stage with `is_human_stage: true` hands the conversation to a person. |
+| `tag` | The id of a CRM tag the agent can apply. |
+| `send_file` | The id of a file in the company's vault that the agent can send. |
 
 ### 401 Unauthorized
 
@@ -78,5 +86,6 @@ The agent service or the CRM is unreachable.
 
 ## Operational notes
 
-- **Use these targets in the `actions` of [a section](/dev/endpoints/agents-prompt-set)** or of a route. A `target` that is not here gives the agent no tool.
+- **Put these targets as they are in the `actions` of [a section](/dev/endpoints/agents-prompt-set)** or of a route. A string that is not in this list returns 400 `UNKNOWN_ACTION_TARGET`; one that appears in two groups returns 400 `AMBIGUOUS_ACTION_TARGET`.
+- **An agent being created has no stages yet.** Its pipeline is created with it, so `move_stage` targets go in once the agent exists.
 - **Removing the last action that points to a function takes that tool away from the agent.** Omitting `actions` on a case keeps the ones it had.
