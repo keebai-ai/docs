@@ -1,0 +1,87 @@
+---
+title: "POST /v1/meet/meetings/:id/cancel"
+sidebarTitle: "POST meetings/:id/cancel"
+description: "Cancel a meeting with an optional reason. Cancels the calendar event and the pending reminders."
+openapi: "POST /v1/meet/meetings/{id}/cancel"
+---
+
+Cancels a meeting. Keebai cancels the calendar event, so the guests are notified by their calendar, and the reminders still pending. The slot opens up again.
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/meet/meetings/:id/cancel
+```
+
+## Required scope
+
+`meet:meetings:cancel`
+
+## Path params
+
+| Param | Type | Description |
+|---|---|---|
+| `id` | `string` | Meeting id. |
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes (if sending a body) | `application/json` |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `reason` | `string` | No | Cancellation reason (max 500 characters). Returned in `cancel_reason`. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/meet/meetings/6735f1e2d3c4b5a697887766/cancel \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{ "reason": "El cliente pidió otra fecha" }'
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    f"https://api.keebai.com/v1/meet/meetings/{meeting_id}/cancel",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={"reason": "El cliente pidió otra fecha"},
+    timeout=20,
+)
+resp.raise_for_status()
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+Returns [the meeting](/dev/endpoints/meet-meeting-get) with `status: "cancelled"`, `cancelled_at`, and `cancel_reason`.
+
+### 404 Not Found
+
+`MEETING_NOT_FOUND`: the meeting does not exist or belongs to another company.
+
+### 409 Conflict
+
+```json
+{
+  "error": {
+    "code": "MEETING_ALREADY_CANCELLED",
+    "message": "La reunión ya está cancelada."
+  }
+}
+```
+
+### 401 Unauthorized · 403 Forbidden
+
+Same semantics as the rest of the public API.

@@ -1,0 +1,98 @@
+---
+title: "GET /v1/meet/meetings"
+sidebarTitle: "GET meetings"
+description: "List meetings — upcoming, past, or cancelled — filtered by host, type, customer, text, or dates. Paginated."
+openapi: "GET /v1/meet/meetings"
+---
+
+Lists the meetings of your company. `scope` picks upcoming (default), past, or cancelled meetings; the other filters narrow the list down.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/meet/meetings
+```
+
+## Required scope
+
+`meet:meetings:read`
+
+## Query params
+
+| Param | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `scope` | `string` | No | `upcoming` | `upcoming`, `past`, or `cancelled`. |
+| `host_user_id` | `string` | No | — | Only the meetings of this host. |
+| `type_id` | `string` | No | — | Only meetings of this type. |
+| `chat_user_id` | `string` | No | — | Only the meetings of this customer. |
+| `search` | `string` | No | — | Free text over the customer name or email (max 200). |
+| `from` | `string` | No | — | Meetings starting from this instant, ISO 8601. |
+| `to` | `string` | No | — | Meetings starting up to this instant, ISO 8601. |
+| `page` | `number` | No | `1` | Page, from 1. |
+| `limit` | `number` | No | `20` | Meetings per page, `1..100`. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -G https://api.keebai.com/v1/meet/meetings \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  --data-urlencode "scope=upcoming" \
+  --data-urlencode "host_user_id=66c1d2e3f4a5b6c7d8e9f0a2" \
+  --data-urlencode "limit=50"
+```
+
+```js JavaScript
+const url = new URL("https://api.keebai.com/v1/meet/meetings");
+url.searchParams.set("scope", "past");
+url.searchParams.set("page", "2");
+
+const { data, total, page, limit } = await (
+  await fetch(url, {
+    headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` },
+  })
+).json();
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "data": [
+    {
+      "id": "6735f1e2d3c4b5a697887766",
+      "type_id": "6731a2b3c4d5e6f7a8b9c0d1",
+      "type_name": "Demo de 30 minutos",
+      "host_user_id": "66c1d2e3f4a5b6c7d8e9f0a2",
+      "host_name": "Pedro Rojas",
+      "customer": { "name": "Lucía Fernández", "email": "lucia@empresa.example" },
+      "invitee_emails": [],
+      "start": "2026-11-16T14:00:00.000Z",
+      "end": "2026-11-16T14:30:00.000Z",
+      "time_zone": "America/Santiago",
+      "meet_url": "https://meet.google.com/abc-defg-hij",
+      "status": "scheduled",
+      "source": "public",
+      "reminders": []
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "limit": 20
+}
+```
+
+Each item has the same shape as [the meeting detail](/dev/endpoints/meet-meeting-get).
+
+### 400 Bad Request
+
+An unknown `scope`, a filter that is not an ObjectId, a date that is not ISO 8601, or `limit` out of range.
+
+### 401 Unauthorized · 403 Forbidden
+
+Same semantics as the rest of the public API.

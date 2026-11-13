@@ -68,6 +68,12 @@ The catalog lives in the `api_scopes` MongoDB collection. The portal pulls it vi
 | `scheduling:appointments:confirm` | scheduling | [Confirm appointments](/dev/endpoints/scheduling-appointment-confirm) (`pending` → `confirmed`). |
 | `scheduling:appointments:cancel` | scheduling | [Cancel appointments](/dev/endpoints/scheduling-appointment-cancel) with an optional reason. |
 | `scheduling:payment-links:create` | scheduling | Generate a payment link for a customer's pending appointments or for an agreed amount. |
+| `meet:types:read` | meet | [List meeting types](/dev/endpoints/meet-types-list) of [Keebai Meet](/dev/meet/overview). |
+| `meet:availability:read` | meet | [Query the open slots](/dev/endpoints/meet-availability) of a meeting type. |
+| `meet:meetings:read` | meet | [List](/dev/endpoints/meet-meetings-list) and [read](/dev/endpoints/meet-meeting-get) meetings. |
+| `meet:meetings:create` | meet | [Book meetings](/dev/endpoints/meet-meeting-create): creates the calendar event, invites the customer, and schedules the reminders. |
+| `meet:meetings:reschedule` | meet | [Reschedule a meeting](/dev/endpoints/meet-meeting-reschedule) with its event and reminders. |
+| `meet:meetings:cancel` | meet | [Cancel a meeting](/dev/endpoints/meet-meeting-cancel) with an optional reason. |
 | `restaurants:menu:read` | restaurants | List the dishes on the menu, with their section, price and allergens. |
 | `crm:customers:read` | crm | [List](/dev/endpoints/crm-customers-list) and [read](/dev/endpoints/crm-customer-get) CRM customers. |
 | `crm:customers:write` | crm | [Create](/dev/endpoints/crm-customer-create) and [update](/dev/endpoints/crm-customer-update) customers, including custom fields and tags. |
@@ -109,13 +115,13 @@ One difference matters when you hand a token to an agent: **a missing scope is n
 
 When an app connects to the [MCP server over OAuth](/dev/mcp/overview#connect-with-oauth) — Claude, ChatGPT, Cursor — the user does not tick scopes one by one. The consent screen shows six **groups**. The token ends up with the scopes the app asked for that belong to a group the user approved and that the user's role allows.
 
-Each scope's group is stored with it in the `api_scopes` catalog, as `consent_group`. It is not derived from the scope's name: `contacts:` and `loyalty:` sit with `crm:` in **Customers**, `restaurants:menu:read` sits with the catalog reads in **Products and sales**, and `ecommerce:` splits by action — reads go to **Products and sales**, anything that writes or issues goes to **Sell and invoice** — so a user can let an app look at sales without letting it create them.
+Each scope's group is stored with it in the `api_scopes` catalog, as `consent_group`. It is not derived from the scope's name: `contacts:` and `loyalty:` sit with `crm:` in **Customers**, `meet:` sits with `scheduling:` in **Calendar**, `restaurants:menu:read` sits with the catalog reads in **Products and sales**, and `ecommerce:` splits by action — reads go to **Products and sales**, anything that writes or issues goes to **Sell and invoice** — so a user can let an app look at sales without letting it create them.
 
 | Group | Key | Scopes |
 |---|---|---|
 | **Messages and email** | `messages` | `messages:send`, `messages:bulk`, `templates:read`, `templates:create`, `templates:update`, `channels:read`, `channels:connect`, `webhooks:read`, `webhooks:manage`, `flows:read`, `flows:write` |
 | **Customers** | `customers` | `crm:customers:read`, `crm:customers:write`, `crm:customers:delete`, `crm:tickets:read`, `crm:tickets:write`, `crm:tickets:delete`, `crm:tasks:read`, `crm:tasks:write`, `crm:tasks:delete`, `crm:notes:read`, `crm:notes:write`, `crm:notes:delete`, `crm:events:write`, `contacts:read`, `contacts:write`, `contacts:delete`, `loyalty:read`, `loyalty:write` |
-| **Calendar** | `scheduling` | `scheduling:branches:read`, `scheduling:sectors:read`, `scheduling:services:read`, `scheduling:professionals:read`, `scheduling:availability:read`, `scheduling:appointments:read`, `scheduling:appointments:create`, `scheduling:appointments:update`, `scheduling:appointments:confirm`, `scheduling:appointments:cancel`, `scheduling:payment-links:create` |
+| **Calendar** | `scheduling` | `scheduling:branches:read`, `scheduling:sectors:read`, `scheduling:services:read`, `scheduling:professionals:read`, `scheduling:availability:read`, `scheduling:appointments:read`, `scheduling:appointments:create`, `scheduling:appointments:update`, `scheduling:appointments:confirm`, `scheduling:appointments:cancel`, `scheduling:payment-links:create`, `meet:types:read`, `meet:availability:read`, `meet:meetings:read`, `meet:meetings:create`, `meet:meetings:reschedule`, `meet:meetings:cancel` |
 | **Products and sales** | `catalog` | `restaurants:menu:read`, `ecommerce:products:read`, `ecommerce:carts:read`, `ecommerce:sales:read`, `ecommerce:stock:read`, `ecommerce:invoicing:read` |
 | **Sell and invoice** | `commerce` | `ecommerce:carts:write`, `ecommerce:sales:write`, `ecommerce:stock:write`, `ecommerce:invoicing:issue` |
 | **Agents and knowledge** | `agents` | `knowledge:read`, `knowledge:write`, `knowledge:delete`, `knowledge:query`, `knowledge:assign`, `agents:read`, `agents:write`, `projects:read` |

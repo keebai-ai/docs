@@ -1,0 +1,78 @@
+---
+title: "GET /v1/meet/types"
+sidebarTitle: "GET types"
+description: "List the meeting types of your company, with duration, location, hosts, and how meetings are assigned."
+openapi: "GET /v1/meet/types"
+---
+
+Lists the meeting types your team offers. Only active types by default, because they are the only ones that can be booked. Types are set up in the portal; the API reads them.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/meet/types
+```
+
+## Required scope
+
+`meet:types:read`
+
+## Query params
+
+| Param | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `active` | `string` | No | `true` | `true` lists the active types, `false` the inactive ones. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl https://api.keebai.com/v1/meet/types \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+```js JavaScript
+const types = await (
+  await fetch("https://api.keebai.com/v1/meet/types", {
+    headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` },
+  })
+).json();
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+[
+  {
+    "id": "6731a2b3c4d5e6f7a8b9c0d1",
+    "name": "Demo de 30 minutos",
+    "description": "Te mostramos cómo funciona Keebai con tu caso.",
+    "duration_minutes": 30,
+    "location": "google_meet",
+    "assignment": "round_robin",
+    "host_user_ids": ["66c1d2e3f4a5b6c7d8e9f0a1", "66c1d2e3f4a5b6c7d8e9f0a2"],
+    "min_notice_minutes": 120,
+    "horizon_days": 14,
+    "active": true
+  }
+]
+```
+
+| Field | Description |
+|---|---|
+| `location` | `google_meet`, `microsoft_teams`, or `none`. With a video location the meeting comes back with `meet_url`. |
+| `assignment` | `round_robin`, `sticky`, or `collective`. See [how hosts are assigned](/dev/meet/overview#how-hosts-are-assigned). |
+| `host_user_ids` | Keebai user ids of the people who take this type. |
+| `min_notice_minutes` | A slot closer than this to now is not offered. |
+| `horizon_days` | How many days ahead slots are offered. |
+
+Meeting types change on a human timescale. Fetch them once and cache them.
+
+### 401 Unauthorized · 403 Forbidden
+
+Same semantics as the rest of the public API.

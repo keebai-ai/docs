@@ -1,0 +1,141 @@
+---
+title: "Meet overview"
+sidebarTitle: "Overview"
+description: "Keebai Meet books sales meetings: meeting types, how hosts are assigned, availability, and the reminders that go out on their own."
+---
+
+Keebai Meet is the meeting scheduler for sales teams. A prospect picks a time, Keebai assigns a person from your team, creates the calendar event with its video link, invites everyone, and sends the reminders. The API lets your own site, app, or agent do the booking without sending anyone to the Keebai portal.
+
+## What you can do
+
+<CardGroup cols={2}>
+  <Card title="Read meeting types" icon="list" href="/dev/endpoints/meet-types-list">
+    Duration, location, and how meetings are assigned among your team.
+  </Card>
+  <Card title="Query availability" icon="calendar-days" href="/dev/endpoints/meet-availability">
+    Open slots of a meeting type, each with the host who would take it.
+  </Card>
+  <Card title="Book" icon="calendar-plus" href="/dev/endpoints/meet-meeting-create">
+    Create the meeting, the calendar event, and the invitation in one call.
+  </Card>
+  <Card title="Reschedule or cancel" icon="calendar-xmark" href="/dev/endpoints/meet-meeting-reschedule">
+    Move a meeting or cancel it. The event and the reminders follow.
+  </Card>
+</CardGroup>
+
+Every endpoint on this page is also an [MCP tool](/dev/mcp/tools#meet), so an AI agent can offer times and book with the same token and scopes.
+
+## Scopes
+
+| Scope | Grants |
+|---|---|
+| `meet:types:read` | [List meeting types](/dev/endpoints/meet-types-list). |
+| `meet:availability:read` | [Query availability](/dev/endpoints/meet-availability) of a meeting type. |
+| `meet:meetings:read` | [List](/dev/endpoints/meet-meetings-list) and [read](/dev/endpoints/meet-meeting-get) meetings. |
+| `meet:meetings:create` | [Book meetings](/dev/endpoints/meet-meeting-create). |
+| `meet:meetings:reschedule` | [Reschedule](/dev/endpoints/meet-meeting-reschedule) a meeting. |
+| `meet:meetings:cancel` | [Cancel](/dev/endpoints/meet-meeting-cancel) a meeting. |
+
+A booking page that only shows open times needs `meet:types:read` and `meet:availability:read`. Add `meet:meetings:create` only to the token that actually books.
+
+## Meeting types
+
+A **meeting type** is what a prospect books: "30-minute demo", "Onboarding call". You set them up in the portal under **Meet › Meeting types**; the API reads them and does not create or edit them. Each type carries:
+
+- **Duration**, in minutes.
+- **Location**: Google Meet, Microsoft Teams, or none. With a video location, the link is created with the calendar event and comes back in `meet_url`.
+- **Hosts**: the people of your team who take these meetings.
+- **Availability rules**: minimum notice before a slot can be booked, how many days ahead are offered, and the buffer between meetings.
+
+Only **active** types can be booked. [`GET /v1/meet/types`](/dev/endpoints/meet-types-list) lists only those unless you ask for the inactive ones.
+
+## How hosts are assigned
+
+Each type decides who takes a meeting:
+
+| Assignment | Who hosts |
+|---|---|
+| `round_robin` | The meetings are spread among the hosts, so each one gets a fair share. |
+| `sticky` | A returning customer goes back to the host who served them before; a new one is spread like `round_robin`. |
+| `collective` | Every host attends. A slot is open only when all of them are free. |
+
+Availability already applies the rule: each slot comes with the `host_user_id` who would take it. When you book that slot, leave `host_user_id` out and Keebai assigns the same person, or send it to pin someone in particular. For `sticky`, pass `customer_chat_user_id` to the availability call so the slots belong to that customer's host.
+
+A host's own working hours, time off, and the busy times of their connected calendar all block slots. You do not need to read their calendar yourself.
+
+## Availability is a snapshot, not a hold
+
+Reading a slot does not reserve it. Between your availability call and your booking, someone else can take it, and the booking returns `409 SLOT_NOT_AVAILABLE`. Keebai checks the slot again at booking time for exactly that reason.
+
+On `409`, query availability again and show the new options. Do not retry the same slot.
+
+## Booking
+
+[`POST /v1/meet/meetings`](/dev/endpoints/meet-meeting-create) takes the type, the slot `start`, and the customer. Keebai then:
+
+1. Checks the slot again and assigns the host.
+2. Creates the event on the host's calendar, with the video link, and invites the customer, the extra `invitee_emails`, and the fixed guests of the type.
+3. Schedules the reminders.
+4. Adds the meeting to the customer's CRM timeline, when you pass a `chat_user_id` or `ticket_id`.
+
+A meeting booked through the API is recorded with `source: "public"` and `created_by` set to the owner of the token. You never send either one.
+
+Send an `Idempotency-Key` header with every booking. A retry with the same key returns the meeting already created instead of booking twice.
+
+## Reminders
+
+Each type has its own reminders, set up in the portal. By default:
+
+| When | Customer gets |
+|---|---|
+| At booking | WhatsApp and email confirmation. |
+| 24 hours before | WhatsApp and email. |
+| 1 hour before | WhatsApp. |
+
+The host also gets a push and email notice 15 minutes before. WhatsApp reminders use a template your company has approved; without one, the reminder goes by email, and without an email it is skipped with a reason. The meeting detail lists every reminder with its `status`: `scheduled`, `sent`, `failed`, or `skipped`.
+
+Rescheduling moves the reminders to the new time, and the ones for the old time are never sent. Cancelling cancels the ones still pending.
+
+## Tenancy and time
+
+Meeting types, hosts, and meetings all belong to the company that owns your token. **You never send `company`**, and sending it returns `400`.
+
+Instants are **ISO 8601 in UTC**, such as `2026-11-16T14:00:00.000Z`. `start` must carry `Z` or an offset; a time without a zone returns `400`. Availability groups its slots into days in the **company's time zone**, returned as `time_zone`, so a day boundary matches your team's calendar rather than UTC.
+
+Ids are Mongo `ObjectId`s: meeting types, meetings, hosts (`host_user_id` is the person's Keebai user id), and the CRM references.
+
+## Errors
+
+```json
+{
+  "error": {
+    "code": "SLOT_NOT_AVAILABLE",
+    "message": "El horario ya no está disponible."
+  }
+}
+```
+
+| Code | When |
+|---|---|
+| `MEETING_TYPE_NOT_FOUND` | The meeting type does not exist in your company. |
+| `SLOT_NOT_AVAILABLE` | The slot was taken, or it falls outside the type's rules. |
+| `NO_HOST_AVAILABLE` | No host of the type can take that slot. |
+| `HOST_CALENDAR_NOT_CONNECTED` | The host has no calendar connected, so the event cannot be created. |
+| `MEETING_NOT_FOUND` | The meeting does not exist or belongs to another company. |
+| `MEETING_ALREADY_CANCELLED` | Rescheduling or cancelling a meeting that was already cancelled. |
+| `IDEMPOTENCY_KEY_REQUIRED` | A booking without a valid `Idempotency-Key`. |
+
+Business errors are always `4xx`: `404` for something that does not exist, `409` for a slot or state that does not allow the change, `400` for a malformed request. A `502` means Keebai could not reach the scheduling service; retry with the same `Idempotency-Key`.
+
+`401`, `403`, and `429` work as on the rest of the API. Branch on `error.code`, not on the message: some messages are in Spanish, the codes are not.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="List meeting types" icon="list" href="/dev/endpoints/meet-types-list">
+    Start from the types your team offers.
+  </Card>
+  <Card title="Book a meeting" icon="calendar-plus" href="/dev/endpoints/meet-meeting-create">
+    Create the meeting, the event, and the invitation.
+  </Card>
+</CardGroup>

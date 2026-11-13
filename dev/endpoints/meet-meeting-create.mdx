@@ -1,0 +1,150 @@
+---
+title: "POST /v1/meet/meetings"
+sidebarTitle: "POST meetings"
+description: "Book a meeting on an open slot: assigns the host, creates the calendar event with the video link and invitation, and schedules the reminders."
+openapi: "POST /v1/meet/meetings"
+---
+
+Books a meeting. Keebai checks the slot again, assigns the host, creates the event on the host's calendar with the video link, invites the customer and the guests, schedules the [reminders](/dev/meet/overview#reminders), and adds the meeting to the customer's CRM timeline when you pass a `chat_user_id` or `ticket_id`.
+
+The meeting is recorded with `source: "public"` and `created_by` set to the owner of the token. You never send either one.
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/meet/meetings
+```
+
+## Required scope
+
+`meet:meetings:create`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+| `Idempotency-Key` | Yes | Up to 128 letters, digits, `-` or `_`. A retry with the same key returns the meeting already booked. |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `type_id` | `string` | Yes | Meeting type. |
+| `start` | `string` | Yes | Slot start, ISO 8601 with `Z` or an offset. Use a `start` from [availability](/dev/endpoints/meet-availability) unchanged. |
+| `host_user_id` | `string` | No | Pin a host. Omit it and the type's assignment picks one. |
+| `customer.name` | `string` | Yes | Customer name, shown in the invitation (max 120). |
+| `customer.email` | `string` | No | Receives the calendar invitation and email reminders. |
+| `customer.phone` | `string` | No | International format, such as `+56912345678`. Used for WhatsApp reminders. |
+| `customer.chat_user_id` | `string` | No | The customer's chat in Keebai. |
+| `customer.customer_id` | `string` | No | The CRM customer. |
+| `customer.ticket_id` | `string` | No | CRM ticket whose timeline gets the meeting. |
+| `invitee_emails` | `string[]` | No | Extra guests, at most 20. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/meet/meetings \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: lead-8841-demo" \
+  -d '{
+    "type_id": "6731a2b3c4d5e6f7a8b9c0d1",
+    "start": "2026-11-16T14:00:00.000Z",
+    "customer": {
+      "name": "Lucía Fernández",
+      "email": "lucia@empresa.example",
+      "phone": "+56912345678"
+    }
+  }'
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    "https://api.keebai.com/v1/meet/meetings",
+    headers={
+        "Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}",
+        "Idempotency-Key": f"lead-{lead_id}-demo",
+    },
+    json={
+        "type_id": type_id,
+        "start": slot["start"],
+        "customer": {"name": "Lucía Fernández", "email": "lucia@empresa.example"},
+    },
+    timeout=20,
+)
+resp.raise_for_status()
+meeting = resp.json()
+```
+
+</CodeGroup>
+
+## Response
+
+### 201 Created
+
+```json
+{
+  "id": "6735f1e2d3c4b5a697887766",
+  "type_id": "6731a2b3c4d5e6f7a8b9c0d1",
+  "type_name": "Demo de 30 minutos",
+  "host_user_id": "66c1d2e3f4a5b6c7d8e9f0a2",
+  "host_name": "Pedro Rojas",
+  "customer": {
+    "name": "Lucía Fernández",
+    "email": "lucia@empresa.example",
+    "phone": "+56912345678"
+  },
+  "invitee_emails": [],
+  "start": "2026-11-16T14:00:00.000Z",
+  "end": "2026-11-16T14:30:00.000Z",
+  "time_zone": "America/Santiago",
+  "meet_url": "https://meet.google.com/abc-defg-hij",
+  "status": "scheduled",
+  "source": "public",
+  "created_by": { "kind": "user", "id": "66c1d2e3f4a5b6c7d8e9f0a9", "name": "ventas@empresa.example" },
+  "reminders": [
+    { "key": "booked", "channel": "email", "scheduled_at": "2026-11-13T18:02:11.000Z", "status": "scheduled" },
+    { "key": "24h", "channel": "whatsapp", "scheduled_at": "2026-11-15T14:00:00.000Z", "status": "scheduled" },
+    { "key": "1h", "channel": "whatsapp", "scheduled_at": "2026-11-16T13:00:00.000Z", "status": "scheduled" }
+  ],
+  "created_at": "2026-11-13T18:02:10.000Z",
+  "updated_at": "2026-11-13T18:02:10.000Z"
+}
+```
+
+`created_by.name` is the email of the token owner. A company token that belongs to no person is recorded as `API`, with the token id.
+
+### 400 Bad Request
+
+A missing or invalid `Idempotency-Key` (`IDEMPOTENCY_KEY_REQUIRED`), a `start` without a zone, a field that is not an ObjectId, or fields the API does not accept, such as `company`, `source`, or `created_by`.
+
+### 404 Not Found
+
+`MEETING_TYPE_NOT_FOUND`: the type does not exist in your company.
+
+### 409 Conflict
+
+```json
+{
+  "error": {
+    "code": "SLOT_NOT_AVAILABLE",
+    "message": "El horario ya no está disponible."
+  }
+}
+```
+
+| Code | What to do |
+|---|---|
+| `SLOT_NOT_AVAILABLE` | Someone took the slot. Query availability again and offer the new options. |
+| `NO_HOST_AVAILABLE` | No host can take that slot. Offer another one. |
+| `HOST_CALENDAR_NOT_CONNECTED` | The host has no calendar connected in Keebai. Someone on your team has to connect it under **Meet › People**. |
+
+### 401 Unauthorized · 403 Forbidden
+
+Same semantics as the rest of the public API.

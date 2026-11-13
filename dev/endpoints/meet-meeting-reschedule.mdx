@@ -1,0 +1,78 @@
+---
+title: "POST /v1/meet/meetings/:id/reschedule"
+sidebarTitle: "POST meetings/:id/reschedule"
+description: "Move a meeting to a new slot. The calendar event and the reminders move with it."
+openapi: "POST /v1/meet/meetings/{id}/reschedule"
+---
+
+Moves a meeting to a new slot. Keebai checks the new slot, moves the calendar event (the guests get the update from their calendar), and schedules the reminders again for the new time. The reminders of the old time are never sent. The meeting ends in `rescheduled`.
+
+## Endpoint
+
+```
+POST https://api.keebai.com/v1/meet/meetings/:id/reschedule
+```
+
+## Required scope
+
+`meet:meetings:reschedule`
+
+## Path params
+
+| Param | Type | Description |
+|---|---|---|
+| `id` | `string` | Meeting id. |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `start` | `string` | Yes | New start, ISO 8601 with `Z` or an offset. Take it from [availability](/dev/endpoints/meet-availability). |
+| `host_user_id` | `string` | No | Move the meeting to this host too. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.keebai.com/v1/meet/meetings/6735f1e2d3c4b5a697887766/reschedule \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{ "start": "2026-11-17T15:30:00.000Z" }'
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    f"https://api.keebai.com/v1/meet/meetings/{meeting_id}/reschedule",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={"start": new_slot["start"]},
+    timeout=20,
+)
+resp.raise_for_status()
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+Returns [the meeting](/dev/endpoints/meet-meeting-get) with the new `start`, `end`, host, and reminders.
+
+### 404 Not Found
+
+`MEETING_NOT_FOUND`: the meeting does not exist or belongs to another company.
+
+### 409 Conflict
+
+| Code | When |
+|---|---|
+| `SLOT_NOT_AVAILABLE` | The new slot is taken. Query availability again. |
+| `NO_HOST_AVAILABLE` | No host can take the new slot. |
+| `MEETING_ALREADY_CANCELLED` | A cancelled meeting cannot be moved. Book a new one. |
+
+### 400 Bad Request · 401 Unauthorized · 403 Forbidden
+
+`400` for a `start` without a zone or a `host_user_id` that is not an ObjectId. The rest, same semantics as the rest of the public API.

@@ -1,0 +1,100 @@
+---
+title: "GET /v1/meet/availability"
+sidebarTitle: "GET availability"
+description: "Open slots of a meeting type, grouped by day in the company time zone, each with the host who would take it."
+openapi: "GET /v1/meet/availability"
+---
+
+Returns the open slots of a meeting type between `from` and `to`. The hosts' working hours, time off, connected calendars, and the type's rules (minimum notice, horizon, buffer) are already applied. Each slot names the host who would take it under the type's [assignment](/dev/meet/overview#how-hosts-are-assigned).
+
+A slot is a snapshot, not a hold. See [availability is a snapshot](/dev/meet/overview#availability-is-a-snapshot-not-a-hold).
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/meet/availability
+```
+
+## Required scope
+
+`meet:availability:read`
+
+## Query params
+
+| Param | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `type_id` | `string` | Yes | — | Meeting type, from [`GET /v1/meet/types`](/dev/endpoints/meet-types-list). |
+| `from` | `string` | No | now | Window start, ISO 8601: `YYYY-MM-DD` or a full UTC date-time. |
+| `to` | `string` | No | the type's horizon | Window end, ISO 8601. |
+| `host_user_id` | `string` | No | — | Only the slots of this host. |
+| `customer_chat_user_id` | `string` | No | — | The customer you are booking for. With a `sticky` type, the slots belong to the host who served them before. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -G https://api.keebai.com/v1/meet/availability \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  --data-urlencode "type_id=6731a2b3c4d5e6f7a8b9c0d1" \
+  --data-urlencode "from=2026-11-16" \
+  --data-urlencode "to=2026-11-20"
+```
+
+```js JavaScript
+const url = new URL("https://api.keebai.com/v1/meet/availability");
+url.searchParams.set("type_id", typeId);
+url.searchParams.set("from", "2026-11-16");
+url.searchParams.set("to", "2026-11-20");
+
+const { time_zone, days } = await (
+  await fetch(url, {
+    headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` },
+  })
+).json();
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "time_zone": "America/Santiago",
+  "days": [
+    {
+      "date": "2026-11-16",
+      "slots": [
+        {
+          "start": "2026-11-16T13:00:00.000Z",
+          "end": "2026-11-16T13:30:00.000Z",
+          "host_user_id": "66c1d2e3f4a5b6c7d8e9f0a1",
+          "host_name": "María Soto"
+        },
+        {
+          "start": "2026-11-16T14:00:00.000Z",
+          "end": "2026-11-16T14:30:00.000Z",
+          "host_user_id": "66c1d2e3f4a5b6c7d8e9f0a2",
+          "host_name": "Pedro Rojas"
+        }
+      ]
+    }
+  ]
+}
+```
+
+`date` is the day in `time_zone`, the company's zone. `start` and `end` are UTC: show them to the customer in their own zone, and send `start` back unchanged when you [book](/dev/endpoints/meet-meeting-create).
+
+### 400 Bad Request
+
+`type_id` is missing or not an ObjectId, or `from`/`to` are not ISO 8601.
+
+### 404 Not Found
+
+`MEETING_TYPE_NOT_FOUND`: the type does not exist in your company.
+
+### 401 Unauthorized · 403 Forbidden
+
+Same semantics as the rest of the public API.

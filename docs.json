@@ -468,6 +468,35 @@
         ]
       },
       {
+        "tab": "Meet",
+        "icon": "video",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": [
+              "dev/meet/overview"
+            ]
+          },
+          {
+            "group": "Meeting types",
+            "pages": [
+              "dev/endpoints/meet-types-list",
+              "dev/endpoints/meet-availability"
+            ]
+          },
+          {
+            "group": "Meetings",
+            "pages": [
+              "dev/endpoints/meet-meetings-list",
+              "dev/endpoints/meet-meeting-get",
+              "dev/endpoints/meet-meeting-create",
+              "dev/endpoints/meet-meeting-reschedule",
+              "dev/endpoints/meet-meeting-cancel"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "Ecommerce",
         "icon": "cart-shopping",
         "groups": [
