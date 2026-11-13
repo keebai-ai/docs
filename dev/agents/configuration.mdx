@@ -60,6 +60,8 @@ Timezone belongs to the business, not to the customer. An agent set to the wrong
 
 **API.** `goal: { type, instructions? }`. `type` comes from the catalogue; `instructions` only applies to the `custom` goal, where the business writes what the agent has to achieve.
 
+**Scenarios engine.** An agent on `scenarios` does not use `goal`. What it has to achieve is written in its `objective` section instead.
+
 **Getting it right.** Pick the goal from the outcome, not from the vibe: "when a conversation goes perfectly, how does it end?" — with a booking taken, a lead captured, an order assembled. If the answer is "it depends", you have two agents, not one.
 
 ---
@@ -71,6 +73,15 @@ Timezone belongs to the business, not to the customer. An agent set to the wrong
 **Portal.** The *Prompts* step, one section at a time, with a version history behind the button in the title row.
 
 **API.** [`PUT /v1/agents/{id}/prompts/{section}`](/dev/endpoints/agents-prompt-set) writes one section and leaves the rest alone. Sending `prompts` to [update](/dev/endpoints/agents-update) replaces **all** of them.
+
+**Which sections exist depends on the engine.**
+
+| Engine | Valid sections | Catalogue |
+|---|---|---|
+| `turn` | The `section` rows | `GET /v1/agents/prompt-types?kind=section` |
+| `scenarios` | The `section` rows, plus `identity` (who the agent is and how it sounds) and `objective` (what it has to achieve) | `kind=section` and `kind=escenarios` |
+
+A section the agent's engine does not take fails with `PROMPT_SECTION_NOT_FOUND`.
 
 **Getting it right.** This is where most of the quality lives, so it has its own rules:
 

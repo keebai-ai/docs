@@ -1,7 +1,7 @@
 ---
 title: "GET /v1/agents/prompt-types"
 sidebarTitle: "GET agents/prompt-types"
-description: "The catalogue of prompt sections, goals and channels an agent can be built from."
+description: "The catalogue of prompt sections, goals, channels and scenarios-engine sections an agent can be built from."
 openapi: "GET /v1/agents/prompt-types"
 ---
 
@@ -23,7 +23,7 @@ GET https://api.keebai.com/v1/agents/prompt-types
 
 | Parameter | Type | Description |
 |---|---|---|
-| `kind` | `string` | Narrow to one family: `section`, `goal` or `channel`. Omit it to get all three. |
+| `kind` | `string` | Narrow to one family: `section`, `goal`, `channel` or `escenarios`. Omit it to get all four. |
 
 ## Example request
 
@@ -110,6 +110,7 @@ The agent service is unreachable.
 ## Operational notes
 
 - **The catalogue is per company.** A business can have its own wording for a section, and you get that wording, not the platform default.
+- **Which sections an agent takes depends on its engine.** An agent on `turn` takes the `section` rows. An agent on `scenarios` takes those plus the two `escenarios` rows, `identity` and `objective`, and does not use `goal`: there, what the agent has to achieve is the `objective` section. Writing `identity` or `objective` on a `turn` agent fails with `PROMPT_SECTION_NOT_FOUND`.
 - **`toolkits` only means something on goals.** It names which tool families the goal switches on — that is why the goal is not just a label.
 - **`order` is the order the sections take in the prompt**, and it is also a sensible order to present them in a UI.
 - **`prompt` is not exposed.** Each row has one internally: it is the text that tells the *agent* what that section is. It is part of the system prompt, not integration surface.

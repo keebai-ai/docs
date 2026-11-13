@@ -236,7 +236,7 @@ Read and write the configuration of the agents themselves: their goal, the [sect
 
 | Tool | Scope | What it does |
 |---|---|---|
-| `keebai_agent_prompt_types` | `agents:read` | The catalogue: which sections, goals and channels exist. Read this before writing, instead of a hardcoded list. |
+| `keebai_agent_prompt_types` | `agents:read` | The catalogue: which sections, goals and channels exist, plus the sections only a `scenarios` agent takes (`kind=escenarios`). Read this before writing, instead of a hardcoded list. |
 | `keebai_agents_list` | `agents:read` | List the active agents of the project. Start here for the id everything else needs. |
 | `keebai_agent_get` | `agents:read` | One agent whole: goal, sections with their text, channels, tools, knowledge. |
 | `keebai_agent_create` | `agents:write` | Create one. `stages` creates a CRM pipeline named after the agent and limits it to those stages. `engine` picks `turn` or `scenarios`. |

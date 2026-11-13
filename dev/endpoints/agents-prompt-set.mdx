@@ -24,7 +24,7 @@ PUT https://api.keebai.com/v1/agents/{id}/prompts/{section}
 | Parameter | Type | Description |
 |---|---|---|
 | `id` | `string` | `ObjectId` of the agent. |
-| `section` | `string` | Section type from [the catalogue](/dev/endpoints/prompt-types-list), for example `business_context`. |
+| `section` | `string` | Section type from [the catalogue](/dev/endpoints/prompt-types-list), for example `business_context`. An agent on the `scenarios` engine also takes `identity` and `objective` (`kind=escenarios`). |
 
 ## Body
 
