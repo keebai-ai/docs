@@ -70,10 +70,10 @@ The catalog lives in the `api_scopes` MongoDB collection. The portal pulls it vi
 | `scheduling:payment-links:create` | scheduling | Generate a payment link for a customer's pending appointments or for an agreed amount. |
 | `meet:types:read` | meet | [List meeting types](/dev/endpoints/meet-types-list) of [Keebai Meet](/dev/meet/overview). |
 | `meet:availability:read` | meet | [Query the open slots](/dev/endpoints/meet-availability) of a meeting type. |
-| `meet:meetings:read` | meet | [List](/dev/endpoints/meet-meetings-list) and [read](/dev/endpoints/meet-meeting-get) meetings. |
+| `meet:meetings:read` | meet | [List](/dev/endpoints/meet-meetings-list) and [read](/dev/endpoints/meet-meeting-get) the meetings of the whole team. Needs **See team meetings** in your role. |
 | `meet:meetings:create` | meet | [Book meetings](/dev/endpoints/meet-meeting-create): creates the calendar event, invites the customer, and schedules the reminders. |
-| `meet:meetings:reschedule` | meet | [Reschedule a meeting](/dev/endpoints/meet-meeting-reschedule) with its event and reminders. |
-| `meet:meetings:cancel` | meet | [Cancel a meeting](/dev/endpoints/meet-meeting-cancel) with an optional reason. |
+| `meet:meetings:reschedule` | meet | [Reschedule any meeting of the team](/dev/endpoints/meet-meeting-reschedule) with its event and reminders. Needs **See team meetings** in your role. |
+| `meet:meetings:cancel` | meet | [Cancel any meeting of the team](/dev/endpoints/meet-meeting-cancel) with an optional reason. Needs **See team meetings** in your role. |
 | `restaurants:menu:read` | restaurants | List the dishes on the menu, with their section, price and allergens. |
 | `crm:customers:read` | crm | [List](/dev/endpoints/crm-customers-list) and [read](/dev/endpoints/crm-customer-get) CRM customers. |
 | `crm:customers:write` | crm | [Create](/dev/endpoints/crm-customer-create) and [update](/dev/endpoints/crm-customer-update) customers, including custom fields and tags. |

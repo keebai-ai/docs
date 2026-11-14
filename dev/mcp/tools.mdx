@@ -238,13 +238,15 @@ Meeting types, availability, and meetings of [Keebai Meet](/dev/meet/overview), 
 |---|---|---|
 | `keebai_meet_types_list` | `meet:types:read` | List the meeting types, active ones by default, with duration, location, hosts, and assignment. Start here for the type id. |
 | `keebai_meet_availability` | `meet:availability:read` | Open slots of a type, by day in the company time zone, each with the host who would take it. |
-| `keebai_meet_meetings_list` | `meet:meetings:read` | List meetings, upcoming by default, filtered by host, type, customer, text, or dates. |
+| `keebai_meet_meetings_list` | `meet:meetings:read` | List meetings, upcoming by default, filtered by host, type, customer, dates, or `search` (customer name, email, and phone, type, and host; max 100). |
 | `keebai_meet_meeting_get` | `meet:meetings:read` | One meeting with its video link, status, and reminders. |
 | ⚠️ `keebai_meet_meeting_create` | `meet:meetings:create` | Book a slot. Creates the calendar event with the video link, invites the customer and guests, and schedules the reminders. |
 | ⚠️ `keebai_meet_meeting_reschedule` | `meet:meetings:reschedule` | Move a meeting to a new slot; the event and the reminders move with it. |
 | ⚠️ `keebai_meet_meeting_cancel` | `meet:meetings:cancel` | Cancel a meeting, its calendar event, and its pending reminders. |
 
-Arguments keep the REST names. `start` is an ISO 8601 instant with `Z` or an offset: pass the `start` of a slot from `keebai_meet_availability` unchanged. A meeting booked through MCP is recorded with `source: "public"` and the token owner as `created_by`, like one booked through REST.
+Arguments keep the REST names. `start` is an ISO 8601 instant with `Z` or an offset: pass the `start` of a slot from `keebai_meet_availability` unchanged. A meeting booked through MCP is recorded with `source: "public"` and the token owner as `created_by`, like one booked through REST. `customer.email` and every `invitee_emails` entry must be valid emails, without repeats.
+
+`keebai_meet_meeting_create` takes an optional `idempotency_key` (up to 128 letters, digits, `-` or `_`), the MCP counterpart of the `Idempotency-Key` header. Without it the key is derived from the token, the type, the `start`, and the customer's email (or phone), so retrying the same booking returns the meeting already created instead of booking twice.
 
 <Warning>
   Tools marked ⚠️ reach people outside Keebai: the customer and the guests get the calendar invitation, its update, or its cancellation, and the reminders by WhatsApp or email.

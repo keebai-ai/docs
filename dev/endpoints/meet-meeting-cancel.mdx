@@ -82,6 +82,11 @@ Returns [the meeting](/dev/endpoints/meet-meeting-get) with `status: "cancelled"
 }
 ```
 
+| Code | When |
+|---|---|
+| `MEETING_ALREADY_CANCELLED` | The meeting was already cancelled. |
+| `MEETING_ALREADY_CLOSED` | The meeting was already marked `completed` or `no_show`, so it cannot be cancelled. |
+
 ### 401 Unauthorized · 403 Forbidden
 
 Same semantics as the rest of the public API.

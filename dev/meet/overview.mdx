@@ -38,6 +38,8 @@ Every endpoint on this page is also an [MCP tool](/dev/mcp/tools#meet), so an AI
 
 A booking page that only shows open times needs `meet:types:read` and `meet:availability:read`. Add `meet:meetings:create` only to the token that actually books.
 
+`meet:meetings:read`, `meet:meetings:reschedule`, and `meet:meetings:cancel` reach the meetings of every host, so your Keebai role needs the **See team meetings** permission to put them on a token or approve them for an app. A seller who only sees their own meetings in the portal cannot grant them.
+
 ## Meeting types
 
 A **meeting type** is what a prospect books: "30-minute demo", "Onboarding call". You set them up in the portal under **Meet › Meeting types**; the API reads them and does not create or edit them. Each type carries:
@@ -76,11 +78,11 @@ On `409`, query availability again and show the new options. Do not retry the sa
 1. Checks the slot again and assigns the host.
 2. Creates the event on the host's calendar, with the video link, and invites the customer, the extra `invitee_emails`, and the fixed guests of the type.
 3. Schedules the reminders.
-4. Adds the meeting to the customer's CRM timeline, when you pass a `chat_user_id` or `ticket_id`.
+4. Adds the meeting to the CRM timeline, when you pass a `chat_user_id` or `ticket_id` and the contact has an open ticket. Without an open ticket the meeting is booked all the same, but the timeline gets nothing. Rescheduling and cancelling are recorded the same way.
 
 A meeting booked through the API is recorded with `source: "public"` and `created_by` set to the owner of the token. You never send either one.
 
-Send an `Idempotency-Key` header with every booking. A retry with the same key returns the meeting already created instead of booking twice.
+Send an `Idempotency-Key` header with every booking. A retry with the same key and body returns the meeting already created instead of booking twice. While the first request is still running a retry gets `409 IDEMPOTENCY_KEY_IN_PROGRESS`, and reusing a key with a different body gets `409 IDEMPOTENCY_KEY_MISMATCH`.
 
 ## Reminders
 
@@ -92,7 +94,7 @@ Each type has its own reminders, set up in the portal. By default:
 | 24 hours before | WhatsApp and email. |
 | 1 hour before | WhatsApp. |
 
-The host also gets a push and email notice 15 minutes before. WhatsApp reminders use a template your company has approved; without one, the reminder goes by email, and without an email it is skipped with a reason. The meeting detail lists every reminder with its `status`: `scheduled`, `sent`, `failed`, or `skipped`.
+The host also gets a push and email notice 15 minutes before. Each reminder in the meeting detail says who it goes to in `audience`: `customer` or `team`. WhatsApp reminders use a template your company has approved; without one, the reminder goes by email, and without an email it is skipped with a reason. The meeting detail lists every reminder with its `status`: `scheduled`, `sent`, `failed`, or `skipped`.
 
 Rescheduling moves the reminders to the new time, and the ones for the old time are never sent. Cancelling cancels the ones still pending.
 
@@ -120,12 +122,16 @@ Ids are Mongo `ObjectId`s: meeting types, meetings, hosts (`host_user_id` is the
 | `MEETING_TYPE_NOT_FOUND` | The meeting type does not exist in your company. |
 | `SLOT_NOT_AVAILABLE` | The slot was taken, or it falls outside the type's rules. |
 | `NO_HOST_AVAILABLE` | No host of the type can take that slot. |
-| `HOST_CALENDAR_NOT_CONNECTED` | The host has no calendar connected, so the event cannot be created. |
+| `HOST_CALENDAR_NOT_CONNECTED` | `422`: the host has no calendar connected, so the event cannot be created. |
 | `MEETING_NOT_FOUND` | The meeting does not exist or belongs to another company. |
 | `MEETING_ALREADY_CANCELLED` | Rescheduling or cancelling a meeting that was already cancelled. |
+| `MEETING_ALREADY_CLOSED` | Rescheduling or cancelling a meeting already marked `completed` or `no_show`. |
+| `MEETING_INVALID_RANGE` | Listing meetings with a `to` that is not after `from`. |
 | `IDEMPOTENCY_KEY_REQUIRED` | A booking without a valid `Idempotency-Key`. |
+| `IDEMPOTENCY_KEY_IN_PROGRESS` | A retry while the first booking with that key is still running. |
+| `IDEMPOTENCY_KEY_MISMATCH` | A key reused with a different body. |
 
-Business errors are always `4xx`: `404` for something that does not exist, `409` for a slot or state that does not allow the change, `400` for a malformed request. A `502` means Keebai could not reach the scheduling service; retry with the same `Idempotency-Key`.
+Business errors are always `4xx`: `404` for something that does not exist, `409` for a slot or state that does not allow the change, `422` when the host's calendar is not connected, `400` for a malformed request. A `502` means Keebai could not reach the scheduling service; retry with the same `Idempotency-Key`.
 
 `401`, `403`, and `429` work as on the rest of the API. Branch on `error.code`, not on the message: some messages are in Spanish, the codes are not.
 

@@ -63,7 +63,10 @@ Returns [the meeting](/dev/endpoints/meet-meeting-get) with the new `start`, `en
 
 ### 404 Not Found
 
-`MEETING_NOT_FOUND`: the meeting does not exist or belongs to another company.
+| Code | When |
+|---|---|
+| `MEETING_NOT_FOUND` | The meeting does not exist or belongs to another company. |
+| `MEETING_TYPE_NOT_FOUND` | The meeting type was deleted, so the meeting cannot be moved. Book a new one with another type. |
 
 ### 409 Conflict
 
@@ -72,6 +75,11 @@ Returns [the meeting](/dev/endpoints/meet-meeting-get) with the new `start`, `en
 | `SLOT_NOT_AVAILABLE` | The new slot is taken. Query availability again. |
 | `NO_HOST_AVAILABLE` | No host can take the new slot. |
 | `MEETING_ALREADY_CANCELLED` | A cancelled meeting cannot be moved. Book a new one. |
+| `MEETING_ALREADY_CLOSED` | The meeting was already marked `completed` or `no_show`. Book a new one. |
+
+### 422 Unprocessable Entity
+
+`HOST_CALENDAR_NOT_CONNECTED`: the host who would take the new slot has no calendar connected in Keebai. Someone on your team has to connect it under **Meet › People**.
 
 ### 400 Bad Request · 401 Unauthorized · 403 Forbidden
 

@@ -53,6 +53,7 @@ const meeting = await (
   "type_name": "Demo de 30 minutos",
   "host_user_id": "66c1d2e3f4a5b6c7d8e9f0a2",
   "host_name": "Pedro Rojas",
+  "co_host_user_ids": [],
   "customer": {
     "name": "Lucía Fernández",
     "email": "lucia@empresa.example",
@@ -68,9 +69,10 @@ const meeting = await (
   "source": "agent",
   "created_by": { "kind": "agent", "id": "68a0b1c2d3e4f5a6b7c8d9e0", "name": "Sofía" },
   "reminders": [
-    { "key": "booked", "channel": "whatsapp", "scheduled_at": "2026-11-13T18:02:11.000Z", "status": "sent", "sent_at": "2026-11-13T18:02:12.000Z" },
-    { "key": "24h", "channel": "email", "scheduled_at": "2026-11-15T14:00:00.000Z", "status": "scheduled" },
-    { "key": "1h", "channel": "whatsapp", "scheduled_at": "2026-11-16T13:00:00.000Z", "status": "skipped", "reason": "Sin plantilla aprobada ni correo" }
+    { "key": "booked", "audience": "customer", "channel": "whatsapp", "scheduled_at": "2026-11-13T18:02:11.000Z", "status": "sent", "sent_at": "2026-11-13T18:02:12.000Z" },
+    { "key": "24h", "audience": "customer", "channel": "email", "scheduled_at": "2026-11-15T14:00:00.000Z", "status": "scheduled" },
+    { "key": "1h", "audience": "customer", "channel": "whatsapp", "scheduled_at": "2026-11-16T13:00:00.000Z", "status": "skipped", "reason": "Sin plantilla aprobada ni correo" },
+    { "key": "15m", "audience": "team", "channel": "push", "scheduled_at": "2026-11-16T13:45:00.000Z", "status": "scheduled" }
   ],
   "confirmed_at": "2026-11-14T10:15:00.000Z",
   "created_at": "2026-11-13T18:02:10.000Z",
@@ -82,7 +84,10 @@ const meeting = await (
 |---|---|
 | `status` | `scheduled`, `confirmed`, `rescheduled`, `cancelled`, `completed`, or `no_show`. |
 | `source` | Who booked it: `agent` (a Keebai agent in a conversation), `manual` (your team in the portal), or `public` (this API). |
+| `co_host_user_ids` | The other hosts who attend when the type is `collective`. Empty otherwise. |
 | `created_by` | `kind` is `agent` or `user`, with its id and name. |
+| `reminders[].audience` | `customer` (the customer) or `team` (the host). |
+| `reminders[].channel` | `whatsapp` or `email` for the customer; `push` or `email` for the team. |
 | `reminders[].status` | `scheduled`, `sent`, `failed`, or `skipped`. A `skipped` or `failed` reminder carries a `reason`. |
 | `cancelled_at`, `cancel_reason` | Present once the meeting is cancelled. |
 
