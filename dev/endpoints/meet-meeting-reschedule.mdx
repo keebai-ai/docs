@@ -76,10 +76,20 @@ Returns [the meeting](/dev/endpoints/meet-meeting-get) with the new `start`, `en
 | `NO_HOST_AVAILABLE` | No host can take the new slot. |
 | `MEETING_ALREADY_CANCELLED` | A cancelled meeting cannot be moved. Book a new one. |
 | `MEETING_ALREADY_CLOSED` | The meeting was already marked `completed` or `no_show`. Book a new one. |
+| `MEETING_CHANGED` | The meeting is still being written to the calendar, or another change got there first. Read it again and retry in a few seconds. |
 
 ### 422 Unprocessable Entity
 
 `HOST_CALENDAR_NOT_CONNECTED`: the host who would take the new slot has no calendar connected in Keebai. Someone on your team has to connect it under **Meet › People**.
+
+### 503 Service Unavailable
+
+Retryable: the response carries `error.details.retryable: true` and nothing was written. Retry in a few seconds with the same slot.
+
+| Code | When |
+|---|---|
+| `MEETING_LOCK_UNAVAILABLE` | Another booking or change for the same host is in progress. |
+| `HOST_CALENDAR_UNAVAILABLE` | The host's calendar is connected but could not be read right now. This is not `HOST_CALENDAR_NOT_CONNECTED`, and it does not mean the slot is taken. |
 
 ### 400 Bad Request · 401 Unauthorized · 403 Forbidden
 

@@ -69,7 +69,7 @@ A host's own working hours, time off, and the busy times of their connected cale
 
 Reading a slot does not reserve it. Between your availability call and your booking, someone else can take it, and the booking returns `409 SLOT_NOT_AVAILABLE`. Keebai checks the slot again at booking time for exactly that reason.
 
-On `409`, query availability again and show the new options. Do not retry the same slot.
+On `409 SLOT_NOT_AVAILABLE`, query availability again and show the new options. Do not retry the same slot.
 
 ## Booking
 
@@ -130,8 +130,25 @@ Ids are Mongo `ObjectId`s: meeting types, meetings, hosts (`host_user_id` is the
 | `IDEMPOTENCY_KEY_REQUIRED` | A booking without a valid `Idempotency-Key`. |
 | `IDEMPOTENCY_KEY_IN_PROGRESS` | A retry while the first booking with that key is still running. |
 | `IDEMPOTENCY_KEY_MISMATCH` | A key reused with a different body. |
+| `MEETING_CHANGED` | `409`: rescheduling or cancelling while the meeting is still being written to the calendar, or after another change got there first. Retry in a few seconds. |
+| `MEETING_LOCK_UNAVAILABLE` | `503`, retryable: another booking or change for the same host is in progress. Retry in a few seconds with the same slot. |
+| `HOST_CALENDAR_UNAVAILABLE` | `503`, retryable: the host's calendar is connected but could not be read right now. Retry in a few seconds with the same slot. |
 
-Business errors are always `4xx`: `404` for something that does not exist, `409` for a slot or state that does not allow the change, `422` when the host's calendar is not connected, `400` for a malformed request. A `502` means Keebai could not reach the scheduling service; retry with the same `Idempotency-Key`.
+Business errors are `4xx`: `404` for something that does not exist, `409` for a slot or state that does not allow the change, `422` when the host's calendar is not connected, `400` for a malformed request. `HOST_CALENDAR_NOT_CONNECTED` means there is no calendar to read; `HOST_CALENDAR_UNAVAILABLE` means there is one that failed for a moment.
+
+A `503` with `MEETING_LOCK_UNAVAILABLE` or `HOST_CALENDAR_UNAVAILABLE` carries `error.details.retryable: true`: nothing was written, so retry the same request in a few seconds (a booking with the same `Idempotency-Key`). It does not mean the slot is taken.
+
+```json
+{
+  "error": {
+    "code": "MEETING_LOCK_UNAVAILABLE",
+    "message": "Otra operación está usando la agenda de esta persona; vuelve a intentarlo",
+    "details": { "retryable": true }
+  }
+}
+```
+
+A `502` means Keebai could not reach the scheduling service; retry with the same `Idempotency-Key`.
 
 `401`, `403`, and `429` work as on the rest of the API. Branch on `error.code`, not on the message: some messages are in Spanish, the codes are not.
 

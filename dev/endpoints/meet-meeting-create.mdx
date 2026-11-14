@@ -152,6 +152,15 @@ A missing or invalid `Idempotency-Key` (`IDEMPOTENCY_KEY_REQUIRED`), a `start` w
 
 `HOST_CALENDAR_NOT_CONNECTED`: the host has no calendar connected in Keebai, so the event cannot be created. Someone on your team has to connect it under **Meet › People**.
 
+### 503 Service Unavailable
+
+Retryable: the response carries `error.details.retryable: true` and nothing was written. Retry in a few seconds with the same slot and the same `Idempotency-Key`.
+
+| Code | When |
+|---|---|
+| `MEETING_LOCK_UNAVAILABLE` | Another booking or change for the same host is in progress. |
+| `HOST_CALENDAR_UNAVAILABLE` | The host's calendar is connected but could not be read right now. This is not `HOST_CALENDAR_NOT_CONNECTED`, and it does not mean the slot is taken. |
+
 ### 401 Unauthorized · 403 Forbidden
 
 Same semantics as the rest of the public API.

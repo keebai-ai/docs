@@ -86,6 +86,7 @@ Returns [the meeting](/dev/endpoints/meet-meeting-get) with `status: "cancelled"
 |---|---|
 | `MEETING_ALREADY_CANCELLED` | The meeting was already cancelled. |
 | `MEETING_ALREADY_CLOSED` | The meeting was already marked `completed` or `no_show`, so it cannot be cancelled. |
+| `MEETING_CHANGED` | The meeting is still being written to the calendar (it was just booked or moved), or another change got there first. Retry in a few seconds. |
 
 ### 401 Unauthorized · 403 Forbidden
 
