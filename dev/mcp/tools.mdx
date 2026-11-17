@@ -191,7 +191,8 @@ Points, stamps, and wallet cards. See the [loyalty overview](/dev/loyalty/overvi
 | `keebai_loyalty_membership_enroll` | `loyalty:write` | Enroll a customer. The details are copied as given and never re-resolved; a repeat enrollment conflicts rather than duplicating. |
 | `keebai_loyalty_ledger_list` | `loyalty:read` | Movement history of a membership, newest first, each entry with the balance it produced. |
 | ⚠️ `keebai_loyalty_ledger_record` | `loyalty:write` | Move a balance — earn, redeem, or adjust. Updates the card in the customer's wallet. Not idempotent. |
-| `keebai_loyalty_membership_upgrade` | `loyalty:write` | Hand a full stamps card in for a membership in the program it upgrades to. The card goes to 0 stamps and `consumed`. Returns 409 while the card is not full. |
+| `keebai_loyalty_membership_upgrade` | `loyalty:write` | Hand a full stamps card in for a membership in the program it upgrades to. The old card is deleted; the wallet card turns into the new program's card, or is voided if the customer already had one. Returns 409 while the card is not full. |
+| 🔴 `keebai_loyalty_membership_delete` | `loyalty:write` | Delete a membership and all its movements. The wallet pass is voided on the phone. Permanent. |
 | `keebai_loyalty_pass_issue_google` | `loyalty:write` | Issue the Google Wallet pass and return the save link. Reissuing reuses the existing pass. |
 | `keebai_loyalty_pass_issue_apple_link` | `loyalty:write` | Issue the Apple Wallet pass and return a public download link. |
 | ⚠️ `keebai_loyalty_pass_notify` | `loyalty:write` | Push a message to the customer's phone. A real notification to a real person. |

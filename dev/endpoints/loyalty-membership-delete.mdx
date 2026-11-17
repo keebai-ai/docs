@@ -1,0 +1,57 @@
+---
+title: "DELETE /v1/loyalty/memberships/{id}"
+sidebarTitle: "DELETE loyalty/memberships/{id}"
+description: "Delete a membership for good, with all its movements."
+openapi: "DELETE /v1/loyalty/memberships/{id}"
+---
+
+Deletes a membership permanently, along with its whole ledger. This cannot be undone. To stop a card temporarily and keep its balance, disable it from the portal instead.
+
+The customer's wallet pass is voided. Apple and Google do not let a server remove a pass from a phone, so the card stays in the customer's Wallet marked as voided until they delete it.
+
+## Endpoint
+
+```
+DELETE https://api.keebai.com/v1/loyalty/memberships/{id}
+```
+
+## Required scope
+
+`loyalty:write`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+
+## Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `string` | The membership `ObjectId`. |
+
+## Example request
+
+```bash curl
+curl -X DELETE https://api.keebai.com/v1/loyalty/memberships/6650aaaa1111bbbb2222cccc \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+## Response
+
+### 204 No Content
+
+The membership and its movements were deleted.
+
+### 401 Unauthorized
+
+The token is missing, invalid, revoked, or expired.
+
+### 403 Forbidden
+
+The token does not have the `loyalty:write` scope.
+
+### 404 Not Found
+
+There is no membership with that id in your company.

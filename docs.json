@@ -579,7 +579,8 @@
               "dev/endpoints/loyalty-memberships-list",
               "dev/endpoints/loyalty-membership-get",
               "dev/endpoints/loyalty-membership-enroll",
-              "dev/endpoints/loyalty-membership-upgrade"
+              "dev/endpoints/loyalty-membership-upgrade",
+              "dev/endpoints/loyalty-membership-delete"
             ]
           },
           {
