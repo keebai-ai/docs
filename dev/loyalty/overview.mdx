@@ -32,7 +32,7 @@ A program has many memberships and many template versions. A membership has many
 | Type | What accrues | Typical shape |
 |---|---|---|
 | `points` | `balance_points`, by an amount you choose per movement | Spend-based: your POS converts a purchase into points. |
-| `stamps` | `stamps_count`, normally one at a time | Coffee-card: ten stamps, one free. `rules.stamps.reward` describes the prize. |
+| `stamps` | `stamps_count`, normally one at a time | Coffee-card: ten stamps, one free. `rules.stamps.reward` describes the prize. With `rules.stamps.value_per_stamp`, each stamp is worth money, such as cashback per visit, and `{{stampsValue}}` shows the total on the card. With `rules.stamps.upgrades_to_program_id`, a full card can be [exchanged for another program](/dev/endpoints/loyalty-membership-upgrade). |
 | `tiers` | `balance_points`, plus a `tier` recomputed against the thresholds | Loyalty levels: bronze, silver, gold. |
 
 The program decides which metric a movement touches. You never pass a metric — `POST .../ledger` on a stamps program moves stamps, on a points program moves points.
