@@ -534,6 +534,7 @@
             "group": "Sales",
             "pages": [
               "dev/endpoints/ecommerce-sales-list",
+              "dev/endpoints/ecommerce-sales-summary",
               "dev/endpoints/ecommerce-sale-get",
               "dev/endpoints/ecommerce-sales-create"
             ]
