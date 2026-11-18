@@ -42,7 +42,7 @@ A cart is **not** the draft of a sale. They are separate records with no foreign
 | `ecommerce:sales:read` | [List](/dev/endpoints/ecommerce-sales-list) and [read](/dev/endpoints/ecommerce-sale-get) sales. |
 | `ecommerce:sales:write` | [Create sales](/dev/endpoints/ecommerce-sales-create) and internal consumptions. |
 | `ecommerce:stock:read` | [Read stock](/dev/endpoints/ecommerce-product-stock) and [stock movements](/dev/endpoints/ecommerce-stock-movements). |
-| `ecommerce:stock:write` | [Adjust](/dev/endpoints/ecommerce-stock-adjust) and [transfer](/dev/endpoints/ecommerce-stock-transfer) stock. |
+| `ecommerce:stock:write` | [Adjust](/dev/endpoints/ecommerce-stock-adjust) and [transfer](/dev/endpoints/ecommerce-stock-transfer) stock, and [link branches](/dev/endpoints/ecommerce-stock-branch-links) that share it. |
 | `ecommerce:invoicing:read` | [Read the issuable DTE documents](/dev/endpoints/ecommerce-invoicing-types), [a sale's documents](/dev/endpoints/ecommerce-sale-documents), and [their PDF](/dev/endpoints/ecommerce-invoicing-document-pdf). |
 | `ecommerce:invoicing:issue` | [Issue a sale's DTE](/dev/endpoints/ecommerce-sale-dte-issue). |
 
@@ -73,6 +73,7 @@ A variant's stock has one **master total**. Part of it is **allocated** to branc
 |---|---|---|
 | Adjust | Changes it: a positive `delta` is an entry, a negative one an exit. | [`POST .../stock/adjust`](/dev/endpoints/ecommerce-stock-adjust) |
 | Transfer | None. Units only move between the warehouse and branches. | [`POST .../stock/transfer`](/dev/endpoints/ecommerce-stock-transfer) |
+| Link branches | None. Linked branches sell from a source branch's stock. | [`PUT .../stock/branch-links`](/dev/endpoints/ecommerce-stock-branch-links) |
 | Sale | Deducts from the sale's branch. | [`POST /v1/ecommerce/sales`](/dev/endpoints/ecommerce-sales-create) |
 
 Every change leaves an entry in [the stock movements](/dev/endpoints/ecommerce-stock-movements), and adjustments are synced to the stores you have connected. To find the `product_id` and `variant_id` from a scanned code, use [`GET /v1/ecommerce/products/search`](/dev/endpoints/ecommerce-products-find).

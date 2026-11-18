@@ -79,7 +79,8 @@ variants = resp.json()["variants"]
         { "branch_id": "br_02", "quantity": 3 }
       ]
     }
-  ]
+  ],
+  "links": []
 }
 ```
 
@@ -92,6 +93,7 @@ variants = resp.json()["variants"]
 | `variants[].allocated` | `number` | Part of the total assigned to branches. |
 | `variants[].warehouse_available` | `number` | Part of the total still in the warehouse. |
 | `variants[].branches` | `object[]` | Stock per branch: `branch_id` and `quantity`. |
+| `links` | `object[]` | Branches that sell this product from another branch's stock: `branch_id` and its `source_branch_id`. See [linking branches](/dev/endpoints/ecommerce-stock-branch-links). |
 
 ### 401 Unauthorized
 

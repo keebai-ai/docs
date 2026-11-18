@@ -1,0 +1,60 @@
+---
+title: "DELETE /v1/ecommerce/products/:id/stock/branch-links/:branch_id"
+sidebarTitle: "DELETE ecommerce/.../stock/branch-links/:branch_id"
+description: "Stop a branch from selling a product from its source branch's stock."
+openapi: "DELETE /v1/ecommerce/products/{id}/stock/branch-links/{branch_id}"
+---
+
+Unlinks one branch that [sells from another branch's stock](/dev/endpoints/ecommerce-stock-branch-links). From then on it sells this product only from its own stock, which starts at `0`: [transfer](/dev/endpoints/ecommerce-stock-transfer) units to it if it needs them.
+
+## Endpoint
+
+```
+DELETE https://api.keebai.com/v1/ecommerce/products/{id}/stock/branch-links/{branch_id}
+```
+
+## Required scope
+
+`ecommerce:stock:write`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+
+## Path parameters
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `id` | `string` | Yes | `ObjectId` of the product. |
+| `branch_id` | `string` | Yes | The linked branch to unlink. |
+
+## Example request
+
+```bash curl
+curl -X DELETE https://api.keebai.com/v1/ecommerce/products/65d3e4f5a6b7c8d9e0f1a2b3/stock/branch-links/br_02 \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+## Response
+
+### 200 OK
+
+The product's stock after unlinking, in the same shape as [`GET /v1/ecommerce/products/{id}/stock`](/dev/endpoints/ecommerce-product-stock).
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `ecommerce:stock:write` scope.
+
+### 404 Not Found
+
+No product with that id, or `STOCK_BRANCH_LINK_NOT_FOUND`: the branch was not linked for this product.
+
+### 502 Bad Gateway
+
+`ECOMMERCE_UPSTREAM_ERROR` — the ecommerce service could not answer.

@@ -1,0 +1,149 @@
+---
+title: "PUT /v1/ecommerce/products/:id/stock/branch-links"
+sidebarTitle: "PUT ecommerce/.../stock/branch-links"
+description: "Make branches sell a product from the stock of another branch, for branches that are one physical store."
+openapi: "PUT /v1/ecommerce/products/{id}/stock/branch-links"
+---
+
+Links branches to a **source branch** for one product: the branches in `branch_ids` sell it from the source's stock. Use it when two or more branches in Keebai are one physical store, such as a barbershop and a salon under the same roof.
+
+Links are per product, so the same company can have independent pairs: a source with its linked branches in one store, and another source with its own in a second store.
+
+## Endpoint
+
+```
+PUT https://api.keebai.com/v1/ecommerce/products/{id}/stock/branch-links
+```
+
+## Required scope
+
+`ecommerce:stock:write`
+
+<Note>
+  **The scope comes from your role.** Minting a token with `ecommerce:stock:write` requires the permission to adjust and transfer stock in your Keebai role, unless you are the company owner or a superuser. See [scopes](/dev/scopes#scopes-are-independent-from-role-permissions).
+</Note>
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+| `Content-Type` | Yes | `application/json` |
+
+## Path parameters
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `id` | `string` | Yes | `ObjectId` of the product. |
+
+## Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `source_branch_id` | `string` | Yes | Branch whose stock the others sell from. |
+| `branch_ids` | `string[]` | Yes | Branches that sell from the source. Replaces the branches linked to that source; an empty list unlinks them all. Up to 50. |
+
+### What linking does
+
+- **The linked branch's stock moves to the source.** Whatever the branch held of this product goes to the source branch, with a `transfer` entry in [the stock movements](/dev/endpoints/ecommerce-stock-movements). The total does not change.
+- **Sales from a linked branch take from the source.** The sale's movement keeps the branch that sold, and the units come off the source's stock. Connected stores are updated from the source branch.
+- **A linked branch has no stock of its own.** It takes no [transfers](/dev/endpoints/ecommerce-stock-transfer) or [adjustments](/dev/endpoints/ecommerce-stock-adjust); make them on the source.
+- **No chains.** A linked branch cannot be a source, and a source cannot be linked to another branch.
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -X PUT https://api.keebai.com/v1/ecommerce/products/65d3e4f5a6b7c8d9e0f1a2b3/stock/branch-links \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source_branch_id": "br_01",
+    "branch_ids": ["br_02"]
+  }'
+```
+
+```js JavaScript
+const response = await fetch(
+  `https://api.keebai.com/v1/ecommerce/products/${productId}/stock/branch-links`,
+  {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ source_branch_id: "br_01", branch_ids: ["br_02"] }),
+  },
+);
+const stock = await response.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.put(
+    f"https://api.keebai.com/v1/ecommerce/products/{product_id}/stock/branch-links",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    json={"source_branch_id": "br_01", "branch_ids": ["br_02"]},
+    timeout=10,
+)
+resp.raise_for_status()
+stock = resp.json()
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+The product's stock after linking, in the same shape as [`GET /v1/ecommerce/products/{id}/stock`](/dev/endpoints/ecommerce-product-stock), with the links in `links`.
+
+```json
+{
+  "product_id": "65d3e4f5a6b7c8d9e0f1a2b3",
+  "variants": [
+    {
+      "variant_id": null,
+      "name": "Matte Pomade 100 g",
+      "total": 7,
+      "allocated": 7,
+      "warehouse_available": 0,
+      "branches": [{ "branch_id": "br_01", "quantity": 7 }]
+    }
+  ],
+  "links": [{ "branch_id": "br_02", "source_branch_id": "br_01" }]
+}
+```
+
+### 400 Bad Request
+
+The body does not match the schema, or one of these:
+
+| `code` | Meaning |
+|---|---|
+| `STOCK_BRANCH_LINK_SELF` | `branch_ids` includes the source branch. |
+| `STOCK_BRANCH_LINK_SOURCE_LINKED` | The source branch already sells from another branch. |
+| `STOCK_BRANCH_LINK_TARGET_IS_SOURCE` | One of `branch_ids` is the source of other branches. |
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `ecommerce:stock:write` scope.
+
+### 404 Not Found
+
+No product with that id, or it belongs to a different company.
+
+### 502 Bad Gateway
+
+`ECOMMERCE_UPSTREAM_ERROR` — the ecommerce service could not answer.
+
+## Operational notes
+
+- **Sending the same set again changes nothing.** The call replaces the branches of that source, so a retry is safe.
+- **To unlink one branch**, use [`DELETE .../stock/branch-links/{branch_id}`](/dev/endpoints/ecommerce-stock-branch-unlink), or send the source again without it.

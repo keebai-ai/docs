@@ -520,7 +520,9 @@
               "dev/endpoints/ecommerce-product-stock",
               "dev/endpoints/ecommerce-stock-movements",
               "dev/endpoints/ecommerce-stock-adjust",
-              "dev/endpoints/ecommerce-stock-transfer"
+              "dev/endpoints/ecommerce-stock-transfer",
+              "dev/endpoints/ecommerce-stock-branch-links",
+              "dev/endpoints/ecommerce-stock-branch-unlink"
             ]
           },
           {
