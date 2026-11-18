@@ -65,7 +65,7 @@ Every value of `message.type`, and which channels can deliver it:
 
 A combination outside this table fails with `422 MESSAGE_TYPE_NOT_SUPPORTED_FOR_CHANNEL`, and the response lists the types that channel does accept. WhatsApp QR flattens `buttons` and `list` into a plain text message — the options are rendered as text, not as tappable controls.
 
-For media, `link` and `media_id` are mutually exclusive: exactly one is required. Upload a file with `POST /v1/media/upload` to get a `media_id`.
+For media, `link` and `media_id` are mutually exclusive: exactly one is required. Upload a file with `POST /v1/media` to get a `media_id`.
 
 ## Example requests
 
@@ -208,7 +208,7 @@ Copy any of these into the `message` field. The envelope (`channel`, `to`, …) 
 ```json
 { "type": "image", "link": "https://cdn.example.com/promo.png", "caption": "Promo de marzo" }
 ```
-Swap `link` for `media_id` to use a file uploaded through `POST /v1/media/upload`. Exactly one of the two.
+Swap `link` for `media_id` to use a file uploaded through `POST /v1/media`. Exactly one of the two.
 </Accordion>
 
 <Accordion title="video">

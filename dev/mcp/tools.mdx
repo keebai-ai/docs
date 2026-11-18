@@ -112,7 +112,7 @@ Everything under [`/v1/messages`](/dev/messaging/overview). Every send tool take
 
 ## Email
 
-Send an email to a list from the company sender. See [`POST /v1/email/send`](/dev/endpoints/email-send) for the full field reference.
+Send an email to a list from the company sender. See [`POST /v1/email/sends`](/dev/endpoints/email-send) for the full field reference.
 
 | Tool | Scope | What it does |
 |---|---|---|
@@ -142,7 +142,7 @@ In-chat forms. See the [Flows guide](/dev/messaging/flows) for the full lifecycl
 | 🔴 `keebai_media_delete` | `messages:send` | Delete an uploaded media. Messages already sent with it are unaffected. |
 
 <Note>
-  Uploading and downloading the binary itself is REST-only — `POST /v1/media/upload` is multipart and `GET /v1/media/{id}/download` returns raw bytes, and neither fits a JSON tool call.
+  Uploading and downloading the binary itself is REST-only — `POST /v1/media` is multipart and `GET /v1/media/{id}/download` returns raw bytes, and neither fits a JSON tool call.
 </Note>
 
 ## Ecommerce
@@ -318,7 +318,7 @@ Read and write the configuration of the agents themselves: their goal, the [sect
 
 WhatsApp templates, channels, webhooks, tenants, and setup links have no MCP tools yet. Use the [REST API](/dev/overview) for those.
 
-[CRM events](/dev/crm/events) are not tools either, and that one is on purpose rather than pending. Emitting an event is a system-of-record write from a system that *knows* something happened — an order closed, a delivery completed. A model deciding to emit one is a model asserting a fact it cannot verify. Call [`POST /v1/webhook/events`](/dev/endpoints/crm-events-emit) from the system that owns the fact.
+[CRM events](/dev/crm/events) are not tools either, and that one is on purpose rather than pending. Emitting an event is a system-of-record write from a system that *knows* something happened — an order closed, a delivery completed. A model deciding to emit one is a model asserting a fact it cannot verify. Call [`POST /v1/crm/events`](/dev/endpoints/crm-events-emit) from the system that owns the fact.
 
 <Note>
   Keebai's own agents *can* emit events, through an internal tool gated by an `ai_triggerable` flag you set per event type in the portal. That flag defaults to off and does not apply to this MCP server, which is your agent talking to the API, not Keebai's agent talking to itself.

@@ -136,7 +136,7 @@ Both involve HTTP and both are about things happening, so they are easy to confu
 | | CRM events | [Outbound webhooks](/dev/webhooks/overview) |
 |---|---|---|
 | Direction | You → Keebai | Keebai → you |
-| Endpoint | `POST /v1/webhook/events` | Your URL, registered at `/v1/webhooks` |
+| Endpoint | `POST /v1/crm/events` | Your URL, registered at `/v1/webhooks` |
 | Purpose | Record history onto a ticket | Notify your systems of a change |
 | Scope | `crm:events:write` | `webhooks:read` / `webhooks:manage` |
 

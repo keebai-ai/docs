@@ -144,7 +144,7 @@ CRM writes are not inert. Each one can trigger work you should know about before
 
 The CRM endpoints draw from the shared [per-project quota](/dev/rate-limits) — 60 a minute, 200 an hour, 1,000 a day across every endpoint of the public API.
 
-The one exception is [`POST /v1/webhook/events`](/dev/endpoints/crm-events-emit), which carries a far higher allowance of its own (300 a minute, 50,000 a day) because an ingest is not interactive traffic.
+The one exception is [`POST /v1/crm/events`](/dev/endpoints/crm-events-emit), which carries a far higher allowance of its own (300 a minute, 50,000 a day) because an ingest is not interactive traffic.
 
 If you are syncing a CRM with tens of thousands of records, the daily cap is the binding constraint. Prefer [outbound webhooks](/dev/webhooks/overview) over polling, and email support before you start rather than after the first `429`.
 

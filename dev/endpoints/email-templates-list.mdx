@@ -5,7 +5,7 @@ description: "List the active email templates designed in the Keebai portal."
 openapi: "GET /v1/email/templates"
 ---
 
-Returns the email templates your team designed in the portal. Pass a template's `id` as `template_id` in [`POST /v1/email/send`](/dev/endpoints/email-send) to send it instead of a plain subject and body.
+Returns the email templates your team designed in the portal. Pass a template's `id` as `template_id` in [`POST /v1/email/sends`](/dev/endpoints/email-send) to send it instead of a plain subject and body.
 
 These are email templates, not WhatsApp templates. The WhatsApp catalog is [`GET /v1/templates`](/dev/endpoints/templates-list).
 

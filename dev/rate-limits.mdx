@@ -50,7 +50,7 @@ One route is sized for machine traffic rather than interactive use and carries i
 
 | Route | Per minute | Per hour | Per day |
 |---|---|---|---|
-| [`POST /v1/webhook/events`](/dev/endpoints/crm-events-emit) | 300 | 5,000 | 50,000 |
+| [`POST /v1/crm/events`](/dev/endpoints/crm-events-emit) | 300 | 5,000 | 50,000 |
 
 Still per project, and still shared across every token in that project. The reasoning is the shape of the traffic: an ingest fed by a POS or an ERP produces a steady stream of small writes all day, and the 1,000-a-day ceiling would be gone before lunch.
 
