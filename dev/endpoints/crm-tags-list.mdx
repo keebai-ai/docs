@@ -7,7 +7,7 @@ openapi: "GET /v1/crm/tags"
 
 Returns a paginated list of the tags defined in your company, sorted by name. Results cover the whole **company**, not just the project your token belongs to — see [Tenancy is implicit](/dev/crm/overview#tenancy-is-implicit).
 
-Every tag has a **scope**: `ticket` tags label pipeline tickets, and `client` tags label customers and contacts. A tag's `_id` is what you send in a ticket's or customer's `tags` array.
+Every tag has a **scope**: `ticket` tags label pipeline tickets, and `client` tags label customers and contacts. A tag's `_id` is what you send in a customer's `tags` array or in a [ticket update](/dev/endpoints/crm-ticket-update)'s `tag_ids`, `add_tag_ids`, and `remove_tag_ids`.
 
 ## Endpoint
 

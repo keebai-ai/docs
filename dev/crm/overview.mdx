@@ -25,7 +25,7 @@ The CRM surface exposes the core entities of Keebai's customer relationship data
     A label from the company's catalog. `ticket` tags go on tickets and `client` tags on customers and contacts, which reference them by id. Tags can be grouped in categories; in an exclusive category a record carries at most one of its tags.
   </Card>
   <Card title="Events" icon="bolt" href="/dev/crm/events">
-    Something that happened to a contact, appended to their ticket's timeline. Unlike the four above, events are **append-only** and their payload is validated against the fields their type declares.
+    Something that happened to a contact, appended to their ticket's timeline. Unlike the records above, events are **append-only** and their payload is validated against the fields their type declares.
   </Card>
   <Card title="Custom fields" icon="input-text" href="/dev/crm/events#fields-compose-the-payload">
     Tickets and customers both carry a `custom_fields` object. The same field definitions compose the payload of an event type, which is how an event's values end up on the ticket.
