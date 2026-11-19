@@ -9,6 +9,8 @@ Creates a new appointment. The appointment lands in `pending` state and must be 
 
 The customer (`customer`) is embedded in the body — you don't need to create a Customer beforehand. If the service defines `duration_minutes`, you can omit `end_time` and Keebai will compute it from `start_time + duration`.
 
+The same endpoint also books a multi-service [package](/dev/endpoints/scheduling-packages-list) in one call: pass `package_id` and a `services[]` entry per package item instead of `service_id` + `start_time`. Keebai creates one pending appointment per item, shares a `booking_group_id` across them, and splits the package price proportionally over each appointment. The `Idempotency-Key` header applies to the whole group.
+
 ## Endpoint
 
 ```
@@ -26,12 +28,12 @@ POST https://api.keebai.com/v1/scheduling/appointments
 | `Authorization` | Yes | `Bearer kbai_pk_<token>` |
 | `Content-Type` | Yes | `application/json` |
 
-## Body
+## Body — single service
 
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `branch_id` | `string` | Yes | Branch where the appointment is booked. |
-| `service_id` | `string` | Yes | Service to deliver. |
+| `service_id` | `string` | Yes, unless `package_id` | Service to deliver. Mutually exclusive with `package_id`. |
 | `professional_id` | `string` | No | Assigned professional. If omitted, scheduling picks an available one. |
 | `date` | `string` | Yes | Date (`YYYY-MM-DD`). |
 | `start_time` | `string` | Yes | Start time (`HH:mm`) in the branch's tz. |
@@ -43,6 +45,18 @@ POST https://api.keebai.com/v1/scheduling/appointments
 | `notes` | `string` | No | Internal notes (max 1000 characters). |
 | `price` | `number` | No | Appointment-specific fee. Overrides the service price. |
 | `currency` | `string` | No | ISO 4217 currency (`CLP`, `USD`, etc.). |
+
+## Body — package booking
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `branch_id` | `string` | Yes | Branch where the package books. |
+| `package_id` | `string` | Yes | Package id (see [GET packages](/dev/endpoints/scheduling-packages-list)). |
+| `services[].service_id` | `string` | Yes | Must match the package's item at the same position. |
+| `services[].date` | `string` | Yes | `YYYY-MM-DD`. In `simultaneous` mode every entry shares the same date. |
+| `services[].start_time` | `string` | Yes | `HH:mm` in the branch's tz. In `simultaneous` mode every entry shares the same start. |
+| `services[].professional_id` | `string` | No | Pin a professional for this position. If omitted, scheduling assigns one, keeping every position on a distinct professional in `simultaneous`. |
+| `customer.*` | — | same as single-service | |
 
 ## Example request
 
@@ -117,6 +131,8 @@ appointment = resp.json()
 ### 201 Created
 
 Returns the freshly created appointment with its `_id` and `status: "pending"`. Shape identical to the body of [`GET /appointments/:id`](/dev/endpoints/scheduling-appointment-get).
+
+A package booking returns the whole group — `{ group_id, customer, branch, appointments: [...] }` — with one appointment per item. Each appointment in `appointments[]` carries its own `_id` and a `package: { id, name, mode }` reference pointing back at the package it belongs to.
 
 ### 400 Bad Request
 

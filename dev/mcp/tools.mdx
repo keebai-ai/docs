@@ -224,17 +224,19 @@ Branches, services, professionals, availability, and appointments. See the [sche
 | `keebai_scheduling_branch_get` | `scheduling:branches:read` | One branch with its address, contact details, and timezone. |
 | `keebai_scheduling_services_list` | `scheduling:services:read` | List services with duration and price, filtered by branch, status, or name. Every availability query needs a service id from here. |
 | `keebai_scheduling_service_get` | `scheduling:services:read` | One service with its duration, slot interval, price, and branches. |
+| `keebai_scheduling_packages_list` | `scheduling:services:read` | List multi-service packages (combos booked in one reservation with one price), filtered by branch, status, or name. |
+| `keebai_scheduling_package_get` | `scheduling:services:read` | One package with its items, mode, price, branches, and settings. |
 | `keebai_scheduling_professionals_list` | `scheduling:professionals:read` | List professionals, filtered by branch, service, status, or name. |
 | `keebai_scheduling_professional_get` | `scheduling:professionals:read` | One professional with specialties and branches. |
-| `keebai_scheduling_availability_by_date` | `scheduling:availability:read` | Free slots for a service on one day, grouped by professional. |
-| `keebai_scheduling_availability_range` | `scheduling:availability:read` | Free slots day by day between `from` and `to`, at most 14 days. |
+| `keebai_scheduling_availability_by_date` | `scheduling:availability:read` | Free slots on one day, for a service (grouped by professional) or a package (each slot with every service-professional-time link). |
+| `keebai_scheduling_availability_range` | `scheduling:availability:read` | Free slots day by day between `from` and `to`, at most 14 days, for a service or a package. |
 | `keebai_scheduling_availability_next` | `scheduling:availability:read` | The soonest free slots for a service, up to `limit` per professional. |
-| `keebai_scheduling_appointment_get` | `scheduling:appointments:read` | One appointment by id. |
-| ⚠️ `keebai_scheduling_appointment_create` | `scheduling:appointments:create` | Book a slot with the customer embedded. Lands in `pending`, and already occupies the slot. |
+| `keebai_scheduling_appointment_get` | `scheduling:appointments:read` | One appointment by id. Carries `package` when the appointment was booked through a package. |
+| ⚠️ `keebai_scheduling_appointment_create` | `scheduling:appointments:create` | Book a slot. Either one service (`service_id` + `start_time`) or a whole package (`package_id` + `services[]`, one entry per package item). A package booking creates one pending appointment per item under one `booking_group_id`. |
 | ⚠️ `keebai_scheduling_appointment_confirm` | `scheduling:appointments:confirm` | Move a `pending` appointment to `confirmed`. Any other state fails. |
 | ⚠️ `keebai_scheduling_appointment_cancel` | `scheduling:appointments:cancel` | Cancel and release the slot, with an optional reason. |
 
-Arguments keep the REST names: the availability and list tools take `serviceId`, `branchId`, and `professionalId` like the query strings they mirror, while `keebai_scheduling_appointment_create` takes `branch_id`, `service_id`, and `start_time` like the request body. Dates are `YYYY-MM-DD` and times `HH:mm`, both in the branch's timezone. The appointment id is a UUID, not an ObjectId.
+Arguments keep the REST names: the availability and list tools take `serviceId`, `branchId`, `professionalId`, and `packageId` like the query strings they mirror, while `keebai_scheduling_appointment_create` takes `branch_id`, `service_id` or `package_id`, and `start_time` like the request body. Dates are `YYYY-MM-DD` and times `HH:mm`, both in the branch's timezone. The appointment id is a UUID, not an ObjectId.
 
 <Warning>
   Tools marked ⚠️ reach the customer. Creating, confirming, or cancelling fires the [scheduling webhooks](/dev/webhooks/events#scheduling), the CRM event on the contact's timeline, and the reminder and confirmation notifications the account has configured.

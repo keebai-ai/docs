@@ -1,0 +1,66 @@
+---
+title: "GET /v1/scheduling/packages/:id"
+sidebarTitle: "GET packages/:id"
+description: "Fetch one multi-service package by id, with its items, mode, price, branches, and settings."
+openapi: "GET /v1/scheduling/packages/{id}"
+---
+
+Returns the requested package as long as it belongs to the PAT's tenant. The response is the same shape as one entry of [`GET /v1/scheduling/packages`](/dev/endpoints/scheduling-packages-list).
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/scheduling/packages/:id
+```
+
+## Required scope
+
+`scheduling:services:read`
+
+## Path params
+
+| Param | Type | Description |
+|---|---|---|
+| `id` | `string` | Package id. |
+
+## Example request
+
+```bash
+curl https://api.keebai.com/v1/scheduling/packages/66d1c2d3e4f5a6b7c8d9e0f1 \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "id": "66d1c2d3e4f5a6b7c8d9e0f1",
+  "name": "Bronceado + Masaje",
+  "mode": "simultaneous",
+  "duration_minutes": 90,
+  "price": { "amount": 45000, "currency": "CLP" },
+  "services_total": 60000,
+  "branches": ["65a1f2b3c4d5e6f7a8b9c0d1"],
+  "items": [
+    { "service_id": "65b1...", "name": "Bronceado", "duration_minutes": 60 },
+    { "service_id": "65b2...", "name": "Masaje",    "duration_minutes": 90 }
+  ],
+  "settings": {
+    "allow_online_booking": true,
+    "show_price": true,
+    "requires_confirmation": false,
+    "allow_online_payment": false
+  },
+  "status": "active"
+}
+```
+
+### 404 Not Found
+
+The package doesn't exist or belongs to another company.
+
+### 401 Unauthorized · 403 Forbidden
+
+Same semantics as the rest of the public API.

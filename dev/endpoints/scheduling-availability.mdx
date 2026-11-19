@@ -21,10 +21,12 @@ GET https://api.keebai.com/v1/scheduling/availability
 
 | Param | Type | Required | Description |
 |---|---|---|---|
-| `serviceId` | `string` | Yes | Service to book. Defines slot duration and restrictions. |
+| `serviceId` | `string` | Yes, unless `packageId` | Service to book. Defines slot duration and restrictions. Mutually exclusive with `packageId`. |
+| `packageId` | `string` | Yes, unless `serviceId` | Multi-service package id (see [GET packages](/dev/endpoints/scheduling-packages-list)). The slot covers every service in the package. When `packageId` is passed, `serviceId` must be omitted. |
 | `date` | `string` | Yes | Date in `YYYY-MM-DD` format. If earlier than today in the branch's tz, returns `results: []`. |
 | `branchId` | `string` | No | Branch. If omitted, the tenant's first branch is used. |
-| `professionalId` | `string` | No | Restrict the computation to a specific professional. |
+| `professionalId` | `string` | No | Restrict the computation to a specific professional. Ignored with `packageId`. |
+| `chainProfessionalIds` | `string` | No | Comma-separated professionals pinned by position over the package items. An empty slot (e.g. `pro-a,,pro-b`) is "first available for that position". Only valid with `packageId`. |
 
 ## Example request
 
@@ -72,7 +74,7 @@ results = resp.json()["results"]
 
 ## Response
 
-### 200 OK
+### 200 OK — single service
 
 ```json
 {
@@ -95,6 +97,31 @@ results = resp.json()["results"]
 |---|---|---|
 | `results[].id` | `string` | Professional id. |
 | `results[].timeSlots[].time` | `string` | Slot start time (`HH:mm`) in the branch's tz. |
+
+### 200 OK — package
+
+When the query carries `packageId`, the response is a flat list of slots. Each slot is one bookable combination — a start time plus the professional assigned to each service of the package, in the same order the package declares them.
+
+```json
+{
+  "slots": [
+    {
+      "date": "2026-05-02",
+      "start_time": "10:00",
+      "end_time": "11:30",
+      "links": [
+        { "service_id": "65b1...", "professional_id": "66c1...", "start_time": "10:00", "end_time": "11:00" },
+        { "service_id": "65b2...", "professional_id": "66c2...", "start_time": "10:00", "end_time": "11:30" }
+      ]
+    }
+  ]
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `slots[].start_time` / `end_time` | `string` | Overall span of the reservation in the branch's tz. |
+| `slots[].links[]` | `array` | One entry per package item, in order: the service id, the assigned professional, and the start/end that service occupies. In `simultaneous` mode every link shares the same `start_time`. |
 
 ### 400 Bad Request
 

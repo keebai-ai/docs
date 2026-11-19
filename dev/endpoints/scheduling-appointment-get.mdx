@@ -77,10 +77,12 @@ curl https://api.keebai.com/v1/scheduling/appointments/9d5b1f4e-7c2a-4a4d-9d3e-9
 | `payment_status` | `string` | `pending`, `paid`, `partial`, `refunded`, `cancelled`. |
 | `dates.time_zone` | `string` | Tz of the branch the appointment was booked at. |
 
+An appointment booked as part of a [multi-service package](/dev/endpoints/scheduling-packages-list) also carries a `package: { id, name, mode }` reference pointing back at the package the appointment belongs to. Appointments created outside a package omit the field.
+
 The response is an explicit projection, not the stored record. Commercial and internal
-fields the scheduling service keeps on the appointment — sales and cart links, package
-entitlements, commission snapshots, payment records, reminders, external calendar
-references and recurrence rules — are deliberately not part of the public shape.
+fields the scheduling service keeps on the appointment — sales and cart links, legacy
+prepaid-pack references, commission snapshots, payment records, reminders, external
+calendar references and recurrence rules — are deliberately not part of the public shape.
 
 ### 404 Not Found
 

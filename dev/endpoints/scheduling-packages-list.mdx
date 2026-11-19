@@ -1,0 +1,115 @@
+---
+title: "GET /v1/scheduling/packages"
+sidebarTitle: "GET packages"
+description: "List multi-service packages the tenant offers. Each package books every service in one reservation."
+openapi: "GET /v1/scheduling/packages"
+---
+
+Returns the packages configured for the tenant resolved from the PAT. A package is a combo of catalog services that books in one reservation, with mode `simultaneous` (all services start at the same time, one professional per service) or `sequential` (one after the other). The package carries its own price covering the group — it is not the sum of the individual services.
+
+Services that compose a package still appear on their own through [`GET /v1/scheduling/services`](/dev/endpoints/scheduling-services-list); the package is an additional way to book them together.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/scheduling/packages
+```
+
+## Required scope
+
+`scheduling:services:read`
+
+## Query params
+
+| Param | Type | Default | Description |
+|---|---|---|---|
+| `branchId` | `string` | — | Filter packages offered at a specific branch. |
+| `search` | `string` | — | Full-text search over name. |
+| `status` | `string` | — | Filter by status (`active`, `inactive`). |
+| `skip` | `number` | `0` | Pagination offset. |
+| `limit` | `number` | `50` | Page size (max 200). |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -G https://api.keebai.com/v1/scheduling/packages \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  --data-urlencode "branchId=65a1f2b3c4d5e6f7a8b9c0d1" \
+  --data-urlencode "status=active"
+```
+
+```js JavaScript
+const url = new URL("https://api.keebai.com/v1/scheduling/packages");
+url.searchParams.set("branchId", branchId);
+const { items } = await (
+  await fetch(url, {
+    headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` },
+  })
+).json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.get(
+    "https://api.keebai.com/v1/scheduling/packages",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    params={"branchId": branch_id, "status": "active"},
+    timeout=10,
+)
+resp.raise_for_status()
+packages = resp.json()["items"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "items": [
+    {
+      "id": "66d1c2d3e4f5a6b7c8d9e0f1",
+      "name": "Bronceado + Masaje",
+      "description": "Combo relax",
+      "mode": "simultaneous",
+      "duration_minutes": 90,
+      "price": { "amount": 45000, "currency": "CLP" },
+      "services_total": 60000,
+      "branches": ["65a1f2b3c4d5e6f7a8b9c0d1"],
+      "items": [
+        { "service_id": "65b1...", "name": "Bronceado", "duration_minutes": 60 },
+        { "service_id": "65b2...", "name": "Masaje",    "duration_minutes": 90 }
+      ],
+      "settings": {
+        "allow_online_booking": true,
+        "show_price": true,
+        "requires_confirmation": false,
+        "allow_online_payment": false
+      },
+      "status": "active"
+    }
+  ],
+  "total": 1,
+  "skip": 0,
+  "limit": 50
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | `string` | Package id. Use as `package_id` in availability and when creating appointments. |
+| `mode` | `string` | `simultaneous` or `sequential`. |
+| `duration_minutes` | `number` | Longest service (simultaneous) or sum of services (sequential). |
+| `price` | `object` | Package price `{ amount, currency }`. Absent when `settings.show_price` is false. |
+| `services_total` | `number` | Sum of the component services' prices. Absent when `show_price` is false. |
+| `items[]` | `array` | Component services in order; the booking payload must mirror that order. |
+| `branches` | `string[]` | Branches that offer the package. |
+
+### 401 Unauthorized · 403 Forbidden
+
+Same semantics as the rest of the public API.

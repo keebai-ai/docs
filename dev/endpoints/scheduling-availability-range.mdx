@@ -21,11 +21,13 @@ GET https://api.keebai.com/v1/scheduling/availability/range
 
 | Param | Type | Required | Description |
 |---|---|---|---|
-| `serviceId` | `string` | Yes | Service to book. |
+| `serviceId` | `string` | Yes, unless `packageId` | Service to book. Mutually exclusive with `packageId`. |
+| `packageId` | `string` | Yes, unless `serviceId` | Multi-service package id. See [GET availability](/dev/endpoints/scheduling-availability) for the slot shape. |
 | `from` | `string` | Yes | Start date (`YYYY-MM-DD`). |
 | `to` | `string` | Yes | End date (`YYYY-MM-DD`). Must be `>= from` and span at most 14 days. |
 | `branchId` | `string` | No | Branch. If omitted, the tenant's first branch is used. |
-| `professionalId` | `string` | No | Restrict the computation to a professional. |
+| `professionalId` | `string` | No | Restrict the computation to a professional. Ignored with `packageId`. |
+| `chainProfessionalIds` | `string` | No | Comma-separated professionals pinned by position over the package items. Empty slot = first available. Only valid with `packageId`. |
 
 ## Example request
 
@@ -88,7 +90,9 @@ days = resp.json()["days"]
 }
 ```
 
-Each element of `days` has the same shape as the body of [`GET /availability`](/dev/endpoints/scheduling-availability).
+Each element of `days` has the same shape as the single-service body of [`GET /availability`](/dev/endpoints/scheduling-availability).
+
+With `packageId` the response flattens to one `slots[]` entry per bookable combination across the range (the same shape as the package response in [`GET /availability`](/dev/endpoints/scheduling-availability#200-ok-package)); `days[]` is only populated for single-service queries.
 
 If one of the dates fails individually (upstream timeout or error for that specific day), `results: []` is returned for that date and the rest of the range keeps resolving. The error is logged on Keebai's side.
 

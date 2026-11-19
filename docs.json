@@ -456,6 +456,8 @@
               "dev/endpoints/scheduling-branch-get",
               "dev/endpoints/scheduling-services-list",
               "dev/endpoints/scheduling-service-get",
+              "dev/endpoints/scheduling-packages-list",
+              "dev/endpoints/scheduling-package-get",
               "dev/endpoints/scheduling-professionals-list",
               "dev/endpoints/scheduling-professional-get"
             ]
