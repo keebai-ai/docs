@@ -1,10 +1,10 @@
 ---
 title: "CRM overview"
 sidebarTitle: "Overview"
-description: "Customers, tickets, tasks, and notes over the Keebai public API — data model, implicit tenancy, and pagination."
+description: "Customers, tickets, tasks, notes, and tags over the Keebai public API — data model, implicit tenancy, and pagination."
 ---
 
-The CRM surface exposes the core entities of Keebai's customer relationship data — **customers**, **tickets**, **tasks**, and **notes** — as a plain REST API under `/v1/crm`, plus an **event** ingest that records what happens in your own systems onto a contact's timeline. Every endpoint authenticates with a [Personal Access Token](/dev/api-keys) and is gated by its own [scope](/dev/scopes).
+The CRM surface exposes the core entities of Keebai's customer relationship data — **customers**, **tickets**, **tasks**, **notes**, and the **tag** catalog — as a plain REST API under `/v1/crm`, plus an **event** ingest that records what happens in your own systems onto a contact's timeline. Every endpoint authenticates with a [Personal Access Token](/dev/api-keys) and is gated by its own [scope](/dev/scopes).
 
 ## Data model
 
@@ -20,6 +20,9 @@ The CRM surface exposes the core entities of Keebai's customer relationship data
   </Card>
   <Card title="Notes" icon="note-sticky" href="/dev/endpoints/crm-notes-list">
     A free-text annotation, optionally typed as a call, email, or meeting, and optionally attached to a chat user or a ticket.
+  </Card>
+  <Card title="Tags" icon="tag" href="/dev/endpoints/crm-tags-list">
+    A label from the company's catalog. `ticket` tags go on tickets and `client` tags on customers and contacts, which reference them by id. Tags can be grouped in categories; in an exclusive category a record carries at most one of its tags.
   </Card>
   <Card title="Events" icon="bolt" href="/dev/crm/events">
     Something that happened to a contact, appended to their ticket's timeline. Unlike the four above, events are **append-only** and their payload is validated against the fields their type declares.
@@ -47,6 +50,9 @@ Customers and tickets are separate records that are not linked by a foreign key.
 | `crm:notes:read` | [List](/dev/endpoints/crm-notes-list) and [read](/dev/endpoints/crm-note-get) notes. |
 | `crm:notes:write` | [Create](/dev/endpoints/crm-note-create) and [update](/dev/endpoints/crm-note-update) notes. |
 | `crm:notes:delete` | [Delete notes](/dev/endpoints/crm-note-delete). Permanent. |
+| `crm:tags:read` | [List](/dev/endpoints/crm-tags-list) and [read](/dev/endpoints/crm-tag-get) tags, and [list tag categories](/dev/endpoints/crm-tag-categories-list). |
+| `crm:tags:write` | [Create](/dev/endpoints/crm-tag-create) and [update](/dev/endpoints/crm-tag-update) tags, and [create tag categories](/dev/endpoints/crm-tag-category-create). |
+| `crm:tags:delete` | [Delete tags](/dev/endpoints/crm-tag-delete). Permanent, and removes the tag from every record. |
 | `crm:events:write` | [Emit CRM events](/dev/endpoints/crm-events-emit) onto a contact's timeline. There is no read counterpart on the public API. |
 
 The `delete` scopes are split out on purpose: a sync job that keeps records in step with an external system should be able to create and update without being able to destroy.
@@ -60,7 +66,7 @@ Every CRM record belongs to a company, and most also belong to a project. **You 
 | Field | Source | Applies to |
 |---|---|---|
 | `company` | The company that owns the token | Every CRM record |
-| `project` | The project the token was minted for | Customers, tickets, notes, and the ticket an event opens |
+| `project` | The project the token was minted for | Customers, tickets, notes, tags, tag categories, and the ticket an event opens |
 | `created_by` | The user who owns the token | Notes |
 
 Sending any of these in the request body returns `400 Bad Request` — the public API rejects unknown properties rather than silently ignoring them. This is deliberate: it makes an attempt to write into another tenant fail loudly instead of quietly doing nothing.

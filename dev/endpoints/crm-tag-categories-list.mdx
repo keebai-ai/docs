@@ -1,0 +1,99 @@
+---
+title: "GET /v1/crm/tag-categories"
+sidebarTitle: "GET crm/tag-categories"
+description: "List the categories that group tags."
+openapi: "GET /v1/crm/tag-categories"
+---
+
+Returns every tag category of your company, sorted by `order` and then by name. A category groups tags of one scope — for example **Segment** with `VIP`, `Regular`, and `New`.
+
+A category can be **exclusive**: a ticket or customer carries at most one tag from it. Adding a second tag of an exclusive category to a record replaces the first one.
+
+## Endpoint
+
+```
+GET https://api.keebai.com/v1/crm/tag-categories
+```
+
+## Required scope
+
+`crm:tags:read`
+
+## Headers
+
+| Header | Required | Value |
+|---|---|---|
+| `Authorization` | Yes | `Bearer kbai_pk_<token>` |
+
+## Query parameters
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `scope` | `string` | No | `ticket` or `client`. |
+
+## Example request
+
+<CodeGroup>
+
+```bash curl
+curl -G https://api.keebai.com/v1/crm/tag-categories \
+  -H "Authorization: Bearer kbai_pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  --data-urlencode "scope=ticket"
+```
+
+```js JavaScript
+const response = await fetch(
+  "https://api.keebai.com/v1/crm/tag-categories?scope=ticket",
+  { headers: { Authorization: `Bearer ${process.env.KEEBAI_API_TOKEN}` } },
+);
+const { data } = await response.json();
+```
+
+```python Python
+import os, requests
+
+resp = requests.get(
+    "https://api.keebai.com/v1/crm/tag-categories",
+    headers={"Authorization": f"Bearer {os.environ['KEEBAI_API_TOKEN']}"},
+    params={"scope": "ticket"},
+    timeout=10,
+)
+resp.raise_for_status()
+categories = resp.json()["data"]
+```
+
+</CodeGroup>
+
+## Response
+
+### 200 OK
+
+```json
+{
+  "data": [
+    {
+      "_id": "6720a0f1e2d3c4b5a6978877",
+      "name": "Segmento",
+      "scope": "ticket",
+      "exclusive": true,
+      "order": 0,
+      "created_at": "2026-10-02T12:58:03.114Z",
+      "updated_at": "2026-10-02T12:58:03.114Z"
+    }
+  ]
+}
+```
+
+The list is not paginated.
+
+### 400 Bad Request
+
+A `scope` outside the allowed set, or an unknown query parameter.
+
+### 401 Unauthorized
+
+Missing, invalid, revoked, or expired token.
+
+### 403 Forbidden
+
+The token does not have the `crm:tags:read` scope.

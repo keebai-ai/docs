@@ -119,6 +119,13 @@ Full details in [Webhooks → Overview](/dev/webhooks/overview).
 | `POST` | `/v1/crm/notes` | `crm:notes:write` | [Log a note](/dev/endpoints/crm-note-create), call, email, or meeting. |
 | `PATCH` | `/v1/crm/notes/:id` | `crm:notes:write` | Edit a note's text or type. |
 | `DELETE` | `/v1/crm/notes/:id` | `crm:notes:delete` | Delete a note. |
+| `GET` | `/v1/crm/tags` | `crm:tags:read` | [List the tag catalog](/dev/endpoints/crm-tags-list) by scope, category, or name. |
+| `GET` | `/v1/crm/tags/:id` | `crm:tags:read` | Get a single tag. |
+| `POST` | `/v1/crm/tags` | `crm:tags:write` | [Create a tag](/dev/endpoints/crm-tag-create) for tickets or customers. |
+| `PATCH` | `/v1/crm/tags/:id` | `crm:tags:write` | Rename a tag, change its color, or move it to another category. |
+| `DELETE` | `/v1/crm/tags/:id` | `crm:tags:delete` | Delete a tag and remove it from every record. |
+| `GET` | `/v1/crm/tag-categories` | `crm:tags:read` | [List tag categories](/dev/endpoints/crm-tag-categories-list). |
+| `POST` | `/v1/crm/tag-categories` | `crm:tags:write` | [Create a tag category](/dev/endpoints/crm-tag-category-create), optionally exclusive. |
 | `POST` | `/v1/crm/events` | `crm:events:write` | [Emit a CRM event](/dev/endpoints/crm-events-emit) onto a contact's ticket timeline. |
 
 Full details in [CRM → Overview](/dev/crm/overview). Note that CRM reads span the whole company while writes stay scoped to the token's project.
@@ -173,7 +180,7 @@ Full details in [Loyalty → Overview](/dev/loyalty/overview). Programs and card
     Onboard a new WhatsApp Business channel without the portal.
   </Card>
   <Card title="CRM" icon="address-book" href="/dev/crm/overview">
-    Customers, tickets, tasks, and notes over REST.
+    Customers, tickets, tasks, notes, and tags over REST.
   </Card>
   <Card title="Ecommerce" icon="cart-shopping" href="/dev/ecommerce/overview">
     Read the catalog, carts, and sales, and get a webhook when a sale closes.

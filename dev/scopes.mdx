@@ -87,6 +87,9 @@ The catalog lives in the `api_scopes` MongoDB collection. The portal pulls it vi
 | `crm:notes:read` | crm | [List](/dev/endpoints/crm-notes-list) and [read](/dev/endpoints/crm-note-get) CRM notes. |
 | `crm:notes:write` | crm | [Create](/dev/endpoints/crm-note-create) and [update](/dev/endpoints/crm-note-update) notes. The author is the token's owner. |
 | `crm:notes:delete` | crm | [Delete notes](/dev/endpoints/crm-note-delete). Permanent. |
+| `crm:tags:read` | crm | [List](/dev/endpoints/crm-tags-list) and [read](/dev/endpoints/crm-tag-get) the tag catalog, and [list tag categories](/dev/endpoints/crm-tag-categories-list). |
+| `crm:tags:write` | crm | [Create](/dev/endpoints/crm-tag-create) and [update](/dev/endpoints/crm-tag-update) tags, and [create tag categories](/dev/endpoints/crm-tag-category-create). |
+| `crm:tags:delete` | crm | [Delete tags](/dev/endpoints/crm-tag-delete). Permanent; the tag is removed from every ticket, customer, and contact. |
 | `crm:events:write` | crm | [Emit CRM events](/dev/endpoints/crm-events-emit) onto a contact's timeline. Opens a ticket if the contact has none, and writes the event's values onto the ticket and the contact. No read counterpart. |
 | `ecommerce:products:read` | ecommerce | [List](/dev/endpoints/ecommerce-products-list) and [read](/dev/endpoints/ecommerce-product-get) the product catalog, and [find a product by SKU or barcode](/dev/endpoints/ecommerce-products-find). |
 | `ecommerce:carts:read` | ecommerce | [List](/dev/endpoints/ecommerce-carts-list) and [read](/dev/endpoints/ecommerce-cart-get) carts, including abandoned ones. |
@@ -120,7 +123,7 @@ Each scope's group is stored with it in the `api_scopes` catalog, as `consent_gr
 | Group | Key | Scopes |
 |---|---|---|
 | **Messages and email** | `messages` | `messages:send`, `messages:bulk`, `templates:read`, `templates:create`, `templates:update`, `channels:read`, `channels:connect`, `webhooks:read`, `webhooks:manage`, `flows:read`, `flows:write` |
-| **Customers** | `customers` | `crm:customers:read`, `crm:customers:write`, `crm:customers:delete`, `crm:tickets:read`, `crm:tickets:write`, `crm:tickets:delete`, `crm:tasks:read`, `crm:tasks:write`, `crm:tasks:delete`, `crm:notes:read`, `crm:notes:write`, `crm:notes:delete`, `crm:events:write`, `contacts:read`, `contacts:write`, `contacts:delete`, `loyalty:read`, `loyalty:write` |
+| **Customers** | `customers` | `crm:customers:read`, `crm:customers:write`, `crm:customers:delete`, `crm:tickets:read`, `crm:tickets:write`, `crm:tickets:delete`, `crm:tasks:read`, `crm:tasks:write`, `crm:tasks:delete`, `crm:notes:read`, `crm:notes:write`, `crm:notes:delete`, `crm:tags:read`, `crm:tags:write`, `crm:tags:delete`, `crm:events:write`, `contacts:read`, `contacts:write`, `contacts:delete`, `loyalty:read`, `loyalty:write` |
 | **Calendar** | `scheduling` | `scheduling:branches:read`, `scheduling:sectors:read`, `scheduling:services:read`, `scheduling:professionals:read`, `scheduling:availability:read`, `scheduling:appointments:read`, `scheduling:appointments:create`, `scheduling:appointments:update`, `scheduling:appointments:confirm`, `scheduling:appointments:cancel`, `scheduling:payment-links:create`, `meet:types:read`, `meet:availability:read`, `meet:meetings:read`, `meet:meetings:create`, `meet:meetings:reschedule`, `meet:meetings:cancel` |
 | **Products and sales** | `catalog` | `restaurants:menu:read`, `ecommerce:products:read`, `ecommerce:carts:read`, `ecommerce:sales:read`, `ecommerce:stock:read`, `ecommerce:invoicing:read` |
 | **Sell and invoice** | `commerce` | `ecommerce:carts:write`, `ecommerce:sales:write`, `ecommerce:stock:write`, `ecommerce:invoicing:issue` |

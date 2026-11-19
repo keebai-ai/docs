@@ -24,7 +24,7 @@ Read and write the people on the other side of your channels. See the [Contacts 
 
 ## CRM
 
-The full pipeline: customers, tickets, tasks, notes. See the [CRM overview](/dev/crm/overview) for how the entities relate.
+The full pipeline: customers, tickets, tasks, notes, and the tag catalog. See the [CRM overview](/dev/crm/overview) for how the entities relate.
 
 <Warning>
   CRM reads are **company-wide**. Every `*_list` and `*_get` tool returns records from every project in your company, not just the one the token was minted for.
@@ -70,6 +70,14 @@ The full pipeline: customers, tickets, tasks, notes. See the [CRM overview](/dev
 | `keebai_crm_note_create` | `crm:notes:write` | Create a note. It must attach to a contact or a ticket; neither one fails. |
 | `keebai_crm_note_update` | `crm:notes:write` | Update the body or the type. What it is attached to cannot change. |
 | 🔴 `keebai_crm_note_delete` | `crm:notes:delete` | Delete a note. |
+
+### Tags
+
+| Tool | Scope | What it does |
+|---|---|---|
+| `keebai_crm_tags_list` | `crm:tags:read` | List the tag catalog by scope (`ticket` or `client`), category, or name. Each tag includes its category. |
+| `keebai_crm_tag_create` | `crm:tags:write` | Create a tag. A name that already exists in the same scope fails — list first and reuse it. |
+| `keebai_crm_tag_categories_list` | `crm:tags:read` | List the categories that group tags, including whether each one is exclusive. |
 
 ## Knowledge
 

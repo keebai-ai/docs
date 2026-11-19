@@ -424,6 +424,18 @@
               "dev/endpoints/crm-note-update",
               "dev/endpoints/crm-note-delete"
             ]
+          },
+          {
+            "group": "Tags",
+            "pages": [
+              "dev/endpoints/crm-tags-list",
+              "dev/endpoints/crm-tag-get",
+              "dev/endpoints/crm-tag-create",
+              "dev/endpoints/crm-tag-update",
+              "dev/endpoints/crm-tag-delete",
+              "dev/endpoints/crm-tag-categories-list",
+              "dev/endpoints/crm-tag-category-create"
+            ]
           }
         ]
       },
